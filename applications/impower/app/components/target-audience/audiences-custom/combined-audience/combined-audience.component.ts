@@ -83,6 +83,10 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       mapArray(audience => ({label: audience.audienceName, value: audience})),
     );
 
+    this.appStateService.clearUI$.subscribe(() => {
+      this.resetForm();
+    });
+
     this.combinedAudiences$ = this.store$.select(allAudiences).pipe(
       filter(selectedVars => selectedVars != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
@@ -139,7 +143,6 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       this.isDuplicateName = false;
       if (this.varNames.has(currentName.toLowerCase()) && (this.varNames.get(currentName.toLowerCase()) !== this.audienceName.parent.controls['audienceId'].value)) {
         this.audienceName.setErrors({'isDuplicateName': true});
-        this.isDuplicateName = true;
       }
     });
   }
@@ -185,7 +188,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       this.store$.dispatch(new UpsertAudience({audience: editedAudience}));
     }
     this.currentAudience = '';
-    this.audienceForm.reset();
+    this.resetForm();
   }
 
   resetForm() {

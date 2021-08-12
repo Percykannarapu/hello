@@ -104,6 +104,10 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       tap(filteredVars => this.dependentVars = filteredVars)
     );
 
+    this.appStateService.clearUI$.subscribe(() => {
+      this.resetForm();
+    });
+
     this.compositeAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)));
 
     this.allIndexValues = [
@@ -122,7 +126,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     });
 
     this.appStateService.clearUI$.subscribe(() => {
-      this.compositeForm.reset();
+      this.resetForm();
     });
   }
 
@@ -183,10 +187,10 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       }
       this.currentAudience = [];
       this.indexTypes.clear();
-      this.compositeForm.reset();
     } else {
       this.showError = true;
     }
+    this.resetForm();
   }
 
   addRow(newRow?: any) {
@@ -261,7 +265,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
           const metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
           this.store$.dispatch(new CreateAudienceUsageMetric('composite audience', 'delete', metricText));
-          this.compositeForm.reset();
+          this.resetForm();
         },
         reject: () => {
         }
@@ -271,6 +275,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   resetForm() {
     this.showError = false;
+    this.isDuplicateName = false;
     this.compositeForm.reset();
   }
 

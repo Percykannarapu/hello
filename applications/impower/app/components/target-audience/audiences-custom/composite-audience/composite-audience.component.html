@@ -35,14 +35,14 @@
                             formControlName="selectedAudienceList"></dropdown-input>
           </td>
           <td>
-            <div class="p-mt-2 p-mb-3">
+            <div class="p-mt-5">
               <input formControlName="percent" type="text" pInputText size="5">
             </div>
           </td>
           <td>
             <dropdown-input [options]="allIndexValues" [includeUnselected]="true" formControlName="indexBase"></dropdown-input>
           </td>
-          <td class="p-d-flex p-jc-center">
+          <td class="p-mt-4 p-d-flex p-jc-center">
             <button pButton icon="pi pi-trash" type="button" class="p-button-danger p-button-outlined p-button-raised p-button-rounded p-button-sm"
                     (click)="onRemove(i)"></button>
           </td>
