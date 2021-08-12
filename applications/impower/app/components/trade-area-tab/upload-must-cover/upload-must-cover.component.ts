@@ -311,9 +311,9 @@ export class UploadMustCoverComponent implements OnInit {
 
    rollDownIssuesLog(){
       const records: string[] = [];
-      records.push('Geocode' + '\n');
+      records.push('Geocode');
       this.impGeofootprintGeoService.uploadFailures.forEach(record => {
-            records.push(`${record.geocode}` + '\n');
+            records.push(`${record.geocode}`);
       });
       this.store$.dispatch(new ExportMCIssuesLog({uploadFailures: records}));
     }
