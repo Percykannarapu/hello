@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
 import { SelectItem } from 'primeng/api';
@@ -42,7 +42,8 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   }
   @Input()
   public set currentTradeAreas(value: ImpGeofootprintTradeArea[]) {
-    if (!(value.length === 0 && this._currentTradeAreas.length === 0)) {
+    if (value.length > 0 && this._currentTradeAreas.length == 0){
+  //  if (!(value.length == 0 && this._currentTradeAreas.length == 0)) {
       this._currentTradeAreas = value;
       this.currentTradeAreaCount = this._currentTradeAreas.length;
       this.setupForm();
