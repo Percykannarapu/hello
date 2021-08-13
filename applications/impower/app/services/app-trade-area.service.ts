@@ -76,7 +76,7 @@ export class AppTradeAreaService {
                        this.store$.select(getTypedBatchQueryParams), this.store$.select(getBatchMode)]).pipe(
           //map(([ta]) => ta),
           filter(([ta, , batchMapParams, batchMap]) => (ta != null && !batchMap) || (batchMap && batchMapParams.tradeAreaBoundaries)),
-          map(([ta]) => ta),
+          map(([ta]) => ta.filter(t => t.taType === TradeAreaTypeCodes.Radius.toUpperCase() || t.taType === TradeAreaTypeCodes.Audience.toUpperCase())),
           filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
         ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
