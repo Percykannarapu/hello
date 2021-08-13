@@ -42,7 +42,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   }
   @Input()
   public set currentTradeAreas(value: ImpGeofootprintTradeArea[]) {
-    if (value.length != 0 && this._currentTradeAreas.length != 0){
+    if (value.length > 0 && this._currentTradeAreas.length == 0){
   //  if (!(value.length == 0 && this._currentTradeAreas.length == 0)) {
       this._currentTradeAreas = value;
       this.currentTradeAreaCount = this._currentTradeAreas.length;
