@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { groupByExtended, removeNonAsciiChars } from '@val/common';
+import { groupByExtended, mapBy, mapByExtended, removeNonAsciiChars } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
@@ -546,7 +546,8 @@ export class BatchMapDialogComponent implements OnInit {
 
   getTitles(siteIds: string[]) : Array<TitlePayload> {
     siteIds.sort();
-    const locations = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
+    const locations = this.stateService.currentProject$.getValue().getImpGeofootprintLocations().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
+    const locsMap = mapBy(locations, 'locationNumber');
     const titlePayload: Array<TitlePayload> = [];
     const title = this.batchMapForm.get('title').value;
     const subTitle = this.batchMapForm.get('subTitle').value;
@@ -554,13 +555,14 @@ export class BatchMapDialogComponent implements OnInit {
 
     //Map Siteid with location
     siteIds.forEach((siteId) => {
-      const filteredLocations = locations.filter(loc => loc.locationNumber === siteId);
-      if (filteredLocations.length > 0){
+      const filteredLocation = locsMap.get(siteId);
+      //const filteredLocations = locations.filter(loc => loc.locationNumber === siteId);
+      if (filteredLocation != null){
         const payload: TitlePayload = {
           siteId: siteId,
-          title: this.getAttrValueByCode(filteredLocations[0], title, 'title'),
-          subTitle: this.getAttrValueByCode(filteredLocations[0], subTitle, 'subTitle'),
-          subSubTitle: this.getAttrValueByCode(filteredLocations[0], subSubTitle, 'subSubTitle'),
+          title: this.getAttrValueByCode(filteredLocation, title, 'title'),
+          subTitle: this.getAttrValueByCode(filteredLocation, subTitle, 'subTitle'),
+          subSubTitle: this.getAttrValueByCode(filteredLocation, subSubTitle, 'subSubTitle'),
           taName: this.batchMapForm.get('taTitle').value || ''
         };
         titlePayload.push(payload);
