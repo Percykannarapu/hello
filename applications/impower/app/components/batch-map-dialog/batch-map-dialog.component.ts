@@ -546,7 +546,7 @@ export class BatchMapDialogComponent implements OnInit {
 
   getTitles(siteIds: string[]) : Array<TitlePayload> {
     siteIds.sort();
-    const locations = this.stateService.currentProject$.getValue().getImpGeofootprintLocations().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
+    const locations = this.stateService.currentProject$.getValue().getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site);
     const locsMap = mapBy(locations, 'locationNumber');
     const titlePayload: Array<TitlePayload> = [];
     const title = this.batchMapForm.get('title').value;
