@@ -12,7 +12,8 @@
     "build-qa": "node --max-old-space-size=8192  ./node_modules/@angular/cli/bin/ng build -c=qa",
     "build-prod": "node --max-old-space-size=8192  ./node_modules/@angular/cli/bin/ng build -c=production",
     "test": "ng test",
-    "coverage": "ng test --no-watch --code-coverage"
+    "coverage": "ng test --no-watch --code-coverage",
+    "ci": "npm ci --silent --progress=false"
   },
   "private": true,
   "dependencies": {
