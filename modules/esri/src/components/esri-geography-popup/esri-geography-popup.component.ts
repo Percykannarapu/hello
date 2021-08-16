@@ -1,12 +1,7 @@
-import { Component, DoCheck, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { isConvertibleToNumber } from '@val/common';
 import { TreeNode } from 'primeng/api';
 import { PopupDefinition } from '../../models/boundary-configuration';
-
-interface AttributeFields {
-  fieldName: string;
-  label?: string;
-  visible?: boolean;
-}
 
 export interface NodeVariable {
   digitRounding: number;
@@ -15,128 +10,100 @@ export interface NodeVariable {
   isNumber: boolean;
 }
 
+interface AttributeField {
+  fieldName: string;
+  label?: string;
+  visible?: boolean;
+}
+
+function attributeToTreeNode(attribute: AttributeField, value: any, isChild: boolean) : TreeNode {
+  return {
+    data: {
+      name: attribute.label,
+      value: value,
+      isNumber: isConvertibleToNumber(value),
+      digitsInfo: '1.0-2',
+      isChild
+    },
+    leaf: true
+  };
+}
+
+function varToTreeNode(variable: NodeVariable) : TreeNode {
+  const digitsInfo = `1.${variable.digitRounding}-${variable.digitRounding}`;
+  return {
+    data: {
+      name: variable.name,
+      value: variable.value,
+      isNumber: variable.isNumber,
+      digitsInfo: digitsInfo,
+      isChild: true
+    },
+    leaf: true
+  };
+}
+
 @Component({
   selector: 'val-esri-geometry-popup',
   templateUrl: 'esri-geography-popup.component.html',
-  styleUrls: ['./esri-geography-popup.component.css'],
+  styleUrls: ['./esri-geography-popup.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class EsriGeographyPopupComponent implements OnInit, DoCheck {
+export class EsriGeographyPopupComponent implements OnInit {
 
-  currentGeocode: string = null;
   data: TreeNode[];
 
-  @Input('geocode') set geocode(value: string) {
-    if (value !== this.currentGeocode) {
-      this.currentGeocode = value;
-      this.dataChanged = true;
-    }
-  }
-  @Input('geoVars') set geoVars(value: NodeVariable[]) {
-    if (value !== this.currentGeoVars) {
-      this.currentGeoVars = value;
-      this.dataChanged = true;
-    }
-  }
-  @Input('mapVar') set mapVar(value: NodeVariable) {
-    if (value !== this.currentMapVar) {
-      this.currentMapVar = value;
-      this.dataChanged = true;
-    }
-  }
+  @Input() geocode: string;
+  @Input() selectedVars: NodeVariable[];
   @Input() attributes: { [key: string] : any };
-  @Input() attributeFields: AttributeFields[];
+  @Input() attributeFields: AttributeField[];
   @Input() customPopupDefinition: PopupDefinition;
 
-  private dataChanged: boolean = false;
-  private nodeExpandState: { [key: string] : boolean } = {};
-  private currentGeoVars: NodeVariable[] = [];
-  private currentMapVar: NodeVariable = null;
+  @Output() needsRefresh = new EventEmitter<any>();
 
-  private buildAttributeNodes(attributes: AttributeFields[]) : TreeNode[] {
-    return attributes.map(field => ({
-      data: {
-        name: field.label,
-        value: this.attributes[field.fieldName],
-        isNumber: !Number.isNaN(Number(this.attributes[field.fieldName])),
-        digitsInfo: '1.0-2'
-      },
-      leaf: true
-    }));
-  }
+  public nodeExpandState: { [key: string] : boolean };
 
-  private buildVarNode(geoVar: NodeVariable) : TreeNode {
-    const digitsInfo = `1.${geoVar.digitRounding}-${geoVar.digitRounding}`;
-    return {
-      data: {
-        name: geoVar.name,
-        value: geoVar.value,
-        isNumber: geoVar.isNumber,
-        digitsInfo: digitsInfo
-      },
-      leaf: true
-    };
-  }
-
-  ngOnInit() {
-    this.init();
-  }
-
-  ngDoCheck() {
-    if (this.dataChanged) this.init();
+  public ngOnInit() : void {
+    this.refreshTreeview();
   }
 
   onExpand(node: TreeNode) {
     this.nodeExpandState[node.data.name] = true;
+    this.needsRefresh.emit(this.nodeExpandState);
   }
 
   onCollapse(node: TreeNode) {
     this.nodeExpandState[node.data.name] = false;
+    this.needsRefresh.emit(this.nodeExpandState);
   }
 
-  private init() {
-    const results = this.getDataTree();
-    results.forEach(node => {
-      if (this.nodeExpandState[node.data.name] === true) {
-        node.expanded = true;
-      }
-    });
-    this.data = results;
-    this.dataChanged = false;
+  public refreshTreeview() {
+    this.data = this.getDataTree();
   }
 
   private getDataTree() : TreeNode[] {
-    const result: TreeNode[] = [];
-    result.push(this.getShadingNode());
-    result.push(...this.getRootAttributeNodes());
+    const result: TreeNode[] = this.getRootAttributeNodes();
     result.push(this.getSelectedVariableTree());
     result.push(this.getStandardVariableTree());
     return result.filter(node => node != null);
   }
 
-  private getShadingNode() : TreeNode {
-    if (this.currentMapVar) {
-      return this.buildVarNode(this.currentMapVar);
-    }
-    return null;
-  }
-
   private getRootAttributeNodes() : TreeNode[] {
     const rootNameSet = new Set<string>(this.customPopupDefinition.popupFields);
     const rootAttributes = this.attributeFields.filter(f => rootNameSet.has(f.fieldName));
-    return this.buildAttributeNodes(rootAttributes);
+    return rootAttributes.map(attr => attributeToTreeNode(attr, this.attributes[attr.fieldName], false));
   }
 
   private getSelectedVariableTree() : TreeNode {
-    if (this.currentGeoVars.length === 0) return null;
+    if (this.selectedVars.length === 0) return null;
     return {
       data: {
         name: 'Selected Audiences',
         value: ''
       },
       leaf: false,
-      expanded: false,
-      children: this.currentGeoVars.map(v => this.buildVarNode(v))
+      expanded: this.nodeExpandState['Selected Audiences'] ?? false,
+      children: this.selectedVars.map(v => varToTreeNode(v))
     };
   }
 
@@ -149,8 +116,8 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck {
         value: ''
       },
       leaf: false,
-      expanded: true,
-      children: this.buildAttributeNodes(standardAttributes)
+      expanded: this.nodeExpandState['Standard Variables'] ?? true,
+      children: standardAttributes.map(attr => attributeToTreeNode(attr, this.attributes[attr.fieldName], true))
     };
   }
 }

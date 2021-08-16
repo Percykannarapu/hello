@@ -34,7 +34,8 @@ export interface VarListItem {
 
 export interface UnifiedPayload {
   geoType: string;
-  transactionId: number;
+  geocodes?: string[];
+  transactionId?: number;
   deleteTransaction: boolean;
   chunks: number;
   vars: VarListItem[];

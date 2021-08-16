@@ -9,6 +9,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ToolbarModule } from 'primeng/toolbar';
+import { TooltipModule } from 'primeng/tooltip';
 import { TreeTableModule } from 'primeng/treetable';
 import { filter, take } from 'rxjs/operators';
 import {
@@ -52,19 +53,20 @@ const PUBLIC_COMPONENTS = [
 ];
 
 @NgModule({
-  imports: [
-    StoreModule.forFeature('esri', masterEsriReducer),
-    CommonModule,
-    HttpClientModule,
-    TreeTableModule,
-    ToolbarModule,
-    OverlayPanelModule,
-    ButtonModule,
-    DropdownModule,
-    InputSwitchModule,
-    FormsModule,
-    EffectsModule.forFeature(allEffects),
-  ],
+    imports: [
+        StoreModule.forFeature('esri', masterEsriReducer),
+        CommonModule,
+        HttpClientModule,
+        TreeTableModule,
+        ToolbarModule,
+        OverlayPanelModule,
+        ButtonModule,
+        DropdownModule,
+        InputSwitchModule,
+        FormsModule,
+        EffectsModule.forFeature(allEffects),
+        TooltipModule,
+    ],
   declarations: [
     EsriToolbarComponent,
     EsriLabelConfigComponent,

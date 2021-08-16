@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { convertKeys, isEmpty, mapByExtended, toNullOrNumber } from '@val/common';
+import { convertKeys, isEmpty, isNotNil, isStringArray, mapByExtended, toNullOrNumber } from '@val/common';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -23,9 +23,11 @@ export class AudienceFetchService {
               private notificationService: AppMessagingService,
               private restService: RestDataService) { }
 
-  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number, silent: boolean) : Observable<DynamicVariable[]> {
-    if (txId != null && !isEmpty(audiences)) {
-      const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
+  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number, silent: boolean) : Observable<DynamicVariable[]>;
+  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, geocodes: string[], silent: boolean) : Observable<DynamicVariable[]>;
+  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txIdOrGeos: number | string[], silent: boolean) : Observable<DynamicVariable[]> {
+    if (isNotNil(txIdOrGeos) && !isEmpty(txIdOrGeos) && !isEmpty(audiences)) {
+      const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txIdOrGeos);
       return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
         map(response => response.payload),
         tap(payload => {
@@ -61,18 +63,23 @@ export class AudienceFetchService {
     }
   }
 
-  private convertAudiencesToUnifiedPayload(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : UnifiedPayload {
+  private convertAudiencesToUnifiedPayload(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txIdOrGeocodes: number | string[]) : UnifiedPayload {
     const existingIds = new Set<number>(audiences.map(a => Number(a.audienceIdentifier)));
     const rootIds = new Set<number>(existingIds);
     const allAudienceMap = mapByExtended(allAudiences, (a) => Number(a.audienceIdentifier));
     const vars = this.createVarListItems(audiences, existingIds, allAudienceMap, rootIds);
-    return {
+    const result: UnifiedPayload = {
       geoType: analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel,
-      transactionId: txId,
       deleteTransaction: false,
       chunks: this.config.geoInfoQueryChunks,
       vars
     };
+    if (isStringArray(txIdOrGeocodes)) {
+      result.geocodes = txIdOrGeocodes;
+    } else {
+      result.transactionId = txIdOrGeocodes;
+    }
+    return result;
   }
 
   private createVarListItems(audiencesToProcess: Audience[], existingIds: Set<number>, allAudienceMap: Map<number, Audience>, rootIds: Set<number>) : VarListItem[] {

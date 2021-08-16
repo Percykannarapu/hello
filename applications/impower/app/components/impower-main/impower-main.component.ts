@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Subject, timer } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 
@@ -23,10 +23,6 @@ export class ImpowerMainComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.cd.markForCheck();
     });
-
-    timer(0, 1000).pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe(() => this.stateService.refreshDynamicControls());
   }
 
   ngOnDestroy() : void {

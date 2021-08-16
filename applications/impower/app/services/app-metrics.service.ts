@@ -96,7 +96,7 @@ export class ValMetricsService implements OnDestroy {
       valueCalc: t => {
         const season = this.isWinter ? 'hhld_w' : 'hhld_s';
         const currentHH = Number(t[season]) || 0;
-        const cpm = this.getCpmForGeo(t['owner_group_primary'], t['cov_frequency']);
+        const cpm = this.getCpmForGeo(t['owner_group_primary'], t['cov_frequency']) ?? 0;
         return currentHH * cpm;
       },
       metricAccumulator: (p, c) => p + c,
@@ -122,7 +122,7 @@ export class ValMetricsService implements OnDestroy {
       valueCalc: t => {
         const season = this.isWinter ? 'hhld_w' : 'hhld_s';
         const currentHH = Number(t[season]) || 0;
-        const cpm = this.getCpmForGeo(t['owner_group_primary'], t['cov_frequency']);
+        const cpm = this.getCpmForGeo(t['owner_group_primary'], t['cov_frequency']) ?? 0;
         if (this.currentProject.isDollarBudget) {
           return currentHH * cpm;
         } else {
@@ -339,7 +339,7 @@ export class ValMetricsService implements OnDestroy {
       } else if (coverageFrequency != null && coverageFrequency.toUpperCase() === 'SOLO' && this.currentProject.isIncludeSolo && isConvertibleToNumber(this.currentProject.smSoloCpm)) {
         return this.currentProject.smSoloCpm;
       } else {
-        return 0;
+        return null;
       }
     }
   }

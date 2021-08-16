@@ -4,11 +4,12 @@ import { filterArray, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import {
   ImpClientLocationTypeCodes,
   SuccessfulLocationTypeCodes,
-  TradeAreaMergeTypeCodes, TradeAreaTypeCodes
+  TradeAreaMergeTypeCodes,
+  TradeAreaTypeCodes
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
@@ -38,9 +39,6 @@ export enum Season {
 export class AppStateService {
 
   private mapIsReady = new Subject<void>();
-
-  private refreshDynamicContent = new Subject<any>();
-  public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable().pipe(throttleTime(500));
   public applicationIsReady$ = new BehaviorSubject<boolean>(false);
 
   private closeOverlayPanel = new Subject<string>();
@@ -119,10 +117,6 @@ export class AppStateService {
         this.hasSiteProvidedTradeAreas.next(newValue);
         break;
     }
-  }
-
-  public refreshDynamicControls() : void {
-    this.refreshDynamicContent.next();
   }
 
   public closeOverlays(except?: string) : void {
