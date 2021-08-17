@@ -3,9 +3,10 @@
   </ng-template>
   <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
     <tr>
-      <td class="val-popup-cell-title" [ngClass]="{ 'val-popup-toggle-cell': rowData.value == '', 'val-popup-child-cell': rowData.isChild }"
-          pTooltip="{{rowData.name}}" [escape]="false" tooltipPosition="left" [tooltipDisabled]="!rowData.isChild">
-        <p-treeTableToggler [rowNode]="rowNode" *ngIf="rowData.value == ''"></p-treeTableToggler>
+      <td class="val-popup-cell-title" pTooltip="{{rowData.name}}" tooltipPosition="left"
+          [ngClass]="{ 'val-popup-toggle-cell': rowData.isToggle, 'val-popup-child-cell': rowData.isChild, 'val-message-cell': rowData.isMessageNode }"
+          [escape]="false" [tooltipDisabled]="!rowData.isChild">
+        <p-treeTableToggler [rowNode]="rowNode" *ngIf="rowData.isToggle"></p-treeTableToggler>
         <span [innerHTML]="rowData.name"></span>
       </td>
       <td *ngIf="!rowData.isNumber" class="val-popup-cell-value" pTooltip="{{rowData.value}}" tooltipPosition="left">

@@ -18,6 +18,8 @@ body .p-treetable .p-treetable-tbody > tr > td {
   &.val-popup-toggle-cell {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+  }
+  &.val-message-cell {
     border-right: 0;
     + td {
       border-left: 0;

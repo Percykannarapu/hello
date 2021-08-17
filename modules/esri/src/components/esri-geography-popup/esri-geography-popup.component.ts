@@ -8,6 +8,7 @@ export interface NodeVariable {
   name: string;
   value: any;
   isNumber: boolean;
+  isMessageNode?: boolean;
 }
 
 interface AttributeField {
@@ -37,6 +38,7 @@ function varToTreeNode(variable: NodeVariable) : TreeNode {
       value: variable.value,
       isNumber: variable.isNumber,
       digitsInfo: digitsInfo,
+      isMessageNode: variable.isMessageNode,
       isChild: true
     },
     leaf: true
@@ -99,7 +101,8 @@ export class EsriGeographyPopupComponent implements OnInit {
     return {
       data: {
         name: 'Selected Audiences',
-        value: ''
+        isMessageNode: true,
+        isToggle: true
       },
       leaf: false,
       expanded: this.nodeExpandState['Selected Audiences'] ?? false,
@@ -113,7 +116,8 @@ export class EsriGeographyPopupComponent implements OnInit {
     return {
       data: {
         name: 'Standard Variables',
-        value: ''
+        isMessageNode: true,
+        isToggle: true
       },
       leaf: false,
       expanded: this.nodeExpandState['Standard Variables'] ?? true,

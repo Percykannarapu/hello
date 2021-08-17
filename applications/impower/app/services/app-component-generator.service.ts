@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, ComponentRef, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isNil } from '@val/common';
+import { isEmpty, isNil } from '@val/common';
 import { EsriGeographyPopupComponent, NodeVariable, PopupDefinition } from '@val/esri';
 import { of, Subscription } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -145,6 +145,13 @@ export class AppComponentGeneratorService {
 
   private convertVarsForPopup(currentGeocode: string, vars: DynamicVariable[], audiences: Audience[]) : NodeVariable[] {
     const currentVar = vars.filter(v => v.geocode === currentGeocode)[0];
+    if (isNil(currentVar) && !isEmpty(audiences)) return [{
+      name: 'Audience data unavailable',
+      value: null,
+      isNumber: false,
+      digitRounding: 0,
+      isMessageNode: true
+    }];
     return audiences.map(a => {
       return {
         name: a.audienceSourceType === 'Online' ? `${a.audienceName} (${a.audienceSourceName})` : a.audienceName,
