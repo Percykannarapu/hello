@@ -424,7 +424,10 @@ export class BatchMapDialogComponent implements OnInit {
                   buffer: dialogFields.buffer,
                   groupByAttribute: dialogFields.sitesByGroup,
                   projectName: this.currentProjectName,
-                  jobType: 'Sites Group By'
+                  jobType: 'Sites Group By',
+                  enableLabel: dialogFields.enableLabels,
+                  enableSymbol: dialogFields.enableSymbols,
+                  enableTaBoundaries: dialogFields.enableTradeAreaBoundaries
 
                 }
               }

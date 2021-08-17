@@ -11,6 +11,7 @@ import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
@@ -169,8 +170,17 @@ export class BatchMapService {
           l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
-      this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
+      if (!params.tradeAreaBoundaries){
+        const tradeAreas = sitesToMap.reduce((p, c) => {
+          return p.concat(c.impGeofootprintTradeAreas);
+        }, [] as ImpGeofootprintTradeArea[]);
+        this.store$.dispatch(new RenderTradeAreas( { tradeAreas: tradeAreas }));
+  
+      }else
+        this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
+    
+            
     const geosToMap = sitesToMap.reduce((p, c) => {
       return p.concat(c.getImpGeofootprintGeos());
     }, [] as ImpGeofootprintGeo[]);
