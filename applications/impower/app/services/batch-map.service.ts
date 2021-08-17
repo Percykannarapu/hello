@@ -162,6 +162,7 @@ export class BatchMapService {
       this.store$.dispatch(new RenderLocations({ locations: sitesToMap }));
       this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
+    if (!params.labels || !params.symbols) this.store$.dispatch(new RenderLocations({ locations: sitesToMap }));
     if (!params.shadeNeighboringSites) {
       project.getImpGeofootprintLocations().forEach(l => {
         if (!activeSiteIds.has(l.locationNumber)) {
