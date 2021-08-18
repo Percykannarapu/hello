@@ -18,7 +18,7 @@ import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/au
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 import { BehaviorSubject, EMPTY, Observable, throwError } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, reduce, tap } from 'rxjs/operators';
 import { WorkerResponse, WorkerResult } from '../../../../worker-shared/common/core-interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import {
@@ -307,6 +307,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
             return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
                map(graphics => graphics.map(g => g.attributes)),
+               reduce((acc,result) => acc.concat(result), []),
                map(attrs => {
                  attrs.forEach(r => {
                     queryResultMap.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });
