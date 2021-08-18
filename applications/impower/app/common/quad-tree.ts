@@ -23,4 +23,8 @@ export function quadPartitionLocations(locations: ImpGeofootprintLocation[], ana
   return result.filter(chunk => chunk && chunk.length > 0);
 }
 
-
+export function quadPartitionGeos(geos: { geocode: string, xcoord: number, ycoord: number }[]) : { geocode: string, xcoord: number, ycoord: number }[][] {
+  const quadTree = new EsriQuadTree(geos);
+  const result = quadTree.partition(defaultEsriAppSettings.maxPointsPerQuery);
+  return result.filter(chunk => chunk && chunk.length > 0);
+}

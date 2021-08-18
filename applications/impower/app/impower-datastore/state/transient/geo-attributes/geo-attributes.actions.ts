@@ -23,7 +23,7 @@ export enum GeoAttributeActionTypes {
 
 export class GetLayerAttributes implements Action {
   readonly type = GeoAttributeActionTypes.GetLayerAttributes;
-  constructor(public payload: { geocodes: Set<string> }) {}
+  constructor(public payload: { geoLocations: { geocode: string, xcoord: number, ycoord: number }[] }) {}
 }
 
 export class GetLayerAttributesComplete implements Action {

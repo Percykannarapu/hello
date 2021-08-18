@@ -48,23 +48,23 @@ export class ImpGeofootprintMaster extends BaseModel
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    getImpGeofootprintGeos() : ReadonlyArray<ImpGeofootprintGeo> {
-      const _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas || [])
-                                         .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos || []))));
+      let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas ?? [])
+                                         .forEach(impGeofootprintTradeArea => (_result = _result.concat(impGeofootprintTradeArea.impGeofootprintGeos ?? []))));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    getImpGeofootprintLocAttribs() : ReadonlyArray<ImpGeofootprintLocAttrib> {
-      const _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
-      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs || [])));
+     let _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
+      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (_result = _result.concat(impGeofootprintLocation.impGeofootprintLocAttribs ?? [])));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    getImpGeofootprintTradeAreas() : ReadonlyArray<ImpGeofootprintTradeArea> {
-      const _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
-      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas || [])));
+     let _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
+      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (_result = _result.concat(impGeofootprintLocation.impGeofootprintTradeAreas ?? [])));
       return _result;
    }
 

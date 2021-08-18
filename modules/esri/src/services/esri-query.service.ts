@@ -130,7 +130,11 @@ export class EsriQueryService {
   public queryAttributeIn(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
     const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
     const dataStreams = chunkArray<string, number>(queryData, chunkSize);
-    const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
+    return this.queryAttributeChunksIn(layerId, queryField, dataStreams, returnGeometry, outFields, alternateTxId);
+  }
+
+  public queryAttributeChunksIn(layerId: string, queryField: string, queryData: (string[] | number[])[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
+    const queries: __esri.Query[] = queryData.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
     const transactionId = alternateTxId || getUuid();
     return this.query(layerId, queries, transactionId).pipe(
       finalize(() => {
@@ -151,7 +155,7 @@ export class EsriQueryService {
       outFields: ['geocode', 'pob']
     });
     return this.query(layerId, [query], specialTxId, true).pipe(
-      reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[])
+      reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[])
     );
   }
 

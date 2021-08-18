@@ -84,7 +84,7 @@ export class CustomDataService {
     } else {
       this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
         map(graphics => graphics.map(g => g.attributes?.geocode)),
-        reduce((acc, result) => [...acc, ...result], []),
+        reduce((acc, result) => acc.concat(result), []),
       ).subscribe(result => {
         const qResult = new Set(result);
         const fields = header.split(',');

@@ -24,7 +24,7 @@ export class GeoAttributesEffects {
   requestAttributes$ = this.actions$.pipe(
     ofType<GetLayerAttributes>(GeoAttributeActionTypes.GetLayerAttributes),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
-    switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
+    switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geoLocations, boundaryAttributes).pipe(
       map(results => new GetLayerAttributesComplete({ geoAttributes: results })),
       catchError(err => of(new GetLayerAttributesFailure({ err })))
     ))
@@ -33,7 +33,7 @@ export class GeoAttributesEffects {
   @Effect()
   excessiveAttributeBusy$ = this.actions$.pipe(
     ofType<GetLayerAttributes>(GeoAttributeActionTypes.GetLayerAttributes),
-    map(action => action.payload.geocodes.size),
+    map(action => action.payload.geoLocations.length),
     filter(size => size > 2000),
     map(size => new StartBusyIndicator({ key: this.busyKey, message: `Retrieving HH Counts for ${size.toLocaleString()} geos`}))
   );

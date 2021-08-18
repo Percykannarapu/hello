@@ -4,6 +4,7 @@ import { EsriQueryService } from '@val/esri';
 import { EMPTY, Observable } from 'rxjs';
 import { map, reduce } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
+import { quadPartitionGeos } from '../../common/quad-tree';
 import { GeoAttribute } from '../state/transient/geo-attributes/geo-attributes.model';
 
 @Injectable({
@@ -14,10 +15,11 @@ export class FeatureLoaderService {
   constructor(private queryService: EsriQueryService,
               private appConfig: AppConfig) { }
 
-  loadAttributesFromFeatures(layerId: string, geocodes: Set<string>, featureIds: string[]) : Observable<GeoAttribute[]> {
+  loadAttributesFromFeatures(layerId: string, geoLocations: { geocode: string, xcoord: number, ycoord: number }[], featureIds: string[]) : Observable<GeoAttribute[]> {
     if (!featureIds.includes('geocode')) featureIds.push('geocode');
-    const geoArray = Array.from(geocodes);
-    return this.appConfig.isBatchMode ? EMPTY : this.queryService.queryAttributeIn(layerId, 'geocode', geoArray, false, featureIds).pipe(
+    const partitionedGeos = quadPartitionGeos(geoLocations).map(chunk => chunk.map(c => c.geocode));
+    const geoArray = partitionedGeos.flatMap(pg => pg);
+    return this.appConfig.isBatchMode ? EMPTY : this.queryService.queryAttributeChunksIn(layerId, 'geocode', partitionedGeos, false, featureIds).pipe(
       map(features => features.map(f => f.attributes as GeoAttribute)),
       reduce((acc, curr) => accumulateArrays(acc, curr), [] as GeoAttribute[]),
       // this code ensures we return an "empty" result for a geocode that was not found via the query

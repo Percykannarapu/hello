@@ -356,9 +356,9 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createGeo(parent: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number, isActive: boolean = true) : ImpGeofootprintGeo {
+  createGeo(parent: ImpGeofootprintTradeArea, geocode: string, x: number, y: number, distance: number, isActive: boolean = true, checkForDupes: boolean = true) : ImpGeofootprintGeo {
     if (parent == null) throw new Error('Geo factory requires a valid ImpGeofootprintTradeArea instance');
-    const existingGeocodes = new Set(parent.impGeofootprintGeos.map(geo => geo.geocode));
+    const existingGeocodes = checkForDupes ? new Set(parent.impGeofootprintGeos.map(geo => geo.geocode)) : new Set();
     const result = new ImpGeofootprintGeo({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
