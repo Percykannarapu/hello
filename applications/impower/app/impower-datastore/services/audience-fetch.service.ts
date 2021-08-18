@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { convertKeys, isEmpty, isNotNil, isStringArray, mapByExtended, toNullOrNumber } from '@val/common';
+import { WarningNotification } from '@val/messaging';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { FullState } from '../../../../cpq-maps/src/app/cpq-map/state/index';
 import { AppConfig } from '../../app.config';
 import { AudienceDataDefinition, UnifiedPayload, UnifiedResponse, VarListItem } from '../../models/audience-data.model';
 import { createAudienceVarListItem, createCombinedVarListItem, createCompositeVarListItem } from '../../models/audience-factories';
 import { AppLoggingService } from '../../services/app-logging.service';
-import { AppMessagingService } from '../../services/app-messaging.service';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { Audience } from '../state/transient/audience/audience.model';
 import { DynamicVariable } from '../state/transient/dynamic-variable.model';
@@ -20,8 +22,8 @@ export class AudienceFetchService {
 
   constructor(private config: AppConfig,
               private logger: AppLoggingService,
-              private notificationService: AppMessagingService,
-              private restService: RestDataService) { }
+              private restService: RestDataService,
+              private store$: Store<FullState>) { }
 
   public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number, silent: boolean) : Observable<DynamicVariable[]>;
   public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, geocodes: string[], silent: boolean) : Observable<DynamicVariable[]>;
@@ -41,9 +43,9 @@ export class AudienceFetchService {
           if (!isEmpty(payload?.issues?.WARN)) {
             notify = true;
             if (payload.issues.WARN[0] === 'No variable values were found') {
-              const title = payload.issues.WARN.shift();
+              const notificationTitle = payload.issues.WARN.shift();
               const message = payload.issues.WARN.join('\n');
-              this.notificationService.showWarningNotification(message, title);
+              this.store$.dispatch(WarningNotification({ notificationTitle, message }));
             } else {
               this.logger.warn.toggleLevelIgnore(); // ensures warnings get logged in production
               this.logger.warn.groupCollapsed('Additional Audience Fetch Warning Info');
@@ -53,7 +55,7 @@ export class AudienceFetchService {
             }
           }
           if (notify && !silent) {
-            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check to ensure you have all the data you need.');
+            this.store$.dispatch(WarningNotification({ message: 'There was an issue pulling audience data, please check to ensure you have all the data you need.' }));
           }
         }),
         map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))

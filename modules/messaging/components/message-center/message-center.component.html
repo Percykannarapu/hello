@@ -38,7 +38,7 @@
     <tr>
       <th *ngFor="let col of messageColumns" [ngSwitch]="col.filterType">
         <p-columnFilter *ngSwitchCase="'date'" type="date" [field]="col.field"></p-columnFilter>
-        <p-columnFilter *ngSwitchCase="'severityMulti'" matchMode="in" [field]="col.field" [showMenu]="false" #severityFilter>
+        <p-columnFilter *ngSwitchCase="'severityMulti'" matchMode="in" [field]="col.field" [showMenu]="false">
           <ng-template pTemplate="filter" let-value let-filter="filterCallback">
             <p-multiSelect [options]="severities" [ngModel]="value" (ngModelChange)="filter($event)"></p-multiSelect>
           </ng-template>
