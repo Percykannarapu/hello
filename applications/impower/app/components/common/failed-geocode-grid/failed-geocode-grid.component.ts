@@ -56,7 +56,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     { seq:  5, field: 'origPostalCode',       header: 'ZIP',           width: '4em',  isEditable: true,  matchMode: 'contains' },
     { seq:  6, field: 'coordinates',          header: 'XY',            width: '10em', isEditable: true,  matchMode: 'contains' },
     { seq:  7, field: 'recordStatusCode',     header: 'Status',        width: '6em',  isEditable: false, matchMode: 'contains' },
-    { seq:  8, field: 'geocoderMatchCode',    header: 'Match Code',    width: '4em',  isEditable: false, matchMode: 'contains' },
+    { seq:  8, field: 'geocoderMatchCode',    header: 'Match Code',    width: '6em',  isEditable: false, matchMode: 'contains' },
     { seq:  9, field: 'geocoderLocationCode', header: 'Location Code', width: '8em',  isEditable: false, matchMode: 'contains' },
     { seq: 10, field: 'locationName',         header: 'Name',          width: '15em', isEditable: false, matchMode: 'contains' },
     { seq: 11, field: 'marketName',           header: 'Market',        width: '15em', isEditable: true,  matchMode: 'contains' },

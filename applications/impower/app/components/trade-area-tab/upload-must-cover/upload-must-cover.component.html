@@ -46,7 +46,7 @@
       <div class="p-col-6">
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
           <ng-template pTemplate="caption">
-            <div class="val-table-caption">
+            <div>
               <div class="p-col p-d-flex p-jc-center">
                 {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
               </div>
