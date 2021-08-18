@@ -11,6 +11,7 @@
              scrollable="true"
              sortMode="multiple" [multiSortMeta]="initialSort"
              [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25,50,100]"
+             [exportFunction] = "exportFunction"
              (onFilter)="onFilter()" (onSort)="trackSortMeta($event)">
 
       <!-- Caption is the area just above the column headers -->

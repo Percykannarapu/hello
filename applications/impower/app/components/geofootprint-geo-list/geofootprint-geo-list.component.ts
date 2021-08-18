@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { arrayToSet, entityToMap, isArray, isEmpty, isNil, isNotNil, isString, resolveFieldData } from '@val/common';
+import { arrayToSet, entityToMap, isArray, isEmpty, isNil, isNotNil, isNumber, isString, resolveFieldData } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { FilterMetadata, FilterService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -699,6 +699,10 @@ export class GeofootprintGeoListComponent implements OnInit {
     const dedupeFilter = this.getSingleFilter('geo.isDeduped', 'gridDedupeFilter');
     dedupeFilter.value = newValue ? 1 : null;
     this._geoGrid._filter();
+  }
+
+  exportFunction(event) {
+    return (isNumber(event.data)) ?  Number(event.data).toFixed(2) : event.data;
   }
 
   exportCsv(selectedOnly: boolean) : void {
