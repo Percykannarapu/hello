@@ -51,7 +51,8 @@ export class AppExportService {
         new StopBusyIndicator({ key }),
         new CreateLocationUsageMetric('geofootprint', 'export', metricText, result.rowsProcessed),
         new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' })
-      ]))
+      ])),
+      finalize(() => this.store$.dispatch(new StopBusyIndicator({ key })))
     );
   }
 
