@@ -43,6 +43,19 @@ body {
   }
 }
 
+
+.val-table-no-wrap {
+  table tr > td {
+    white-space: nowrap !important;
+  }
+}
+
+.val-table-wrap {
+  table tr > td {
+    white-space: normal !important;
+  }
+}
+
 .val-table-with-dropdowns {
   .p-datatable-wrapper {
     overflow: visible !important;

@@ -1,6 +1,6 @@
 <div #dialogParent class="p-grid">
 
-  <div *ngIf="audienceCount > 0" class="p-col-12 val-table-with-dropdowns val-table-no-wrap">
+  <div *ngIf="audienceCount > 0" class="p-col-12 val-table-with-dropdown">
     <div>
       <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="true">
         <ng-template pTemplate="header">
@@ -21,7 +21,7 @@
             <th *acsGrant="['IMPOWER_EXPORT_NATIONAL']">Nat'l Ex.</th>
             <th>Index Base</th>
             <th>Audience Name</th>
-            <th class="absorb">Source</th>
+            <th>Source</th>
             <th></th>
           </tr>
         </ng-template>
