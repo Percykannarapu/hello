@@ -48,10 +48,10 @@ export class AppExportService {
       switchMap(geoVars => this.impGeofootprintGeoService.exportStore(null, GeoFootprintExportFormats.alteryx, currentProject, geoVars, selectedOnly)),
       filter(result => result.rowsProcessed > 0),
       concatMap(result => ([
-        new StopBusyIndicator({ key }),
         new CreateLocationUsageMetric('geofootprint', 'export', metricText, result.rowsProcessed),
         new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' })
-      ]))
+      ])),
+      finalize(() => this.store$.dispatch(new StopBusyIndicator({ key })))
     );
   }
 
