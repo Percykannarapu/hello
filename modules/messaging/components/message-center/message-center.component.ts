@@ -55,7 +55,7 @@ export class MessageCenterComponent implements OnInit, AfterViewInit {
   }
 
   copyToClipboard(value: any) : void {
-    window.navigator.clipboard.writeText(JSON.stringify(value));
+    window.navigator.clipboard.writeText(JSON.stringify(value)).catch(e => console.error('There was an error copying data to the clipboard:', e));
   }
 
   removeMessages() : void {
