@@ -1,4 +1,4 @@
-import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isError } from '@val/common';
 import { EsriShadingService, selectors as esriSelectors } from '@val/esri';
@@ -33,19 +33,18 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   constructor(private store$: Store<FullAppState>,
               private batchMapService: BatchMapService,
               private esriRendererService: EsriShadingService,
-              private config: AppConfig,
-              private zone: NgZone) {
+              private config: AppConfig) {
     const stdErr = console.error;
     console.error = (...args) => {
       let errorMessage: string;
       if (isError(args[1])) {
         StackTrace.fromError(args[1]).then(frames => {
           errorMessage = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
-          this.zone.run(() => this.lastError = errorMessage);
+          this.lastError = errorMessage;
         });
       } else {
         errorMessage = args.join('<br>');
-        this.zone.run(() => this.lastError = errorMessage);
+        this.lastError = errorMessage;
       }
       stdErr(...args);
     };
@@ -66,21 +65,21 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       this.store$.select(getMapMoving),
       this.store$.select(getTypedBatchQueryParams)
     ]).pipe(
-        tap(([, , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
+        // tap(([, , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
         map(([ready, moving]) => ready && !moving),
         debounceTime(this.debounceTime),
         takeUntil(this.destroyed$)
-    ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
+    ).subscribe(ready => this.mapViewIsReady = ready);
 
     this.store$.select(getNextSiteNumber).pipe(
       takeUntil(this.destroyed$)
-    ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));
+    ).subscribe(siteNum => this.nextSiteNumber = siteNum);
     this.store$.select(getLastSiteFlag).pipe(
       takeUntil(this.destroyed$)
-    ).subscribe(lastSite => this.zone.run(() => this.isLastSite = lastSite));
+    ).subscribe(lastSite => this.isLastSite = lastSite);
     this.store$.select(getCurrentSiteNum).pipe(
       takeUntil(this.destroyed$)
-    ).subscribe(s => this.zone.run(() => this.currentSiteNumber = s));
+    ).subscribe(s => this.currentSiteNumber = s);
 
     this.height$ = this.typedParams$.pipe(
       map(params => params.height)

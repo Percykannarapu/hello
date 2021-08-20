@@ -6,14 +6,14 @@ import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/models/User';
-import { ForceMapUpdate, SetCurrentSiteNum, SetMapReady, ResetForceMapUpdate } from 'app/state/batch-map/batch-map.actions';
+import { ForceMapUpdate, SetCurrentSiteNum, SetMapReady, ResetForceMapUpdate, MapViewUpdating } from 'app/state/batch-map/batch-map.actions';
 import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { combineLatest, Observable, of, race, timer } from 'rxjs';
-import { filter, map, switchMap, take } from 'rxjs/operators';
+import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
@@ -47,15 +47,13 @@ export class BatchMapService {
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
-    const mapIsStationary$ = this.esriMapService.watchMapViewProperty('stationary').pipe(
-      map(result => result.newValue)
+    const mapIsStationary$ = this.esriMapService.watchMapViewProperty('updating').pipe(
+      tap(result => this.store$.dispatch(new MapViewUpdating({ isUpdating: result.newValue }))),
+      map(result => !result.newValue)
     );
-    combineLatest([this.esriLayerService.layersAreReady$, mapIsStationary$, this.store$.select(getForceMapUpdate)]).pipe(
-      map(([ready, stationary, forceMapUpdate]) => [ready && stationary, forceMapUpdate] as const)
-    ).subscribe(([mapReady, forceMapUpdate]) => {
-      //this.store$.dispatch(new SetMapReady({ mapReady }));
-      if (forceMapUpdate) this.forceMapUpdate();
+    combineLatest([mapIsStationary$, this.store$.select(getForceMapUpdate)]).subscribe(([mapReady, forceMapUpdate]) => {
       if (mapReady) {
+        if (forceMapUpdate) this.forceMapUpdate();
         this.appStateService.refreshVisibleGeos();
       }
     });
@@ -176,12 +174,12 @@ export class BatchMapService {
           return p.concat(c.impGeofootprintTradeAreas);
         }, [] as ImpGeofootprintTradeArea[]);
         this.store$.dispatch(new RenderTradeAreas( { tradeAreas: tradeAreas }));
-  
+
       }else
         this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
-    
-            
+
+
     const geosToMap = sitesToMap.reduce((p, c) => {
       return p.concat(c.getImpGeofootprintGeos());
     }, [] as ImpGeofootprintGeo[]);
@@ -327,10 +325,12 @@ export class BatchMapService {
 
   public forceMapUpdate() {
     const timeout = 120000; // 2 minutes
-    const mapReady$ = this.esriLayerService.layersAreReady$.pipe(filter(ready => ready));
+    const mapReady$ = this.esriMapService.watchMapViewProperty('updating').pipe(
+      filter(result => !result.newValue)
+    );
 
     const timeout$ = timer(timeout).pipe(
-      map(() => false)
+      map(() => false),
     );
 
     race(mapReady$, timeout$).pipe(
