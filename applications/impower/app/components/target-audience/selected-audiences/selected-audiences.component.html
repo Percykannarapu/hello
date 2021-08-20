@@ -28,7 +28,7 @@
         <ng-template pTemplate="body" let-audience>
           <tr>
             <td class="button-column">
-              <ng-container *ngIf="audienceCount > 2">
+              <ng-container *ngIf="audienceCount > 1">
                 <button pButton icon="pi pi-arrow-up" class="p-button-rounded p-button-xs p-button-text" [disabled]="audience.sortOrder == 0" (click)="onMoveUp(audience)"></button>
                 <button pButton icon="pi pi-arrow-down" class="p-button-rounded p-button-xs p-button-text" [disabled]="audience.sortOrder == (audienceCount - 1)" (click)="onMoveDn(audience)"></button>
               </ng-container>
