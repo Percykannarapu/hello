@@ -15,7 +15,8 @@ export enum BatchMapActionTypes {
   BatchMapAdminDialogOpen = '[Batch Map] Admin Batch Map Dialog',
   BatchMapAdminDialogClose = '[Batch Map] Admin Close Dialog',
   ForceMapUpdate= '[Batch Map] Force Batch Map update',
-  ResetForceMapUpdate= '[Batch Map] Reset Force Batch Map update'
+  ResetForceMapUpdate= '[Batch Map] Reset Force Batch Map update',
+  MapViewUpdating= '[Batch Map] Set Mapview Updating'
 }
 
 export class CreateBatchMap implements Action {
@@ -79,6 +80,11 @@ export class ResetForceMapUpdate implements Action{
   readonly type = BatchMapActionTypes.ResetForceMapUpdate;
 }
 
-export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode 
-            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum | OpenBatchMapStatusDialog | CloseBatchMapStatusDialog 
-            | BatchMapAdminDialogOpen | BatchMapAdminDialogClose | ForceMapUpdate| ResetForceMapUpdate;
+export class MapViewUpdating implements Action {
+  readonly type = BatchMapActionTypes.MapViewUpdating;
+  constructor(public payload: { isUpdating: boolean }) {}
+}
+
+export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode
+            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum | OpenBatchMapStatusDialog | CloseBatchMapStatusDialog
+            | BatchMapAdminDialogOpen | BatchMapAdminDialogClose | ForceMapUpdate| ResetForceMapUpdate | MapViewUpdating;

@@ -27,7 +27,7 @@ export const initialState: BatchMapState = {
 
 };
 
-export function batchMapReducer(state = initialState, action: BatchMapActions) : BatchMapState {
+export function batchMapReducer(state = initialState, action: BatchMapActions): BatchMapState {
   switch (action.type) {
     case BatchMapActionTypes.SetBatchMode:
       return {
@@ -44,7 +44,6 @@ export function batchMapReducer(state = initialState, action: BatchMapActions) :
         ...state,
         nextSiteNum: action.payload.siteNum,
         isLastSite: action.payload.isLastSite,
-        moving: false
       };
     case BatchMapActionTypes.MoveToSite:
       return {
@@ -77,26 +76,31 @@ export function batchMapReducer(state = initialState, action: BatchMapActions) :
         ...state,
         displayBatchMapStatusDialog: false
       };
-      case BatchMapActionTypes.BatchMapAdminDialogOpen:
+    case BatchMapActionTypes.BatchMapAdminDialogOpen:
       return {
         ...state,
         adminDialog: true
-      };    
-      case BatchMapActionTypes.BatchMapAdminDialogClose:
-        return {
-          ...state,
-          adminDialog: false
-        };  
-      case BatchMapActionTypes.ForceMapUpdate:
-        return{
-          ...state,
-          forceMapUpdate: true
-        };
-      case BatchMapActionTypes.ResetForceMapUpdate:
-        return{
-          ...state,
-          forceMapUpdate: false
-        };    
+      };
+    case BatchMapActionTypes.BatchMapAdminDialogClose:
+      return {
+        ...state,
+        adminDialog: false
+      };
+    case BatchMapActionTypes.ForceMapUpdate:
+      return {
+        ...state,
+        forceMapUpdate: true
+      };
+    case BatchMapActionTypes.ResetForceMapUpdate:
+      return {
+        ...state,
+        forceMapUpdate: false
+      };
+    case BatchMapActionTypes.MapViewUpdating:
+      return {
+        ...state,
+        moving: action.payload.isUpdating
+      };
     default:
       return state;
   }
