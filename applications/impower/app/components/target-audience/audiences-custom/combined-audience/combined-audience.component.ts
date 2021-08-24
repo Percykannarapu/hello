@@ -194,6 +194,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   resetForm() {
     this.showError = false;
     this.isDuplicateName = false;
+    this.varNames.clear();
     this.audienceForm.reset();
   }
 

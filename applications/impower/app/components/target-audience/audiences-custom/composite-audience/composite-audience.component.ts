@@ -276,6 +276,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   resetForm() {
     this.showError = false;
     this.isDuplicateName = false;
+    this.varNames.clear();
     this.compositeForm.reset();
   }
 
