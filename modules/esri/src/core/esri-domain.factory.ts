@@ -73,13 +73,16 @@ export class EsriDomainFactory {
           type: k === oidFieldName ? 'oid' : 'string'
         }));
       }
-      return new FeatureLayer({
+      const props = {
         source: sourceGraphics,
         objectIdField: oidFieldName,
         fields: fields,
         geometryType: layerType,
-        spatialReference: { wkid: 4326 }
-      });
+        spatialReference: { wkid: 4326 },
+        outFields: fields.map(f => f.name),
+        globalIdField: oidFieldName
+      } as __esri.FeatureLayerProperties;
+      return new FeatureLayer(props);
     } else {
       console.error('Cannot generate a feature layer for geometry other than Point or Polygon');
       return null;
