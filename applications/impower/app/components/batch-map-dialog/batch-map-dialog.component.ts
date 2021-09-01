@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { groupByExtended, mapBy, mapByExtended, removeNonAsciiChars } from '@val/common';
+import { groupByExtended, mapBy, mapByExtended, removeNonAsciiChars, removeTabAndNewLineRegx } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
@@ -531,7 +531,7 @@ export class BatchMapDialogComponent implements OnInit {
 
   getAttrValueByCode(location: ImpGeofootprintLocation, title: string, inputField: string){
     if (title === 'user-defined') {
-     return (this.input[inputField] === null ? '' : this.input[inputField]);
+     return (this.input[inputField] === null ? '' : removeTabAndNewLineRegx(this.input[inputField]));
     }
     if (title === 'totalHHC' || title === 'totalAllocatedHHC') {
       return '';
@@ -540,11 +540,11 @@ export class BatchMapDialogComponent implements OnInit {
       const tempLoc = location.impGeofootprintLocAttribs;
       const filtered = tempLoc.filter(loc => loc.attributeCode === title);
       if (filtered.length > 0){
-        return (filtered[0].attributeValue === null ? '' : filtered[0].attributeValue);
+        return (filtered[0].attributeValue === null ? '' : removeTabAndNewLineRegx(filtered[0].attributeValue));
       }
       else return '' ;
     }
-    return (location[title] === null ? '' : location[title]);
+    return (location[title] === null ? '' : removeTabAndNewLineRegx(location[title]));
   }
 
   getTitles(siteIds: string[]) : Array<TitlePayload> {
