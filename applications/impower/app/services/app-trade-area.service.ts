@@ -72,7 +72,7 @@ export class AppTradeAreaService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-        combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable, 
+        combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable,
                        this.store$.select(getTypedBatchQueryParams), this.store$.select(getBatchMode)]).pipe(
           //map(([ta]) => ta),
           filter(([ta, , batchMapParams, batchMap]) => (ta != null && !batchMap) || (batchMap && batchMapParams.tradeAreaBoundaries)),
@@ -405,7 +405,7 @@ export class AppTradeAreaService {
       map( response => {
         return response.payload;
       }),
-      reduce((acc, result) => [...acc, ...result], []),
+      reduce((acc, result) => acc.concat(result), []),
     );
   }
 
@@ -476,7 +476,7 @@ export class AppTradeAreaService {
     const customTAGeoSet = new Set<string>();
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
-      if (loc != null){
+      if (loc != null && !customTAGeoSet.has(record.geocode)) {
         const layerData = { x: toNullOrNumber(record.x), y: toNullOrNumber(record.y) };
         const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
         let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
@@ -484,7 +484,7 @@ export class AppTradeAreaService {
             currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
             tradeAreasToAdd.push(currentTradeArea);
           }
-        const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance);
+        const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance, true, false);
         geosToAdd.push(newGeo);
         customTAGeoSet.add(newGeo.geocode);
       }

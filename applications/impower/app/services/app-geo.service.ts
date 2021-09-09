@@ -321,7 +321,7 @@ export class AppGeoService {
       const queries: Observable<HomeGeoProcessingResult>[] = [];
       locationChunks.forEach(chunk => {
         const currentQuery = this.queryService.queryAttributeIn(layerId, 'geocode', chunk.map(l => l.homeGeocode), false, featureAttributes).pipe(
-          reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[]),
+          reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[]),
           map(graphics => this.createHomeGeos(graphics, chunk, season))
         );
         queries.push(currentQuery);

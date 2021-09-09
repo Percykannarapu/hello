@@ -8,9 +8,11 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { KeyedSet } from '../../../../modules/common/src/keyed-set';
 import { MessageCenterService } from '../../../../modules/messaging/core/message-center.service';
 import { ProjectPrefGroupCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
+import { quadPartitionGeos, quadPartitionLocations } from '../common/quad-tree';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
@@ -150,10 +152,10 @@ export class AppDataShimService {
   }
 
   private setupEsriInitialState(project: ImpProject) : Observable<ImpProject> {
-    const geocodes = new Set<string>();
+    const geocodes = new KeyedSet<ImpGeofootprintGeo, string>(geo => geo.geocode);
     const activeGeocodes = new Set<string>();
     project.getImpGeofootprintGeos().forEach(c => {
-      geocodes.add(c.geocode);
+      geocodes.add(c);
       if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) activeGeocodes.add(c.geocode);
     });
     const sortedGeocodes = Array.from(activeGeocodes);
@@ -210,7 +212,9 @@ export class AppDataShimService {
       withLatestFrom(this.esriBoundaryService.allVisibleBoundaryConfigs$),
       filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
-      tap(() => this.store$.dispatch(new GetLayerAttributes({ geocodes }))),
+      tap(() => {
+        this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
+      }),
       map(() => project)
     );
   }

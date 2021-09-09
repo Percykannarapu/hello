@@ -12,12 +12,14 @@ import {
   TradeAreaTypeCodes
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
+import { quadPartitionGeos } from '../common/quad-tree';
 import * as ValSort from '../common/valassis-sorters';
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -221,19 +223,21 @@ export class AppStateService {
       map(geos => {
         const allGeocodeSet = new Set<string>();
         const activeGeocodeSet = new Set<string>();
+        const allGeoLocations = [];
         const allGeocodeArray = [];
         const activeGeocodeArray = [];
         geos.forEach(geo => {
           if (!allGeocodeSet.has(geo.geocode)) {
             allGeocodeSet.add(geo.geocode);
             allGeocodeArray.push(geo.geocode);
+            allGeoLocations.push(geo);
           }
           if (geo.isActive && !activeGeocodeSet.has(geo.geocode)) {
             activeGeocodeSet.add(geo.geocode);
             activeGeocodeArray.push(geo.geocode);
           }
         });
-        return [allGeocodeSet, allGeocodeArray, activeGeocodeSet, activeGeocodeArray] as [Set<string>, string[], Set<string>, string[]];
+        return [allGeocodeSet, allGeocodeArray, activeGeocodeSet, activeGeocodeArray, allGeoLocations] as [Set<string>, string[], Set<string>, string[], ImpGeofootprintGeo[]];
       })
     );
     this.uniqueSelectedGeocodeSet$ = geoSplit$.pipe(
@@ -251,20 +255,21 @@ export class AppStateService {
       map(([, allGeocodes]) => allGeocodes)
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
 
-    this.uniqueIdentifiedGeocodeSet$.pipe(
-      filter(geoSet => geoSet.size > 0),
+    geoSplit$.pipe(
+      map(([, , , , allGeoLocations]) => allGeoLocations),
+      filter(geoSet => geoSet.length > 0),
       withLatestFrom(this.store$.select(selectGeoAttributeEntities), this.applicationIsReady$),
       filter(([, , ready]) => ready),
       map(([requestedGeos, attrs]) => {
-        const result = new Set<string>();
-        requestedGeos.forEach(geocode => {
-          if (attrs[geocode] == null || !attrs[geocode].hasOwnProperty('hhld_s')) result.add(geocode);
+        const result: ImpGeofootprintGeo[] = [];
+        requestedGeos.forEach(geo => {
+          if (attrs[geo.geocode] == null || !attrs[geo.geocode].hasOwnProperty('hhld_s')) result.push(geo);
         });
         return result;
       }),
-      filter(newGeos => newGeos.size > 0),
-    ).subscribe(geoSet => {
-      this.store$.dispatch(new GetLayerAttributes({ geocodes: geoSet }));
+      filter(newGeos => newGeos.length > 0),
+    ).subscribe(geoLocations => {
+      this.store$.dispatch(new GetLayerAttributes({ geoLocations }));
     });
   }
 

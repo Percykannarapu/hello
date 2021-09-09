@@ -1,13 +1,21 @@
-import { toUniversalCoordinates } from '@val/common';
-import Extent from '@arcgis/core/geometry/Extent';
-import Multipoint from '@arcgis/core/geometry/Multipoint';
+import { chunkArray, toUniversalCoordinates } from '@val/common';
 import { EsriUtils } from './esri-utils';
-import Point from '@arcgis/core/geometry/Point';
 
+class SimpleExtent {
 
+  center: { x: number, y: number };
 
+  constructor(public xmax: number, public xmin: number, public ymax: number, public ymin: number) {
+    this.center = {
+      x: ((this.xmax - this.xmin) / 2) + this.xmin,
+      y: ((this.ymax - this.ymin) / 2) + this.ymin
+    };
+  }
 
-
+  contains(x: number, y: number) : boolean {
+    return this.xmin <= x && this.xmax >= x && this.ymin <= y && this.ymax >= y;
+  }
+}
 
 type NonArray<T> = T extends (infer R)[] ? R : T;
 export class EsriQuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>> {
@@ -16,21 +24,32 @@ export class EsriQuadTree<T extends NonArray<Parameters<typeof toUniversalCoordi
   private height: number = null;
   private width: number = null;
 
-  constructor(private locations: T[], private readonly extent?: __esri.Extent) {
+  constructor(private locations: T[], private readonly extent?: SimpleExtent, private readonly depth = 0) {
     if (locations.length === 0) return;
     if (extent == null) {
-      const locationPoints: number[][] = toUniversalCoordinates(locations).map(uc => [uc.x, uc.y]);
-      const multiPoint = new Multipoint({ points: locationPoints });
-      this.extent = multiPoint.extent.clone();
+      let xmin = Number.POSITIVE_INFINITY;
+      let xmax = Number.NEGATIVE_INFINITY;
+      let ymin = Number.POSITIVE_INFINITY;
+      let ymax = Number.NEGATIVE_INFINITY;
+      locations.forEach(loc => {
+        const uc = toUniversalCoordinates(loc);
+        xmin = Math.min(uc.x, xmin);
+        xmax = Math.max(uc.x, xmax);
+        ymin = Math.min(uc.y, ymin);
+        ymax = Math.max(uc.y, ymax);
+      });
+      this.extent = new SimpleExtent(xmax, xmin, ymax, ymin);
     }
   }
 
   partition(maxChunkSize: number, maxQuadDimension?: number) : T[][] {
-    if (this.needsToPartition(maxChunkSize, maxQuadDimension)) {
+    if (this.depth >= 9 && this.locations.length <= maxChunkSize * 3) {
+      return chunkArray(this.locations, maxChunkSize);
+    } else if (this.needsToPartition(maxChunkSize, maxQuadDimension)) {
       this.subdivide();
-      const result: T[][] = [];
+      let result: T[][] = [];
       this.quadrants.forEach(q => {
-        result.push(...q.partition(maxChunkSize, maxQuadDimension));
+        result = result.concat(q.partition(maxChunkSize, maxQuadDimension));
       });
       return result;
     } else {
@@ -53,35 +72,33 @@ export class EsriQuadTree<T extends NonArray<Parameters<typeof toUniversalCoordi
   }
 
   private subdivide() : void {
-    const center = this.extent.center;
-    const q0 = new Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: this.extent.ymax, ymin: center.y });
-    const q1 = new Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: center.y, ymin: this.extent.ymin });
-    const q2 = new Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: this.extent.ymax, ymin: center.y });
-    const q3 = new Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: center.y, ymin: this.extent.ymin });
+    const q0 = new SimpleExtent(this.extent.xmax,     this.extent.center.x, this.extent.ymax,     this.extent.center.y);
+    const q1 = new SimpleExtent(this.extent.center.x, this.extent.xmin,     this.extent.center.y, this.extent.ymin);
+    const q2 = new SimpleExtent(this.extent.center.x, this.extent.xmin,     this.extent.ymax,     this.extent.center.y);
+    const q3 = new SimpleExtent(this.extent.xmax,     this.extent.center.x, this.extent.center.y, this.extent.ymin);
     const l0 = [];
     const l1 = [];
     const l2 = [];
     const l3 = [];
     this.locations.forEach(loc => {
       const uc = toUniversalCoordinates(loc);
-      const pt = new Point({ x: uc.x, y: uc.y });
-      if (q0.contains(pt)) {
+      if (q0.contains(uc.x, uc.y)) {
         l0.push(loc);
-      } else if (q1.contains(pt)) {
+      } else if (q1.contains(uc.x, uc.y)) {
         l1.push(loc);
-      } else if (q2.contains(pt)) {
+      } else if (q2.contains(uc.x, uc.y)) {
         l2.push(loc);
-      } else if (q3.contains(pt)) {
+      } else if (q3.contains(uc.x, uc.y)) {
         l3.push(loc);
       } else {
         console.error('Could not partition properly', JSON.stringify(this));
         throw new Error('Location could not be allocated to quadrant during partition');
       }
     });
-    this.quadrants.push(new EsriQuadTree(l0, q0));
-    this.quadrants.push(new EsriQuadTree(l1, q1));
-    this.quadrants.push(new EsriQuadTree(l2, q2));
-    this.quadrants.push(new EsriQuadTree(l3, q3));
+    if (l0.length > 0) this.quadrants.push(new EsriQuadTree(l0, q0, this.depth + 1));
+    if (l1.length > 0) this.quadrants.push(new EsriQuadTree(l1, q1, this.depth + 1));
+    if (l2.length > 0) this.quadrants.push(new EsriQuadTree(l2, q2, this.depth + 1));
+    if (l3.length > 0) this.quadrants.push(new EsriQuadTree(l3, q3, this.depth + 1));
     this.locations = [];
   }
 }

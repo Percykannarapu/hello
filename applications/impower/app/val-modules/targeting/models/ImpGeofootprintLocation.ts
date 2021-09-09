@@ -80,10 +80,10 @@ export class ImpGeofootprintLocation extends BaseModel
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    getImpGeofootprintGeos(tradeAreaFilter?: TradeAreaTypeCodes) : ReadonlyArray<ImpGeofootprintGeo> {
-      const result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      let result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
       (this.impGeofootprintTradeAreas || []).forEach(impGeofootprintTradeArea => {
         if (tradeAreaFilter == null || TradeAreaTypeCodes.parse(impGeofootprintTradeArea.taType) === tradeAreaFilter) {
-          result.push(...impGeofootprintTradeArea.impGeofootprintGeos || []);
+          result = result.concat(impGeofootprintTradeArea.impGeofootprintGeos ?? []);
         }
       });
       return result;

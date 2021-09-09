@@ -88,10 +88,10 @@ export class ImpProject extends BaseModel
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    public getImpGeofootprintGeos() : ReadonlyArray<ImpGeofootprintGeo> {
-      const _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
-                                       .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas || [])
-                                       .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos || [])))));
+      let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      (this.impGeofootprintMasters ?? []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations ?? [])
+                                       .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas ?? [])
+                                       .forEach(impGeofootprintTradeArea => (_result = _result.concat(impGeofootprintTradeArea.impGeofootprintGeos ?? [])))));
       return _result;
    }
 
@@ -100,29 +100,29 @@ export class ImpProject extends BaseModel
    public getImpGeofootprintLocations(activeOnly: boolean) : ReadonlyArray<ImpGeofootprintLocation>;
    public getImpGeofootprintLocations(activeOnly: boolean, siteType: ImpClientLocationTypeCodes) : ReadonlyArray<ImpGeofootprintLocation>;
    public getImpGeofootprintLocations(activeOnly: boolean = false, siteType?: ImpClientLocationTypeCodes) : ReadonlyArray<ImpGeofootprintLocation> {
-      const _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
-      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => _result.push(...(impGeofootprintMaster.impGeofootprintLocations.filter(l => {
+      let _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
+      (this.impGeofootprintMasters ?? []).forEach(impGeofootprintMaster => _result = _result.concat(impGeofootprintMaster.impGeofootprintLocations.filter(l => {
         let filterResult = true;
         if (activeOnly) filterResult = l.isActive;
         if (siteType != null) filterResult = filterResult && ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === siteType;
         return filterResult;
-      })) || []));
+      }) ?? []));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    public getImpGeofootprintLocAttribs() : ReadonlyArray<ImpGeofootprintLocAttrib> {
-      const _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
-      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
-                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs || []))));
+      let _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
+      (this.impGeofootprintMasters ?? []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations ?? [])
+                                       .forEach(impGeofootprintLocation => (_result = _result.concat(impGeofootprintLocation.impGeofootprintLocAttribs ?? []))));
       return _result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
    public getImpGeofootprintTradeAreas() : ReadonlyArray<ImpGeofootprintTradeArea> {
-      const _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
-      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
-                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas || []))));
+      let _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
+      (this.impGeofootprintMasters ?? []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations ?? [])
+                                       .forEach(impGeofootprintLocation => (_result = _result.concat(impGeofootprintLocation.impGeofootprintTradeAreas ?? []))));
       return _result;
    }
 
@@ -157,9 +157,9 @@ export class ImpProject extends BaseModel
    public convertToModel()
    {
       // Convert JSON objects into models
-      this.impGeofootprintMasters = (this.impGeofootprintMasters || []).map(ma => new ImpGeofootprintMaster(ma));
-      this.impProjectPrefs = (this.impProjectPrefs || []).map(ma => new ImpProjectPref(ma));
-      this.impProjectVars = (this.impProjectVars || []).map(ma => new ImpProjectVar(ma));
+      this.impGeofootprintMasters = (this.impGeofootprintMasters ?? []).map(ma => new ImpGeofootprintMaster(ma));
+      this.impProjectPrefs = (this.impProjectPrefs ?? []).map(ma => new ImpProjectPref(ma));
+      this.impProjectVars = (this.impProjectVars ?? []).map(ma => new ImpProjectVar(ma));
 
       // Push this as transient parent to children
       this.impGeofootprintMasters.forEach(fe => fe.impProject = this);
