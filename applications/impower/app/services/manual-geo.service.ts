@@ -36,7 +36,7 @@ export class ManualGeoService {
               private tradeAreaService: ImpGeofootprintTradeAreaService) { }
 
   allAllowedByFilter(features: __esri.Graphic[], currentProject: ImpProject) : boolean | null {
-    const result = features.map(f => geoPassesFilter(f, currentProject));
+    const result = features.map(f => geoPassesFilter(f.attributes, currentProject));
     return result.every(b => b) ? true : result.every(b => !b) ? false : null;
   }
 
