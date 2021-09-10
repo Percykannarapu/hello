@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isEmpty, toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
@@ -6,7 +6,7 @@ import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../services/app-editsite.service';
@@ -28,7 +28,7 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 @Component({
   selector: 'val-site-list-container',
   templateUrl: './site-list-container.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListContainerComponent implements OnInit {
    // Data store observables
@@ -57,7 +57,6 @@ export class SiteListContainerComponent implements OnInit {
       private store$: Store<LocalAppState>,
       private appEditSiteService: AppEditSiteService,
       private domainFactory: ImpDomainFactoryService,
-      private cd: ChangeDetectorRef,
       private logger: LoggingService) {}
 
    ngOnInit() {
@@ -324,9 +323,7 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    public onZoomToLocation(loc: ImpGeofootprintLocation) {
-      this.esriMapService.zoomToPoints(toUniversalCoordinates([loc])).subscribe(() => {
-        this.cd.markForCheck();
-      });
+      this.esriMapService.zoomToPoints(toUniversalCoordinates([loc])).pipe(take(1)).subscribe();
       this.appStateService.closeOverlays();
    }
 }

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import Graphic from '@arcgis/core/Graphic';
 import { Store } from '@ngrx/store';
-import { EMPTY, from, Observable } from 'rxjs';
-import { finalize, map, reduce } from 'rxjs/operators';
+import { isNil } from '@val/common';
+import { from, Observable } from 'rxjs';
+import { map, reduce } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
 import { AppState } from '../state/esri.reducers';
@@ -18,12 +19,6 @@ export class EsriMapInteractionService {
               private queryService: EsriQueryService,
               private layerService: EsriLayerService,
               private store$: Store<AppState>) {}
-
-  processClick(event: __esri.MapViewImmediateClickEvent) : Observable<__esri.Graphic[]> {
-    return from(this.mapService.mapView.hitTest(event)).pipe(
-      map(hitTestResult => hitTestResult.results.map(result => result.graphic))
-    );
-  }
 
   startSketchModel(graphicType: EsriGraphicTypeCodes) : Observable<__esri.Geometry> {
     const model = EsriDomainFactory.createSketchViewModel(this.mapService.mapView);
@@ -72,13 +67,17 @@ export class EsriMapInteractionService {
     this.mapService.mapView.graphics.add(sketchGraphic);
   }
 
-  selectFeatures(geometry: __esri.Geometry, portalId: string) : Observable<__esri.Graphic[]> {
-    const layer = this.layerService.getPortalLayerById(portalId);
-    if (layer == null) return EMPTY;
+  processClick(event: __esri.MapViewImmediateClickEvent, portalId: string) : Observable<__esri.Graphic[]> {
+    const analysisLayer = this.layerService.getPortalLayerById(portalId);
+    const options = isNil(analysisLayer) ? undefined : { include: analysisLayer };
+    return from(this.mapService.mapView.hitTest(event, options)).pipe(
+      map(hitTestResult => hitTestResult.results.map(result => result.graphic))
+    );
+  }
 
-    return this.queryService.queryLayerView(layer, geometry.extent).pipe(
-      reduce((a, c) => [...a, ...c], [] as __esri.Graphic[]),
-      finalize(() => this.mapService.mapView.graphics.removeAll())
+  selectFeatures(geometry: __esri.Geometry, portalId: string) : Observable<__esri.Graphic[]> {
+    return this.queryService.queryExtent(portalId, true, geometry).pipe(
+      reduce((a, c) => a.concat(c), [] as __esri.Graphic[]),
     );
   }
 }

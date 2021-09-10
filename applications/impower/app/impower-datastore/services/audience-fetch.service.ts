@@ -113,7 +113,7 @@ export class AudienceFetchService {
       return currentListItem;
     });
     if (additionalAudiences.length > 0) {
-      return [...result, ...this.createVarListItems(additionalAudiences, existingIds, allAudienceMap, rootIds)];
+      return result.concat(this.createVarListItems(additionalAudiences, existingIds, allAudienceMap, rootIds));
     } else {
       return result;
     }

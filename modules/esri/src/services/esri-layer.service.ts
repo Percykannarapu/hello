@@ -247,7 +247,7 @@ export class EsriLayerService {
 
   public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean, additionalLayerAttributes?: __esri.FeatureLayerProperties) : Observable<__esri.FeatureLayer> {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
-    const loader: any = isUrlRequest ? Layer.fromArcGISServerUrl : Layer.fromPortalItem;
+    const loader: (params: any) => Promise<__esri.Layer> = isUrlRequest ? Layer.fromArcGISServerUrl : Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
     return new Observable(subject => {
         loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
@@ -257,6 +257,7 @@ export class EsriLayerService {
             minScale: minScale,
             ...additionalLayerAttributes
           };
+          if (layerUpdater.popupEnabled === false) this.popupsPermanentlyDisabled.add(currentLayer);
           currentLayer.set(layerUpdater);
           subject.next(currentLayer);
           currentLayer.when().catch(reason => {

@@ -26,6 +26,8 @@ export interface EsriMapState {
   popupsVisible: boolean;
   sketchView: __esri.SketchViewModel;
   selectedFeatures: __esri.Graphic[];
+  selectedFeaturesToggle: boolean;
+  selectedFeaturesSelect: boolean | null;
   selectedLayerId: string;
   labelConfiguration: EsriLabelConfiguration;
   layerExpressions: {
@@ -43,6 +45,8 @@ const initialState: EsriMapState = {
   popupsVisible: true,
   sketchView: null,
   selectedFeatures: [],
+  selectedFeaturesToggle: false,
+  selectedFeaturesSelect: null,
   selectedLayerId: null,
   labelConfiguration: {
     //font: 'sans-serif',
@@ -107,7 +111,12 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
     case EsriMapActionTypes.ShowLabels:
       return { ...state, labelConfiguration: { ...state.labelConfiguration, enabled: true}};
     case EsriMapActionTypes.FeaturesSelected:
-      return { ...state, selectedFeatures: [ ...action.payload.features] };
+      return {
+        ...state,
+        selectedFeatures: [ ...action.payload.features],
+        selectedFeaturesToggle: action.payload.shouldToggle,
+        selectedFeaturesSelect: action.payload.shouldSelect ?? null
+      };
     case EsriMapActionTypes.SetSelectedLayer:
       return {...state, selectedLayerId: action.payload.layerId};
     default:

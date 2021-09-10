@@ -16,6 +16,8 @@ import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import { EsriLayerService } from './esri-layer.service';
 
+const requiredBoundaryAttributes = ['geocode', 'owner_group_primary', 'cov_frequency', 'pob', 'latitude', 'longitude', 'hhld_s', 'hhld_w'];
+
 @Injectable()
 export class EsriBoundaryService {
 
@@ -167,7 +169,9 @@ export class EsriBoundaryService {
           visible: config.visible,
           popupEnabled: config.showPopups && !config.useSimplifiedInfo,
           popupTemplate: popupDef,
+          outFields: null
         };
+        if (config.isPrimarySelectableLayer) additionalAttributes.outFields = requiredBoundaryAttributes;
         currentLayer.set(additionalAttributes);
         if (currentCentroid != null) {
           currentCentroid.when(() => {

@@ -18,7 +18,6 @@ interface ResponseCoordinates {
   Latitude: number;
   Longitude: number;
 }
-
 interface MediaPlanningCoordinates {
   siteLat: number;
   siteLong: number;

@@ -1,0 +1,8 @@
+.root-component {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  > * {
+    margin-bottom: 0.5rem;
+  }
+}

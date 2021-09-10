@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import Basemap from '@arcgis/core/Basemap';
 import { Store } from '@ngrx/store';
 import { isString, mapArray } from '@val/common';
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { distinctUntilChanged, filter, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { BoundaryConfiguration } from '../models/boundary-configuration';
 import { PoiConfiguration } from '../models/poi-configuration';
 import { ShadingDefinition } from '../models/shading-configuration';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
 import { AppState } from '../state/esri.reducers';
-import { selectors } from '../state/esri.selectors';
+import { internalSelectors, selectors } from '../state/esri.selectors';
 import { SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
@@ -24,6 +24,10 @@ import { EsriShadingService } from './esri-shading.service';
 export class EsriService {
 
   visibleFeatures$: BehaviorSubject<__esri.Graphic[]> = new BehaviorSubject<__esri.Graphic[]>([]);
+
+  featuresSelected$: Subject<__esri.Graphic[]> = new Subject<__esri.Graphic[]>();
+  featuresUnselected$: Subject<__esri.Graphic[]> = new Subject<__esri.Graphic[]>();
+  featuresToggled$: Subject<__esri.Graphic[]> = new Subject<__esri.Graphic[]>();
 
   constructor(private store$: Store<AppState>,
               private mapService: EsriMapService,
@@ -45,7 +49,7 @@ export class EsriService {
       this.mapService.viewsCanBeQueried$.pipe(
         filter(ready => ready),
         withLatestFrom(selectedLayerIsReady$),
-        switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId) : of([]))
+        switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId, false) : of([]))
       ).subscribe(this.visibleFeatures$);
       const poiGroups$ = this.poiService.allPoiConfigurations$.pipe(
         filter(p => p != null && p.length > 0),
@@ -74,6 +78,22 @@ export class EsriService {
             completedGroups.add(p);
           }
         });
+      });
+
+      this.store$.select(internalSelectors.getEsriSelectedFeatures).pipe(
+        tap({ error: err => console.error('Error selecting features', err) }),
+        catchError(() => of([])),
+        withLatestFrom(this.store$.select(internalSelectors.getEsriSelectedFeaturesToggle), this.store$.select(internalSelectors.getEsriSelectedFeaturesSelect))
+      ).subscribe(([features, toggle, select]) => {
+        if (toggle) {
+          this.featuresToggled$.next(features);
+        } else {
+          if (select) {
+            this.featuresSelected$.next(features);
+          } else {
+            this.featuresUnselected$.next(features);
+          }
+        }
       });
     });
   }

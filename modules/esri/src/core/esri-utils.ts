@@ -1,7 +1,8 @@
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Polyline from '@arcgis/core/geometry/Polyline';
 import { Observable } from 'rxjs';
-import { isValidNumber } from '@val/common';
+import { isValidNumber, toUniversalCoordinates } from '@val/common';
+import { isGroupLayer, isPortalFeatureLayer } from './type-checks';
 
 export interface TokenResponse {
   token: string;
@@ -29,12 +30,30 @@ type mapViewEventResults =
   __esri.MapViewPointerMoveEvent | __esri.MapViewPointerUpEvent | __esri.MapViewPointerEnterEvent | __esri.MapViewPointerLeaveEvent |
   __esri.MapViewFocusEvent | __esri.MapViewBlurEvent;
 
+interface PointLike {
+  x: number;
+  y: number;
+}
+
+type NonArray<T> = T extends (infer R)[] ? R : T;
+
 export class EsriUtils {
 
-  public static getDistance(a: __esri.Point, b: __esri.Point) : number;
-  public static getDistance(a: __esri.Point, x: number, y: number) : number;
+  public static getClosestItem<T extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>, U extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>>(a: T, b: U[]) : U {
+    const rootPoint = toUniversalCoordinates(a);
+    let closestItem = b[0];
+    b.forEach(i => {
+      const currentPoint = toUniversalCoordinates(i);
+      const currentClosestPoint = toUniversalCoordinates(closestItem);
+      if (this.getDistance(rootPoint, currentPoint) < this.getDistance(rootPoint, currentClosestPoint)) closestItem = i;
+    });
+    return closestItem;
+  }
+
+  public static getDistance(a: PointLike, b: PointLike) : number;
+  public static getDistance(a: PointLike, x: number, y: number) : number;
   public static getDistance(x1: number, y1: number, x2: number, y2: number) : number;
-  public static getDistance(param1: __esri.Point | number, param2: __esri.Point | number, param3?: number, param4?: number) : number {
+  public static getDistance(param1: PointLike | number, param2: PointLike | number, param3?: number, param4?: number) : number {
     let xA: number;
     let yA: number;
     let xB: number;
@@ -111,5 +130,15 @@ export class EsriUtils {
         if (handle) handle.remove();
       };
     });
+  }
+
+  public static graphicBelongsToPortalLayer(graphic: __esri.Graphic, portalId: string) : boolean {
+    const owner = graphic.layer;
+    const ownerParent = owner['parent'];
+    if (isGroupLayer(ownerParent) && ownerParent.title.toLowerCase().includes('shading')) {
+      return false;
+    } else {
+      return isPortalFeatureLayer(owner) && owner.portalItem.id === portalId;
+    }
   }
 }

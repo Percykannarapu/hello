@@ -1,16 +1,12 @@
 <p-panel header="Map" styleClass="val-no-content-padding" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up" [toggleable]="true" [transitionOptions]="'0ms'">
   <div id="outerMapDiv">
     <val-esri-map-panel [mapHeight]="mapHeight$ | async" baseMap="streets-vector"
-                        (viewChanged)="onViewExtentChanged($event)" (selectedButton)="fnSelectedButton($event)"
-                        [showLabelConfigButton]="false" [toolbarButtons]="toolbarButtons" [showAlternateZoomChoice]="true">
+                        (viewChanged)="onViewExtentChanged($event)" [showLabelConfigButton]="false"
+                        [toolbarButtons]="toolbarButtons" [showAlternateZoomChoice]="true">
       <additional-toolbar-buttons>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <button  label="Clear All"  pButton class="p-button-outlined" (click)="onClearSelections()"  title="Clear All Selections"></button>
-        &nbsp;
-        <button  label="Revert"     pButton class="p-button-outlined" (click)="onRevert()"   title="Revert to Trade Area" ></button>
-        &nbsp;
-        <button  label="Zoom to TA" pButton class="p-button-outlined" (click)="onZoom()"  title="Zoom to TA"></button>
-        &nbsp;&nbsp;
+        <button type="button" pButton label="Clear All"  class="p-button-outlined p-ml-4" (click)="onClearSelections()"  title="Clear All Selections"></button>
+        <button type="button" pButton label="Revert"     class="p-button-outlined p-ml-2" (click)="onRevert()"   title="Revert to Trade Area" ></button>
+        <button type="button" pButton label="Zoom to TA" class="p-button-outlined p-ml-2" (click)="onZoom()"  title="Zoom to TA"></button>
       </additional-toolbar-buttons>
       <additional-toolbar-group>
         <div class="p-col-12 analysis-wrapper">

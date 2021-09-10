@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
-import { filter, map, startWith, take } from 'rxjs/operators';
+import { debounceTime, filter, map, startWith, take, tap } from 'rxjs/operators';
 import { EsriUtils } from '../../../core/esri-utils';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { LoggingService } from '../../../services/logging.service';
@@ -48,31 +48,25 @@ export class EsriMapComponent implements OnInit {
         filter(ready => ready),
         take(1)
       ).subscribe(() => {
-        this.viewChanged.emit(this.mapService.mapView); // one startup firing to get the initial viewpoint
         this.zone.runOutsideAngular(() => {
           EsriUtils.handleMapViewEvent(this.mapService.mapView, 'immediate-click')
             .subscribe(e => this.zone.run(() => this.mapClicked.emit(e)));
-          const center$ = EsriUtils.setupWatch(this.mapService.mapView, 'center').pipe(
-            filter(result => EsriMapComponent.compareCenters(result.newValue, result.oldValue))
+          const center$ = EsriUtils.setupWatch(this.mapService.mapView, 'center', true).pipe(
+            filter(result => EsriMapComponent.compareCenters(result.newValue, result.oldValue)),
           );
-          const scale$ = EsriUtils.setupWatch(this.mapService.mapView, 'scale').pipe(
-            filter(result => result.oldValue !== result.newValue)
+          const scale$ = EsriUtils.setupWatch(this.mapService.mapView, 'scale', true).pipe(
+            filter(result => result.oldValue !== result.newValue),
           );
-          const updating$ = EsriUtils.setupWatch(this.mapService.mapView, 'updating').pipe(
+          const height$ = EsriUtils.setupWatch(this.mapService.mapView, 'height', true).pipe(
+            filter(result => result.oldValue !== result.newValue),
+          );
+          const updating$ = EsriUtils.setupWatch(this.mapService.mapView, 'updating', true).pipe(
             map(result => result.newValue),
-            startWith(true)
           );
-          const stationary$ = EsriUtils.setupWatch(this.mapService.mapView, 'stationary').pipe(
-            map(result => result.newValue),
-            startWith(false)
-          );
-          combineLatest([updating$, stationary$, center$, scale$]).pipe(
-            filter(([u, s]) => !u && s)
+          combineLatest([updating$, center$, scale$, height$]).pipe(
+            filter(([updating]) => !updating),
+            debounceTime(50)
           ).subscribe(() => this.zone.run(() => this.viewChanged.emit(this.mapService.mapView)));
-
-          this.mapService.mapView.map.allLayers.forEach(layer =>
-            EsriUtils.setupWatch(layer, 'visible')
-              .subscribe(() => this.zone.run(() => this.viewChanged.emit(this.mapService.mapView))));
         });
       });
     });

@@ -1,0 +1,23 @@
+<div class="root-component" *ngIf="dataReady">
+  <p-message text="The selected geos do not conform to the filters set in Campaign Details" severity="warn" *ngIf="isFilterViolation">
+  </p-message>
+  <p-message text="Some of the selected geos do not conform to the filters set in Campaign Details" severity="warn" *ngIf="hasSomeFilterViolations">
+  </p-message>
+  <button type="button" pButton label="Reselect all existing geos" icon="pi pi-check-circle"
+          *ngIf="(isToggle || isSelect) && selectableTargetsExist" (click)="existingGeos(true)">
+  </button>
+  <button type="button" pButton label="Deselect all existing geos" icon="pi pi-times-circle"
+          *ngIf="(isToggle || !isSelect) && deSelectableTargetsExist" (click)="existingGeos(false)">
+  </button>
+  <div *ngIf="isToggle || isSelect" class="p-d-flex">
+    <dropdown-input labelText="Client Locations" [options]="locationChoices" [includeUnselected]="false" [(ngModel)]="selectedLocation"></dropdown-input>
+    <button type="button" pButton label="Assign all geos to this Site" icon="pi pi-chevron-right" iconPos="right" (click)="selectParent(selectedLocation, true)">
+    </button>
+  </div>
+  <button type="button" pButton label="Assign each Geo to nearest Site" icon="pi pi-check-circle"
+          *ngIf="(isToggle || isSelect) && hasMultipleTargets" (click)="selectParent(null, true)">
+  </button>
+</div>
+<div class="p-d-flex p-ai-center p-jc-center" *ngIf="!dataReady">
+  <p-progressSpinner strokeWidth="3" [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+</div>

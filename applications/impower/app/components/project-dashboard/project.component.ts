@@ -5,7 +5,6 @@ import { ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndi
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, shareReplay, switchMap, take, takeUntil, tap } from 'rxjs/operators';
-import { ValassisTreeNode } from '../../../worker-shared/data-model/custom/treeview';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
 import { UserService } from '../../services/user.service';

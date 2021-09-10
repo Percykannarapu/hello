@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import Measurement from '@arcgis/core/widgets/Measurement';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { MonoTypeOperatorFunction, Observable } from 'rxjs';
-import { concatMap, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, finalize, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
@@ -24,29 +24,25 @@ const allButtonTypes = [
 @Injectable()
 export class EsriMapButtonEffects {
 
-  @Effect()
-  handlePopupButton$ = this.actions$.pipe(
+  handlePopupButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })]),
-  );
+  ));
 
-  @Effect()
-  handleXYButton$ = this.actions$.pipe(
+  handleXYButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.XYButtonSelected),
     this.resetSketchViewGraphics(),
     switchMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
-  );
+  ));
 
-  @Effect()
-  handleSelectSinglePolyButton$ = this.actions$.pipe(
+  handleSelectSinglePolyButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectSinglePolySelected),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
-  );
+  ));
 
-  @Effect({ dispatch: false })
-  handleMeasureDistanceButton$ = this.actions$.pipe(
+  handleMeasureDistanceButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.MeasureDistanceSelected),
     this.resetSketchViewGraphics(),
     map(() => this.esriMapService.getWidgetInstance<__esri.Measurement>('esri.widgets.Measurement')),
@@ -57,10 +53,9 @@ export class EsriMapButtonEffects {
         this.esriMapService.createBasicWidget(Measurement, {activeTool: 'distance', linearUnit: 'miles'}, 'bottom-right');
       }
     })
-  );
+  ), { dispatch: false });
 
-  @Effect({ dispatch: false })
-  cleanUpMeasurementTool$ = this.actions$.pipe(
+  cleanUpMeasurementTool$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected,
       EsriMapToolbarButtonActionTypes.SelectSinglePolySelected,
       EsriMapToolbarButtonActionTypes.SelectMultiPolySelected,
@@ -73,33 +68,35 @@ export class EsriMapButtonEffects {
         this.esriMapService.removeWidget(instance);
       }
     })
-  );
+  ), { dispatch: false });
 
   // the takeUntil bits are there if the user picks a different button after starting the sketch view
   // without the takeUntil operator, that observable will be a hanging reference that will never close
-  @Effect()
-  handleSelectMultiPolyButton$ = this.actions$.pipe(
+  handleSelectMultiPolyButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectMultiPolySelected),
     tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     withLatestFrom(this.store$.select(selectors.getEsriSelectedLayer)),
-    mergeMap(([geometry, portalId]) => this.mapInteractionService.selectFeatures(geometry, portalId)),
-    concatMap(features => [new FeaturesSelected({ features }), new SelectMultiPolySelected()])
-  );
+    mergeMap(([geometry, portalId]) => this.mapInteractionService.selectFeatures(geometry, portalId).pipe(
+      finalize(() => this.esriMapService.mapView.graphics.removeAll()) // clean up the UI
+    )),
+    concatMap(features => [new FeaturesSelected({ features, shouldToggle: false, shouldSelect: true }), new SelectMultiPolySelected()])
+  ));
 
-  @Effect()
-  handleUnselectMultiPolyButton$ = this.actions$.pipe(
+  handleUnselectMultiPolyButton$ = createEffect(() => this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected),
     tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     withLatestFrom(this.store$.select(selectors.getEsriSelectedLayer)),
-    mergeMap(([geometry, portalId]) => this.mapInteractionService.selectFeatures(geometry, portalId)),
-    concatMap(features => [new FeaturesSelected({ features }), new UnselectMultiPolySelected()])
-  );
+    mergeMap(([geometry, portalId]) => this.mapInteractionService.selectFeatures(geometry, portalId).pipe(
+      finalize(() => this.esriMapService.mapView.graphics.removeAll()) // clean up the UI
+    )),
+    concatMap(features => [new FeaturesSelected({ features, shouldToggle: false, shouldSelect: false }), new UnselectMultiPolySelected()])
+  ));
 
   constructor(private actions$: Actions,
               private store$: Store<AppState>,

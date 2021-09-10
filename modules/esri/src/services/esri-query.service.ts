@@ -143,16 +143,16 @@ export class EsriQueryService {
     );
   }
 
-  public queryExtent(layerId: string, extent?: __esri.Extent) : Observable<__esri.Graphic[]> {
+  public queryExtent(layerId: string, returnGeometry: boolean, extent?: __esri.Geometry, outFields: string[] = ['geocode', 'owner_group_primary', 'cov_frequency', 'pob', 'latitude', 'longitude', 'hhld_s', 'hhld_w']) : Observable<__esri.Graphic[]> {
     const specialTxId = 'primary-extent-id';
     if (this.currentExtentLayerId !== layerId) {
       if (this.currentExtentLayerId != null) this.finalizeQuery(specialTxId);
       this.currentExtentLayerId = layerId;
     }
     const query = new Query({
-      geometry: extent == null ? this.mapService.mapView.extent : extent,
-      returnGeometry: false,
-      outFields: ['geocode', 'pob']
+      geometry: extent ?? this.mapService.mapView.extent,
+      returnGeometry,
+      outFields
     });
     return this.query(layerId, [query], specialTxId, true).pipe(
       reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[])

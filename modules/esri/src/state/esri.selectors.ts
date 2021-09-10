@@ -17,29 +17,18 @@ const getEsriMapButtonState = createSelector(getEsriMapState, state => state.sel
 const getEsriMapHeight = createSelector(getEsriMapState, state => state.containerHeight);
 const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sketchView);
 const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
-const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
 
-const selectedLayerFeatures = (selectedFeatures: __esri.Graphic[], selectedLayerId: string) => {
-  if (selectedFeatures == null || selectedLayerId == null || selectedFeatures.length === 0 ) return null;
-  const filteredFeatures: __esri.Graphic[] = [];
-  selectedFeatures.forEach(feature => {
-    if (isPortalFeatureLayer(feature.layer) && feature.layer.portalItem.id === selectedLayerId)
-      filteredFeatures.push(feature) ;
-  });
-  return filteredFeatures;
-};
-
-const getEsriFeatureForSelectedLayer = createSelector(getEsriFeaturesSelected, getEsriSelectedLayer, selectedLayerFeatures);
+const getEsriSelectedFeatures = createSelector(getEsriMapState, state => state.selectedFeatures);
+const getEsriSelectedFeaturesToggle = createSelector(getEsriMapState, state => state.selectedFeaturesToggle);
+const getEsriSelectedFeaturesSelect = createSelector(getEsriMapState, state => state.selectedFeaturesSelect);
 
 // These are the publicly available selectors
 export const selectors = {
   getEsriFeatureReady,
   getMapReady,
-  getEsriFeaturesSelected,
   getEsriLabelConfiguration,
   getEsriViewpointState,
   getEsriSelectedLayer,
-  getEsriFeatureForSelectedLayer,
 };
 
 export const internalSelectors = {
@@ -49,5 +38,8 @@ export const internalSelectors = {
   getEsriMapButtonState,
   getEsriSketchViewModel,
   getEsriMapHeight,
-  getEsriLayerLabelExpressions
+  getEsriLayerLabelExpressions,
+  getEsriSelectedFeatures,
+  getEsriSelectedFeaturesToggle,
+  getEsriSelectedFeaturesSelect
 };

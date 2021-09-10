@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { arrayToSet, filterArray, groupByExtended, isEmpty, mergeArrayMaps, reduceConcat, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
@@ -18,7 +18,7 @@ import { GeoAttribute } from '../impower-datastore/state/transient/geo-attribute
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
-import { deleteCustomTa, deleteMustCover, projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -29,8 +29,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppLoggingService } from './app-logging.service';
-import { AppMapService } from './app-map.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService, Season } from './app-state.service';
 
 const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
@@ -62,13 +60,10 @@ export class AppGeoService {
   private processingMustCovers: boolean = false;
 
   constructor(private appStateService: AppStateService,
-              private appMapService: AppMapService,
               private locationService: ImpGeofootprintLocationService,
               private locationAttrService: ImpGeofootprintLocAttribService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeoService: ImpGeofootprintGeoService,
-              private appProjectPrefService: AppProjectPrefService,
-              private layerService: EsriLayerService,
               private queryService: EsriQueryService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
@@ -83,9 +78,7 @@ export class AppGeoService {
       take(1)
     ).subscribe(() => {
       this.setupRadiusSelectionObservable();
-      this.setupHomeGeoSelectionObservable();
       this.setupFilterGeosObservable();
-      this.setupMapClickEventHandler();
 
       // Detect changes in must covers list and call ensureMustCovers
       const projectReady$ = this.store$.pipe(select(projectIsReady));
@@ -128,46 +121,6 @@ export class AppGeoService {
     this.impGeoService.makeDirty();
   }
 
-  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }, filterFlag?: boolean) {
-    const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
-    const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
-    if (this.appMapService.selectedButton === 3 || this.appMapService.selectedButton === 8) {
-      if ((allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) || (allIdentifiedGeos.has(geocode) && this.appMapService.selectedButton === 8)) {
-        this.deselectGeosByGeocode(geocode);
-      } else if (allIdentifiedGeos.has(geocode)) {
-        if (this.appMapService.selectedButton !== 8 && filterFlag) {
-          this.reactivateGeosByGeocode(geocode);
-        }
-      } else {
-        if (this.appMapService.selectedButton !== 8) {
-          (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
-        }
-      }
-    } else if (this.appMapService.selectedButton === 1) {
-      if (allSelectedGeos.has(geocode)) {
-        this.deselectGeosByGeocode(geocode);
-      } else if (allIdentifiedGeos.has(geocode)) {
-        this.reactivateGeosByGeocode(geocode);
-      } else if (!(allIdentifiedGeos.has(geocode))) {
-        (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
-      }
-    }
-  }
-
-  public checkGeoOnSingleSelect(features: __esri.Graphic[]) : boolean {
-    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
-    if (layerId == null || layerId.length === 0) return;
-    const layer = this.layerService.getPortalLayerById(layerId);
-    let singleSelectFlag: boolean = false;
-    features.forEach(feature => {
-      if (feature.layer === layer) {
-        const geoFound = this.impGeoService.get().filter(geo => geo.geocode === feature.attributes.geocode);
-        singleSelectFlag = (geoFound.length === 0) ? false : geoFound[0].isActive;
-      }
-    });
-    return singleSelectFlag;
-  }
-
   public deleteGeos(geos: ImpGeofootprintGeo[]) : void {
     if (geos == null || geos.length === 0) return;
 
@@ -205,40 +158,6 @@ export class AppGeoService {
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
       filter(tradeAreas => tradeAreas.length > 0)
     ).subscribe(tradeAreas => this.finalizeTradeAreas(tradeAreas));
-  }
-
-  /**
-   * Sets up an observable sequence that fires when a location is missing its home geo in any trade area
-   */
-  private setupHomeGeoSelectionObservable() : void {
-    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
-    this.impGeoService.storeObservable.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$,
-                     this.appStateService.allClientLocations$,
-                     this.store$.select(deleteCustomTa),
-                     this.store$.select(deleteMustCover)),
-      filter(([, isReady, locs, isCustomTaExists, isMustCoverExists]) => isReady && locs.length > 0 && !isCustomTaExists && !isMustCoverExists),
-      map(([, , locs]) => locs),
-      filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
-        (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
-        loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
-        loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
-        loc.clientLocationTypeCode === 'Site'),
-      withLatestFrom(this.appStateService.season$, this.appStateService.analysisLevel$),
-    ).subscribe(([locations, season, analysisLevel]) => {
-     // this.selectAndPersistHomeGeos(locations, analysisLevel, season);
-    });
-  }
-
-  private setupMapClickEventHandler() {
-    this.appMapService.geoSelected$.pipe(
-      filter(events => events != null && events.length > 0)
-    ).subscribe(events => {
-      events.forEach(event => {
-        if (event.geometry.x != null && event.geometry.y != null)
-          (event.filterFlag !== null && event.filterFlag !== undefined) ? this.toggleGeoSelection(event.geocode, event.geometry, event.filterFlag) : this.toggleGeoSelection(event.geocode, event.geometry);
-      });
-    });
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season, analysisLevel: string) : void {
@@ -368,21 +287,16 @@ export class AppGeoService {
     if (locationsWithHomeGeo.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
   }
 
-  public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
+  public clearAllGeos(keepRadiusGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
     // also removes all vars and trade areas (except Radius and Audience)
     const allTradeAreas = this.tradeAreaService.get();
     const radiusTradeAreas = allTradeAreas.filter(ta => ta.taType === 'RADIUS');
-    const audienceTradeAreas = allTradeAreas.filter(ta => ta.taType === 'AUDIENCE');
     const customTradeAreas = allTradeAreas.filter(ta => ta.taType === 'CUSTOM');
     const forcedTradeAreas = allTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
     const otherTradeAreas = allTradeAreas.filter(ta => !['RADIUS', 'AUDIENCE', 'CUSTOM'].includes(ta.taType));
     const tradeAreasToClear = [...otherTradeAreas];
     const tradeAreasToDelete = [...otherTradeAreas];
     if (!keepRadiusGeos) tradeAreasToClear.push(...radiusTradeAreas);
-    if (!keepAudienceGeos) {
-      tradeAreasToClear.push(...audienceTradeAreas);
-      tradeAreasToDelete.push(...audienceTradeAreas);
-    }
     if (!keepCustomGeos) {
       tradeAreasToClear.push(...customTradeAreas);
       tradeAreasToDelete.push(...customTradeAreas);
@@ -697,21 +611,6 @@ export class AppGeoService {
     );
   }
 
-  private deselectGeosByGeocode(geocode: string) : void {
-    const geosToRemove = this.impGeoService.get().filter(geo => geo.geocode === geocode);
-    const geosToDelete = new Set(geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'MANUAL'));
-    const geosToDeactivate = geosToRemove.filter(geo => !geosToDelete.has(geo));
-    if (geosToDeactivate.length > 0) {
-      geosToDeactivate.forEach(geo => geo.isActive = false);
-      if (geosToDelete.size === 0) {
-        this.impGeoService.makeDirty();
-      }
-    }
-    if (geosToDelete.size > 0) {
-      this.deleteGeos(Array.from(geosToDelete));
-    }
-  }
-
   public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean) {
     const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);
     if (isHomeGeo) {
@@ -767,39 +666,6 @@ export class AppGeoService {
 
     }
   }
-
-  private reactivateGeosByGeocode(geocode: string) : void {
-    this.impGeoService.get()
-      .filter(geo => geo.geocode === geocode)
-      .forEach(geo => {
-        geo.isActive = true;
-      });
-    this.impGeoService.update(null, null);
-  }
-
-  private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }, filterFlag?: boolean) : void {
-    const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
-    let minDistance = Number.MAX_VALUE;
-    const closestLocation = locations.reduce((previous, current) => {
-      const currentDistance = EsriUtils.getDistance(current.xcoord, current.ycoord, geometry.x, geometry.y);
-      if (currentDistance < minDistance) {
-        minDistance = currentDistance;
-        return current;
-      } else {
-        return previous;
-      }
-    }, null);
-    if (closestLocation != null){
-      let tradeArea = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType === 'MANUAL')[0];
-    if (tradeArea == null) {
-      tradeArea = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.Manual);
-      this.tradeAreaService.add([tradeArea]);
-    }
-    const newGeo = this.domainFactory.createGeo(tradeArea, geocode, geometry.x, geometry.y, minDistance);
-    if (filterFlag !== null && filterFlag !== undefined) newGeo.isActive = filterFlag;
-    this.impGeoService.add([newGeo]);
-  }
-}
 
   private setupFilterGeosObservable() : void {
     this.appStateService.currentProject$.pipe(

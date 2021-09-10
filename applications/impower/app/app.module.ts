@@ -196,6 +196,7 @@ import { ImpProjectService } from './val-modules/targeting/services/ImpProject.s
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
+import { ManualGeoDialogComponent } from './components/dialogs/manual-geo-dialog/manual-geo-dialog.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -247,7 +248,7 @@ export function esriSetupFactory() : ForRootOptions {
       name: 'imPower Application',
       maxAge: 25,
       logOnly: environment.production,
-      actionsBlocklist: ['Usage', 'Map View Changed'],
+      actionsBlocklist: ['Usage', 'Map View Changed', 'Set Viewpoint'],
       stateSanitizer: stateSanitizer,
       actionSanitizer: actionSanitizer,
     }),
@@ -408,7 +409,8 @@ export function esriSetupFactory() : ForRootOptions {
     BrokeredTreeviewComponent,
     EsriRgb2HexPipe,
     AnyToBoolPipe,
-    BooleanColumnFilterComponent
+    BooleanColumnFilterComponent,
+    ManualGeoDialogComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
