@@ -191,3 +191,7 @@ export function removeNonAlphaNumerics(value: string) : string {
 export function removeNonAsciiChars(value: string) : string {
   return value.replace(/[^\x00-\x7F]/g, '').replace(/&nbsp;/gi, ' ');
 }
+
+export function removeTabAndNewLineRegx(value: string): string{
+  return value.replace(/[\t\n\r]/gm,'');
+}
