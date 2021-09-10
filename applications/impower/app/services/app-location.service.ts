@@ -540,10 +540,10 @@ export class AppLocationService {
         homeGeoKey = getHomeGeoKey(analysisLevel);
       }
       const currentAttributes = this.impLocAttributeService.get().filter(a => a.attributeCode === homeGeoKey && a.impGeofootprintLocation != null);
-      const siteMap = mapByExtended(currentAttributes, a => a.impGeofootprintLocation.locationNumber);
+      const siteMap = mapByExtended(currentAttributes, a => `${a.impGeofootprintLocation.clientLocationTypeCode}-${a.impGeofootprintLocation.locationNumber}`);
       const currentLocations = this.impLocationService.get();
       for (const loc of currentLocations) {
-        if (siteMap.has(loc.locationNumber)) {
+        if (siteMap.has(`${loc.clientLocationTypeCode}-${loc.locationNumber}`)) {
           loc.homeGeocode = siteMap.get(loc.locationNumber).attributeValue;
         } else {
           loc.homeGeocode = null;

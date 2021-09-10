@@ -4,13 +4,14 @@ import { Store } from '@ngrx/store';
 import { CommonSort, filterArray, groupBy, isEmpty, isNotNil, mapArray, mapByExtended } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { KeyedSet } from '../../../../modules/common/src/keyed-set';
 import { MessageCenterService } from '../../../../modules/messaging/core/message-center.service';
-import { ProjectPrefGroupCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { ImpClientLocationTypeCodes, ProjectPrefGroupCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { quadPartitionGeos, quadPartitionLocations } from '../common/quad-tree';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
@@ -335,8 +336,9 @@ export class AppDataShimService {
    return this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
   }
 
-  rollDownComplete(isResubmit: boolean, resubmitGeo: string[], rollDownType: string){
-    this.appGeoService.selectAndPersistHomeGeos(this.impGeofootprintLocationService.get(), this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
+  rollDownComplete(isResubmit: boolean, resubmitGeo: string[], rollDownType: string, siteType: SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site){
+    const locations: ImpGeofootprintLocation[] = this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
+    this.appGeoService.selectAndPersistHomeGeos(locations, this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
     let uploadFailures: string[];
     let titleText: string;
     if (rollDownType === 'TRADEAREA'){
