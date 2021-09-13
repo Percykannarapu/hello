@@ -150,7 +150,7 @@ export class BatchMapDialogComponent implements OnInit {
           taTitle: savedFormData.taTitle == null ? '' : savedFormData.taTitle,
           enableLabels: savedFormData.enableLabels == null ? true : savedFormData.enableLabels,
           enableSymbols: savedFormData.enableSymbols == null ? true : savedFormData.enableSymbols,
-          enableTradeAreaBoundaries: savedFormData.enableTradeAreaBoundaries == null ? true : savedFormData.enableTradeAreaBoundaries
+          enableTradeAreaBoundaries: savedFormData.enableTradeAreaBoundaries == null ? false : savedFormData.enableTradeAreaBoundaries
         });
 
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
@@ -186,7 +186,7 @@ export class BatchMapDialogComponent implements OnInit {
         taTitle: '',
         enableLabels: true,
         enableSymbols: true,
-        enableTradeAreaBoundaries: true
+        enableTradeAreaBoundaries: false
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
@@ -244,9 +244,9 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       } else if (val === 'exclude') {
         this.batchMapForm.get('enableTradeAreaShading').disable();
-        this.batchMapForm.get('enableLabels').enable();
-        this.batchMapForm.get('enableSymbols').enable();
-        this.batchMapForm.get('enableTradeAreaBoundaries').enable();
+        this.batchMapForm.get('enableLabels').disable();
+        this.batchMapForm.get('enableSymbols').disable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
       }
     });
     this.batchMapForm.get('sitesPerPage').valueChanges.subscribe(val => {
@@ -289,13 +289,13 @@ export class BatchMapDialogComponent implements OnInit {
       else
        this.activeSitesSetting();
     });
-    this.batchMapForm.get('enableSymbols').valueChanges.subscribe(val => {
+    /*this.batchMapForm.get('enableSymbols').valueChanges.subscribe(val => {
       if (!val){
         this.batchMapForm.get('enableLabels').disable();
         }else{
         this.batchMapForm.get('enableLabels').enable();
        }
-      });
+      });*/
     this.store$.select(getBatchMapDialog).subscribe(flag => {
       if (flag){
         this.sitesCount$ = of(this.getActiveSites().length);
