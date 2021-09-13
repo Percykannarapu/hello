@@ -1,0 +1,83 @@
+<p-table #statusTable
+         [columns]="allColumns"
+         [value]="printJobDetails"
+         dataKey="projectId"
+         [resizableColumns]="false"
+         [reorderableColumns]="false"
+         sortField="createDate" [sortOrder]="-1"
+         [paginator]="true" [rows]="10">
+  <ng-template pTemplate="colgroup">
+    <colgroup>
+      <col *ngFor="let col of allColumns" [style.width]="col.width">
+      <col [style.width]="'7rem'">
+      <col [style.width]="'8rem'">
+      <col [style.width]="'4rem'">
+    </colgroup>
+  </ng-template>
+  <ng-template pTemplate="header">
+    <tr>
+      <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [title]="col.header" [pSortableColumnDisabled]="!col.sortable">
+        <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+          <div class="p-text-truncate">
+            {{col.header}}
+          </div>
+          <p-sortIcon *ngIf="col.sortable" field="{{col.field}}"></p-sortIcon>
+        </div>
+      </th>
+      <th>
+        <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+          <div class="p-text-truncate">
+            Elapsed Time
+          </div>
+        </div>
+      </th>
+      <th>
+        Download Links
+      </th>
+      <th>Action</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-rowData let-columns="columns">
+    <tr>
+      <td *ngFor="let col of columns" [ngSwitch]="col.field">
+        <div *ngSwitchCase="'jobNumber'" title="Click to copy to clipboard">
+          <button pButton class="p-button-link" (click)="copy(rowData)" label="{{rowData[col.field] | slice:0:7}}"></button>
+        </div>
+        <div *ngSwitchCase="'createDate'">
+          {{ rowData[col.field] | date:'MM/dd/YY hh:mm a' }}
+        </div>
+        <div *ngSwitchDefault class="p-text-truncate" [title]="rowData[col.field]">
+          {{rowData[col.field]}}
+        </div>
+      </td>
+      <td>
+        <val-elapsed-time [start]="rowData['createDate']" [end]="rowData['modifyDate']"></val-elapsed-time>
+      </td>
+      <td>
+        <div *ngIf="!downloadDisabled.has(rowData.status)" class="p-d-flex p-flex-column">
+          <button pButton class="p-button-link p-button-sm" label="PDF Download" (click)="downloadPdf(rowData)"></button>
+          <button pButton class="p-button-link p-button-sm" label="ZIP Download" (click)="downloadZIP(rowData)" *ngIf="rowData.jobType === 'One Site per Page'"></button>
+        </div>
+      </td>
+      <td>
+        <div *ngIf="actionsAvailable.has(rowData.status)">
+          <button pButton class="p-button-sm p-button-icon-only p-button-rounded" icon="pi pi-refresh" (click)="refresh(rowData)" title="refresh"></button>
+          <button pButton class="p-button-sm p-button-icon-only p-button-rounded p-button-danger" icon="pi pi-times" (click)="cancel(rowData)" title="cancel"></button>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage" let-columns>
+    <tr>
+      <td [attr.colspan]="columns.length + 3">
+        <div *ngIf="gettingData" class="p-d-flex p-flex-column p-jc-center p-ai-center">
+          <h5>Loading...</h5>
+          <p-progressSpinner></p-progressSpinner>
+        </div>
+        <div *ngIf="!gettingData" class="p-d-flex p-flex-column p-jc-center p-ai-center">
+          <h5>No results</h5>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

@@ -30,7 +30,7 @@ export const getTdaAudiences = createSelector(allAudiences, (audiences) => audie
 
 const createdSources = new Set(['Combined', 'Converted', 'Combined/Converted', 'Composite']);
 export const getCreatedAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => createdSources.has(a.audienceSourceType)));
-export const getReservedIds = createSelector(getCreatedAudiences, audiences => new Set(audiences.flatMap(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => cs.id))));
+export const getReservedIds = createSelector(getCreatedAudiences, audiences => new Set(audiences.flatMap(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => Number(cs.id)))));
 const preAssignedPks = new Set(['Online', 'Offline']);
 const assignedPkAudiences = createSelector(allAudiences, audiences => audiences.filter(a => !preAssignedPks.has(a.audienceSourceType)));
 export const getMaxAssignedPk = createSelector(assignedPkAudiences, audiences => audiences.reduce((p, c) => Math.max(p, Number(c.audienceIdentifier)), 0));

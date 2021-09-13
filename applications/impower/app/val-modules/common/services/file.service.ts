@@ -1,4 +1,4 @@
-import { isEmpty, isString, removeNonAsciiChars } from '@val/common';
+import { isEmpty, isNil, isString, removeNonAsciiChars } from '@val/common';
 
 type identifierType = string | RegExp | ((header: string) => boolean);
 
@@ -221,6 +221,12 @@ export class FileService {
     element.click();
     element.remove();
     if (revokeBlob) URL.revokeObjectURL(url);
+  }
 
+  public static downloadRawBlob(data: Blob | ArrayBuffer, fileName: string, mimeType?: string) {
+    const options = isNil(mimeType) ? undefined : { type: mimeType };
+    const newBlob = new Blob([data], options);
+    const uri = window.URL.createObjectURL(newBlob);
+    this.downloadUrl(uri, fileName);
   }
 }

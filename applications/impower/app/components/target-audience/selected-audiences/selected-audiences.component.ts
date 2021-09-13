@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { toNullOrNumber } from '@val/common';
 import {
   DeleteAudience,
   MoveAudienceDn,
@@ -22,20 +23,19 @@ import { CreateAudienceUsageMetric } from '../../../state/usage/targeting-usage.
 @Component({
   selector: 'val-selected-audiences',
   templateUrl: './selected-audiences.component.html',
-  styleUrls: ['./selected-audiences.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./selected-audiences.component.scss']
 })
 export class SelectedAudiencesComponent implements OnInit, OnDestroy {
 
+  reservedAudiences = new Set<number>();
   audiences$ = new BehaviorSubject<Audience[]>([]);
   gridAudiences$ = new BehaviorSubject<Audience[]>([]);
   audienceCount: number = 0;
   gridAll: boolean = false;
   gfpAll: boolean = true;
 
-  public showDialog: boolean = false;
-  public dialogMessage: string = '';
-  public dialogHeader: string = '';
+  isNationalRestricted = false;
+  restrictionMessage = '';
 
   private nationalAudiences$ = new BehaviorSubject<Audience[]>([]);
   private createdAudiences$ = new BehaviorSubject<Audience[]>([]);
@@ -60,9 +60,24 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
     this.store$.select(fromAudienceSelectors.getAudiencesInGrid).pipe(takeUntil(this.destroyed$)).subscribe(this.gridAudiences$);
     this.store$.select(geoTransactionId).pipe(takeUntil(this.destroyed$)).subscribe(this.geoTxId$);
 
+    this.store$.select(fromAudienceSelectors.getAudiencesInExtract).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(nationalAudiences => {
+      const restrictionCount = this.appStateService.analysisLevel$.getValue() === 'PCR' ? 1 : 5;
+      this.isNationalRestricted = nationalAudiences.length >= restrictionCount;
+      this.restrictionMessage = `${this.appStateService.analysisLevel$.getValue()} National Extracts are limited to ${restrictionCount} audience${restrictionCount > 1 ? 's' : ''}.`;
+    });
+
     this.appStateService.analysisLevel$.subscribe(() => {
       const audiences = this.audiences$.getValue().map(a => ({ id: a.audienceIdentifier, changes: { exportNationally: false } }));
       this.store$.dispatch(new UpdateAudiences({ audiences }));
+    });
+
+    this.store$.select(fromAudienceSelectors.getReservedIds).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(reservedAudiences => {
+      this.logger.debug.log(`Reserved audience count = ${reservedAudiences.size}`, reservedAudiences);
+      this.reservedAudiences = reservedAudiences;
     });
   }
 
@@ -75,48 +90,32 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
     this.store$.dispatch(new FetchGeoVars({ audiences, txId: this.geoTxId$.getValue() }));
   }
 
-  public closeDialog() {
-    this.showDialog = false;
-  }
-
   onRemove(audience: Audience) {
-    let isDependent: boolean = false;
-    isDependent = this.createdAudiences$.getValue().filter(combineAud => combineAud.combinedAudiences.includes(audience.audienceIdentifier)).length > 0;
-    this.createdAudiences$.getValue().forEach((aud: Audience) => aud.compositeSource.forEach(a => {
-      if (a.id.toString() === audience.audienceIdentifier)
-        isDependent = true;
-    }));
-    if (isDependent) {
-      this.dialogHeader = 'Invalid Delete!';
-      this.dialogMessage = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
-      this.showDialog = true;
-    } else {
-      const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
-        `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
-      this.confirmationService.confirm({
-        message: message,
-        header: 'Delete Confirmation',
-        icon: 'pi pi-trash',
-        accept: () => {
-          let metricText;
-          switch (audience.audienceSourceType) {
-            case 'Custom':
-              metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-              break;
-            case 'Offline':
-              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}`;
-              break;
-            default:
-              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-              break;
-          }
-          this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
-          this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
-        },
-        reject: () => {
+    const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
+      `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
+    this.confirmationService.confirm({
+      message: message,
+      header: 'Delete Confirmation',
+      icon: 'pi pi-trash',
+      accept: () => {
+        let metricText;
+        switch (audience.audienceSourceType) {
+          case 'Custom':
+            metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+            break;
+          case 'Offline':
+            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}`;
+            break;
+          default:
+            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+            break;
         }
-      });
-    }
+        this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
+        this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
+      },
+      reject: () => {
+      }
+    });
   }
 
   onMoveUp(audience: Audience) {
@@ -128,22 +127,11 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   }
 
   onNationalSelected(audience: Audience, newValue: boolean) {
-   
-      if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiences$.value.length == 1) {
-        this.dialogHeader = 'Selected Audiences Error';
-        this.dialogMessage = 'Only 1 variable can be selected at one time for PCR level National exports.';
-        this.showDialog = true;
-        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: false } }}));
-      }
-     else if (this.nationalAudiences$.value.length == 5) {
-        this.dialogHeader = 'Selected Audiences Error';
-        this.dialogMessage = 'Only 5 variables can be selected at one time for the National export.';
-        this.showDialog = true;
-        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: false } }}));
-      }
-      else{
-        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: newValue } }}));
-      }
+    if (this.isNationalRestricted) {
+      this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: false } }}));
+    } else {
+      this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: newValue } }}));
+    }
   }
 
   onShowGridSelected(audience: Audience, newValue: boolean) {
@@ -173,5 +161,9 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   public onSetGfpForAll(gfpFilter: boolean) {
     const audiences = this.audiences$.getValue().map(a => ({ id: a.audienceIdentifier, changes: { exportInGeoFootprint: gfpFilter } }));
     this.store$.dispatch(new UpdateAudiences({ audiences }));
+  }
+
+  public isReserved(audience: Audience) : boolean {
+    return this.reservedAudiences.has(toNullOrNumber(audience.audienceIdentifier));
   }
 }

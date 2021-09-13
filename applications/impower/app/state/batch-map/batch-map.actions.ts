@@ -56,14 +56,6 @@ export class SetCurrentSiteNum implements Action {
   constructor(public payload: { currentSiteNum: string }) {}
 }
 
-export class OpenBatchMapStatusDialog implements Action{
-  readonly type = BatchMapActionTypes.OpenBatchMapStatusDialog;
-}
-
-export class CloseBatchMapStatusDialog implements Action{
-  readonly type = BatchMapActionTypes.CloseBatchMapStatusDialog;
-}
-
 export class BatchMapAdminDialogOpen implements Action{
   readonly type = BatchMapActionTypes.BatchMapAdminDialogOpen;
 }
@@ -86,5 +78,5 @@ export class MapViewUpdating implements Action {
 }
 
 export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode
-            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum | OpenBatchMapStatusDialog | CloseBatchMapStatusDialog
+            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum
             | BatchMapAdminDialogOpen | BatchMapAdminDialogClose | ForceMapUpdate| ResetForceMapUpdate | MapViewUpdating;

@@ -1,103 +1,118 @@
-<div #dialogParent class="p-grid">
-
-  <div *ngIf="audienceCount > 0" class="p-col-12 val-table-with-dropdown">
-    <div>
-      <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Move</th>
-            <th>
-              <div class="centered">
-                Grid
-                <p-checkbox [(ngModel)]="gridAll" binary="true" (click)="onSetGridForAll(gridAll)"></p-checkbox>
-              </div>
-            </th>
-            <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">
-              <div class="centered">
-                GFP
-                <p-checkbox [(ngModel)]="gfpAll" binary="true" (click)="onSetGfpForAll(gfpAll)"></p-checkbox>
-              </div>
-            </th>
-            <th *acsGrant="['IMPOWER_EXPORT_NATIONAL']">Nat'l Ex.</th>
-            <th>Index Base</th>
-            <th>Audience Name</th>
-            <th>Source</th>
-            <th></th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-audience>
-          <tr>
-            <td class="button-column">
-              <ng-container *ngIf="audienceCount > 1">
-                <button pButton icon="pi pi-arrow-up" class="p-button-rounded p-button-xs p-button-text" [disabled]="audience.sortOrder == 0" (click)="onMoveUp(audience)"></button>
-                <button pButton icon="pi pi-arrow-down" class="p-button-rounded p-button-xs p-button-text" [disabled]="audience.sortOrder == (audienceCount - 1)" (click)="onMoveDn(audience)"></button>
-              </ng-container>
-            </td>
-            <td>
-              <div class="centered">
-                <p-checkbox [disabled]="audience.disableUISplit" [ngModel]="audience.showOnGrid" binary="true" (onChange)="onShowGridSelected(audience, $event.checked)"></p-checkbox>
-              </div>
-            </td>
-            <td *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">
-              <div class="centered">
-                <p-checkbox [disabled]="audience.disableUISplit" [ngModel]="audience.exportInGeoFootprint" binary="true" (onChange)="onExportInGeoFootprintSelected(audience, $event.checked)"></p-checkbox>
-              </div>
-            </td>
-            <td *acsGrant="['IMPOWER_EXPORT_NATIONAL']">
-              <div class="centered">
-                <p-checkbox *ngIf="audience.allowNationalExport" [ngModel]="audience.exportNationally" binary="true" (onChange)="onNationalSelected(audience, $event.checked)"></p-checkbox>
-              </div>
-            </td>
-            <td>
-              <p-dropdown
-                *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
-                [options]="audience.dataSetOptions"
-                [ngModel]="audience.selectedDataSet"
-                (onChange)="onIndexBaseChange(audience, $event.value)"></p-dropdown>
-            </td>
-            <td>
-              {{ audience.audienceName | truncate:35:'...' }}
-              <i class="pi pi-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
-            </td>
-            <td>
-                <div *ngIf="(audience.audienceSourceType === 'Combined/Converted' || audience.audienceSourceType === 'Combined' || audience.audienceSourceType === 'Converted' || audience.audienceSourceType === 'Composite')">
-                    {{ audience.audienceSourceType }}
-                 </div>
-                <div *ngIf="(audience.audienceSourceType === 'Custom');">
-                    {{ audience.audienceSourceType }}  <i class="pi pi-comment"  pTooltip="{{formatString(audience.audienceSourceName)}}" [escape]="false"> </i>
-               </div>
-               <div *ngIf="audience.audienceSourceType === 'Online' || audience.audienceSourceType === 'Offline'">
-                {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
-              </div>
-            </td>
-            <td>
-              <button pButton icon="pi pi-trash" class="p-button-danger p-button-rounded p-button-sm p-button-text" (click)="onRemove(audience)"></button>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </div>
-
-  <div *ngIf="audienceCount > 0" class="p-col-12">
-    <button pButton label="Apply Audience Selections" (click)="onApplyClicked()" [disabled]="(gridAudiences$ | async)?.length == 0"></button>
-  </div>
-
-  <div *ngIf="audienceCount == 0" class="p-col-12">
-    Please select or upload Audience Data from one of the other tabs.
-  </div>
+<div *ngIf="audienceCount > 0" class="val-table-with-dropdowns p-pb-4">
+  <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="true">
+    <ng-template pTemplate="header">
+      <tr class="no-caption-header">
+        <th class="centered" [style.width]="'3rem'" rowspan="2">
+          <div>Move</div>
+        </th>
+        <th class="centered" [style.width]="'3rem'">
+          <div>
+            Grid
+          </div>
+        </th>
+        <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']" class="centered" [style.width]="'3rem'">
+          <div class="p-flex-column">
+            GFP
+          </div>
+        </th>
+        <th *acsGrant="['IMPOWER_EXPORT_NATIONAL']" class="centered" [style.width]="'3rem'" rowspan="2">
+          <div>Nat'l Ex.</div>
+        </th>
+        <th [style.width]="'8.5rem'" rowspan="2">Index Base</th>
+        <th rowspan="2">Audience Name</th>
+        <th [style.width]="'13rem'" rowspan="2">Source</th>
+        <th [style.width]="'2.5rem'" rowspan="2"></th>
+      </tr>
+      <tr>
+        <th class="centered">
+          <div>
+            <p-checkbox [(ngModel)]="gridAll" binary="true" (click)="onSetGridForAll(gridAll)"></p-checkbox>
+          </div>
+        </th>
+        <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']" class="centered">
+          <div>
+            <p-checkbox [(ngModel)]="gfpAll" binary="true" (click)="onSetGfpForAll(gfpAll)"></p-checkbox>
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-audience>
+      <tr>
+        <td class="re-order-buttons centered">
+          <div *ngIf="audienceCount > 1">
+            <button pButton icon="pi pi-arrow-up" class="p-button-rounded p-button-xs p-button-text" [disabled]="audience.sortOrder == 0"
+                    (click)="onMoveUp(audience)"></button>
+            <button pButton icon="pi pi-arrow-down" class="p-button-rounded p-button-xs p-button-text"
+                    [disabled]="audience.sortOrder == (audienceCount - 1)" (click)="onMoveDn(audience)"></button>
+          </div>
+        </td>
+        <td class="centered">
+          <div>
+            <p-checkbox [disabled]="audience.disableUISplit" [ngModel]="audience.showOnGrid" binary="true"
+                        (onChange)="onShowGridSelected(audience, $event.checked)"></p-checkbox>
+          </div>
+        </td>
+        <td *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']" class="centered">
+          <div>
+            <p-checkbox [disabled]="audience.disableUISplit" [ngModel]="audience.exportInGeoFootprint" binary="true"
+                        (onChange)="onExportInGeoFootprintSelected(audience, $event.checked)"></p-checkbox>
+          </div>
+        </td>
+        <td *acsGrant="['IMPOWER_EXPORT_NATIONAL']" class="centered">
+          <div *ngIf="!isNationalRestricted">
+            <p-checkbox *ngIf="audience.allowNationalExport" [ngModel]="audience.exportNationally" binary="true"
+                        (onChange)="onNationalSelected(audience, $event.checked)"></p-checkbox>
+          </div>
+          <div *ngIf="isNationalRestricted" [attr.title]="audience.exportNationally ? null : restrictionMessage">
+            <p-checkbox *ngIf="audience.allowNationalExport" [ngModel]="audience.exportNationally" binary="true"
+                        (onChange)="onNationalSelected(audience, $event.checked)" [disabled]="!audience.exportNationally"></p-checkbox>
+          </div>
+        </td>
+        <td>
+          <p-dropdown
+            *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
+            [options]="audience.dataSetOptions"
+            [ngModel]="audience.selectedDataSet"
+            (onChange)="onIndexBaseChange(audience, $event.value)"></p-dropdown>
+        </td>
+        <td [title]="audience.audienceName">
+          <div class="p-text-truncate">
+            {{ audience.audienceName }}
+          </div>
+        </td>
+        <td>
+          <ng-container [ngSwitch]="audience.audienceSourceType">
+            <div *ngSwitchCase="'Custom'" class="p-text-truncate">
+              {{ audience.audienceSourceType }}
+              <i class="pi pi-file-excel" pTooltip="{{formatString(audience.audienceSourceName)}}" [escape]="false"> </i>
+            </div>
+            <div *ngSwitchCase="'Online'" [title]="audience.audienceSourceType + ': ' + audience.audienceSourceName" class="p-text-truncate">
+              {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
+            </div>
+            <div *ngSwitchCase="'Offline'" [title]="audience.audienceSourceType + ': ' + audience.audienceSourceName" class="p-text-truncate">
+              {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
+            </div>
+            <div *ngSwitchDefault [title]="audience.audienceSourceType" class="p-text-truncate">
+              {{ audience.audienceSourceType }}
+            </div>
+          </ng-container>
+        </td>
+        <td class="centered">
+          <div>
+            <button pButton icon="pi pi-trash" class="p-button-danger p-button-rounded p-button-sm p-button-text"
+                    [attr.title]="isReserved(audience) ? 'Cannot delete an audience used for Combined, Composite, or Converted variables.' : null"
+                    (click)="onRemove(audience)" [disabled]="isReserved(audience)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 </div>
 
-<p-dialog [header]="dialogHeader" [(visible)]="showDialog" [modal]="false" [appendTo]="dialogParent" styleClass="selected-audience-dialog">
-  <div>
-    <span>
-      {{dialogMessage}}
-    </span>
-  </div>
+<div *ngIf="audienceCount > 0" class="p-d-flex p-jc-end">
+  <button pButton label="Apply Audience Selections" (click)="onApplyClicked()" [disabled]="(gridAudiences$ | async)?.length == 0"></button>
+</div>
 
-  <p-footer>
-    <div class="sa-footer-container">
-      <button type="button" (click)="closeDialog()" pButton label="OK"></button>
-    </div>
-  </p-footer>
-</p-dialog>
+<div *ngIf="audienceCount == 0" class="p-d-flex p-jc-center">
+  Please select or upload Audience Data from one of the other tabs.
+</div>

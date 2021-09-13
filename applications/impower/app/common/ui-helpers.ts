@@ -1,10 +1,11 @@
 interface BaseGridColumn {
   header: string;
   width: string;
-  filterType: string;
+  filterType?: string;
   sortType?: string;
   tooltip?: string;
   digitsInfo?: string;
+  sortable?: boolean;
 }
 
 export interface SimpleGridColumn extends BaseGridColumn{

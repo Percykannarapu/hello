@@ -1,35 +1,38 @@
 /* tslint:disable:component-selector */
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { HideAllNotifications, ConfirmationPayload, ErrorNotification, ShowConfirmation, SuccessNotification } from '@val/messaging';
+import { ConfirmationPayload, ErrorNotification, ShowConfirmation, SuccessNotification } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { MenuItem, PrimeIcons } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { Subject } from 'rxjs';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { OpenBatchMapDialog, OpenBatchMapStatusDialog, BatchMapAdminDialogOpen } from '../../state/batch-map/batch-map.actions';
+import { BatchMapAdminDialogOpen, OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
 import {
   ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
   ExportApioNationalData,
   ExportGeofootprint,
-  ExportLocations, ImpowerHelpOpen,
+  ExportLocations,
   OpenExistingProjectDialog,
   OpenExportCrossbowSitesDialog,
   SaveAndCreateNew,
   SaveAndReloadProject
 } from '../../state/menu/menu.actions';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { BatchMapStatusComponent } from '../dialogs/batch-map-status/batch-map-status.component';
 
 @Component({
   selector: 'app-menu',
   templateUrl: './app.menu.component.html',
-  styleUrls: ['./app.menu.component.scss']
+  styleUrls: ['./app.menu.component.scss'],
+  providers: [DialogService]
 })
 export class AppMenuComponent implements OnInit, OnDestroy {
 
@@ -43,6 +46,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               private userService: UserService,
               private stateService: AppStateService,
               private locationService: ImpGeofootprintLocationService,
+              private dialogService: DialogService,
               private batchService: BatchMapService) {
   }
 
@@ -150,8 +154,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private getBatchMapStatus() {
-    this.store$.dispatch(new OpenBatchMapStatusDialog());
-
+    this.dialogService.open(BatchMapStatusComponent, {
+      width: '90vw',
+      header: 'Batch Map Status',
+      data: {
+        user: this.userService.getUser()
+      }
+    });
   }
 
     private getAdminStats(){

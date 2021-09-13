@@ -1,35 +1,17 @@
-tr > th.button-column,
-tr > td.button-column {
-  white-space: nowrap;
-}
-
-.absorb {
-  width: 100%;
+.no-caption-header {
+  th {
+    border-top-width: 1px;
+  }
 }
 
 .centered {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
-p-table {
-  width: 100%;
-}
-
-.sa-footer-container {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.selected-audience-dialog{
-  width: 710px;
-  top: 200px !important;
-  left: unset !important;
-}
-
-.button-column > .p-button:disabled.p-button-text {
+.re-order-buttons .p-button:disabled.p-button-text {
   opacity: 0.1;
 }

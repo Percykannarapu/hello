@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
@@ -17,6 +17,7 @@ import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
+import { PrintJobPayload } from '../models/print-job.model';
 import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload, PrintAdminPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -79,24 +80,26 @@ export class BatchMapService {
     return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
-  getBatchMapDetailsByUser(user: User){
-    return this.http.get(`${this.config.printServiceUrl}/jobdetails/username?email=${user.email}&userName=${user.username}`);
+  getBatchMapDetailsByUser(user: User) : Observable<PrintJobPayload[]> {
+    return this.http.get<PrintJobPayload[]>(`${this.config.printServiceUrl}/jobdetails/username?email=${user.email}&userName=${user.username}`);
   }
 
-  getBatchMapDetailsById(jobId: number){
-      return this.http.get(`${this.config.printServiceUrl}/jobdetails/byjobid/${jobId}`);
+  getBatchMapDetailsById(jobId: number) : Observable<PrintJobPayload>{
+      return this.http.get<PrintJobPayload>(`${this.config.printServiceUrl}/jobdetails/byjobid/${jobId}`);
   }
 
-  cancelBatchMapInProcess(jobId: number){
-      return this.http.get(`${this.config.printServiceUrl}/jobdetails/canceljob/${jobId}`);
+  cancelBatchMapInProcess(jobId: number) : Observable<PrintJobPayload>{
+      return this.http.get<PrintJobPayload>(`${this.config.printServiceUrl}/jobdetails/canceljob/${jobId}`);
   }
 
-  downloadBatchmap(batchMapuri: string){
-    return this.http.get(batchMapuri, { responseType: 'blob' });
+  downloadBatchMapPdf(jobUuid: string) : Observable<Blob> {
+    const uri = `${this.config.printServiceUrl}/printjob/${jobUuid}`;
+    return this.http.get(uri, { responseType: 'blob' });
   }
 
-  downloadZipBatchmap(batchMapuri: string){
-    return this.http.get(batchMapuri, { responseType: 'arraybuffer' });
+  downloadBatchMapZip(jobUuid: string) : Observable<ArrayBuffer> {
+    const uri = `${this.config.printServiceUrl}/printjob/${jobUuid}/zip`;
+    return this.http.get(uri, { responseType: 'arraybuffer' });
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
