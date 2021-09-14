@@ -14,6 +14,7 @@ import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-distance-trade-area',
@@ -78,7 +79,8 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   private cleanup$ = new Subject<void>();
 
   constructor(private fb: FormBuilder,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<LocalAppState>,
+              private appStateService: AppStateService) {
     this.tradeAreaMergeTypes = Object.keys(TradeAreaMergeTypeCodes)
       .filter(k => !isFunction(TradeAreaMergeTypeCodes[k]))
       .map(k => ({
@@ -90,6 +92,9 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.currentTradeAreaCount = this._currentTradeAreas == null || this._currentTradeAreas.length === 0 ? 1 : this._currentTradeAreas.length;
     this.setupForm();
+    this.appStateService.clearUI$.subscribe(() => {
+      this.resetForm();
+    });
     /*this.store$.select(projectIsReady).subscribe((flag) => {
         if (flag){
           this.setupForm();
@@ -153,6 +158,10 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
     };
     this.radiusForm = this.fb.group(formSetup);
     this.setupRadiusValidations();
+  }
+
+  private resetForm() : void{
+    this.radiusForm.reset();
   }
 
   private setupRadiusValidations() : void {
