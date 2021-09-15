@@ -287,7 +287,7 @@ export class UploadMustCoverComponent implements OnInit {
       manualMustCoverGeos.forEach(geo => {
          if(this.fileAnalysisSelected === 'ZIP' && geo.match(/^\s*[0-9]{5}\s*$/) || (this.fileAnalysisSelected === 'ATZ' && geo.match(/^\s*[0-9]{5}|[0-9]{5}[A-Z]{1}?[0-9]{1}?\s*$/)) ||
                (this.fileAnalysisSelected === 'Digital ATZ' && geo.match(/^\s*[0-9]{5,9}?$\s*/)) || (this.fileAnalysisSelected === 'PCR' && geo.match(/^\s*[0-9]{5}[A-Z]{1}[0-9]{3}\s*$/)) ||
-                  (this.fileAnalysisSelected === 'WRAP_MKT_ID' && geo.match(/^\s*[A-Z]{1,8}\s*$/)) || (this.fileAnalysisSelected === 'COUNTY' && geo.match(/^\s*[a-zA-Z ]*\s*$/)) ||
+                  (this.fileAnalysisSelected === 'WRAP_MKT_ID' && geo.match(/^\s*[0-9]{8}\s*$/)) || (this.fileAnalysisSelected === 'COUNTY' && geo.match(/^\s*[a-zA-Z ]*\s*$/)) ||
                    (this.fileAnalysisSelected === 'STATE' && geo.match(/^\s*[A-Za-z]{2}\s*$/)) || (this.fileAnalysisSelected === 'DMA' && geo.match(/^\s*[0-9]{4}\s*$/)) ||
                      (this.fileAnalysisSelected === 'INFOSCAN_CODE' && geo.match(/^\s*[0-9]{3}\s*$/)) || (this.fileAnalysisSelected === 'SCANTRACK_CODE' && geo.match(/^\s*[0-9]{2}\s*$/) )){
             geos.push(geo);
