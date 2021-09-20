@@ -16,11 +16,11 @@
     </div>
     <div class="p-d-flex">
       <div class="p-col">
-        <p-radioButton name="mustCoverGroup" value="Upload" label="Upload Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="upload" 
+        <p-radioButton name="mustCoverGroup" value="Upload" label="Upload Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="upload"
                                              [disabled] = "!(fileAnalysisSelected != null) || !(currentAnalysisLevel$ | async)"></p-radioButton>
       </div>
       <div class="p-col">
-        <p-radioButton name="mustCoverGroup" value="Manually Add" label="Enter Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="paste" 
+        <p-radioButton name="mustCoverGroup" value="Manually Add" label="Enter Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="paste"
                                              [disabled] = "!(fileAnalysisSelected != null) || !(currentAnalysisLevel$ | async)"></p-radioButton>
      </div>
     </div>
@@ -96,5 +96,3 @@
     </div>
   </div>
 </div>
-
-<p-confirmDialog icon="pi pi-exclamation-triangle" key="mustcover" [closable]="false"></p-confirmDialog>

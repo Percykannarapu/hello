@@ -2,13 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { isEmpty, isString, mapArray } from '@val/common';
+import { MessageBoxService } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
-import { ConfirmationService, SelectItem } from 'primeng/api';
+import { PrimeIcons, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ValassisValidators } from '../../../../common/valassis-validators';
@@ -40,9 +41,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   public compositeAudiences$: Observable<Audience[]>;
   private editAudience$ = new BehaviorSubject<Audience>(null);
   public filteredAudiences$: Observable<SelectItem[]>;
-  public showDialog: boolean = false;
-  public dialogboxWarningmsg: string = '';
-  public dialogboxHeader: string = '';
 
   get audienceRows() : FormArray {
     return this.compositeForm.get('audienceRows') as FormArray;
@@ -64,10 +62,10 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     return this.audienceRows.controls as FormGroup[];
   }
 
-  constructor(private fb: FormBuilder,
-              private appStateService: AppStateService,
+  constructor(private appStateService: AppStateService,
               private audienceService: UnifiedAudienceService,
-              private confirmationService: ConfirmationService,
+              private fb: FormBuilder,
+              private messageService: MessageBoxService,
               private store$: Store<LocalAppState>) {
   }
 
@@ -153,7 +151,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     if (audienceFields.audienceRows.length > 0) {
       audienceFields.audienceRows.forEach(selectedRow => {
         this.indexTypes.add(selectedRow.indexBase);
-        if(!isEmpty(selectedRow.percent))
+        if (!isEmpty(selectedRow.percent))
           weights.push(selectedRow.percent);
         selectedVariableNames.push(selectedRow.selectedAudienceList?.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
         compositeAudIds.push({
@@ -244,30 +242,23 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   }
 
   onDelete(audience: Audience) {
-    const message = 'Are you sure you want to delete the following composite variable? <br/> <br/>' + `${audience.audienceName}`;
     let isDependent: boolean = false;
     this.dependentVars.map((aud: Audience) => aud.compositeSource.forEach(a => {
       if (!isString(a) && `${a.id}` === audience.audienceIdentifier)
         isDependent = true;
     }));
     if (isDependent) {
-      this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
-      this.showDialog = true;
+      this.messageService.showSingleButtonModal('Audiences used to create a Combined, Converted or Composite Audience can not be deleted.', 'Invalid Delete', PrimeIcons.EXCLAMATION_CIRCLE);
     } else {
-      this.confirmationService.confirm({
-        message: message,
-        header: 'Delete Composite Variable',
-        icon: 'pi pi-trash',
-        accept: () => {
+      const message = `Are you sure you want to delete ${audience.audienceName} from your project?`;
+      this.messageService.showDeleteConfirmModal(message).subscribe(result => {
+        if (result) {
           this.varNames.delete(audience.audienceName);
           this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
 
           const metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
           this.store$.dispatch(new CreateAudienceUsageMetric('composite audience', 'delete', metricText));
           this.resetForm();
-        },
-        reject: () => {
         }
       });
     }
@@ -278,10 +269,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     this.isDuplicateName = false;
     this.varNames.clear();
     this.compositeForm.reset();
-  }
-
-  closeDialog() {
-    this.showDialog = false;
   }
 
   onEdit(selectedAudience: Audience) {

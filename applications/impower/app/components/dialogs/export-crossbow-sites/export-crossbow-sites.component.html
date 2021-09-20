@@ -1,0 +1,83 @@
+<div class="p-d-flex p-flex-column p-pb-3">
+  <div class="p-d-flex p-jc-between p-pb-3">
+    <div class="p-d-flex p-ai-center p-jc-between">
+      <label class="p-pr-3">Profile Type:</label>
+      <p-radioButton name="profileTypeName" value="mine" label="Mine" class="p-pr-3"
+                     [(ngModel)]="selectedProfileType" (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
+      <p-radioButton name="profileTypeName" value="group" label="Group" class="p-pr-3"
+                     [(ngModel)]="selectedProfileType" (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
+    </div>
+    <div class="p-d-flex p-jc-end">
+      <p-dropdown [options]="groups" placeholder="Select a Group" [(ngModel)]="selectedGroupId" (ngModelChange)="onGroupChange($event)"
+                  [disabled]="selectedProfileType == 'mine'">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <p-table #profileGrid [columns]="columns"
+           [value]="profileData"
+           [(selection)]="selectedProfile"
+           selectionMode="single"
+           dataKey="profileId"
+           [resizableColumns]="false"
+           [reorderableColumns]="false"
+           [paginator]="true" [rows]="10"
+           sortField="modifiedDate" [sortOrder]="-1">
+
+    <ng-template pTemplate="caption">
+      <div class="val-flex-layout p-ai-end">
+        <div>
+          <val-search-input (resultChanged)="profileGrid.filterGlobal($event, 'contains')"></val-search-input>
+        </div>
+        <div class="p-jc-center">
+          <label>Projects: {{profileData?.length || 0}}</label>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width" [title]="col.header">
+          <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+            <div class="p-text-truncate">
+              {{col.header}}
+            </div>
+            <p-sortIcon [field]="col.field"></p-sortIcon>
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-profile>
+      <tr [pSelectableRow]="profile">
+        <td *ngFor="let col of columns" [ngSwitch]="col.field">
+          <div *ngSwitchCase="'modifiedDate'" [title]="profile[col.field] | date:'short'" class="p-text-truncate">
+            {{profile[col.field] | date:'short' }}
+          </div>
+          <div *ngSwitchDefault [title]="profile[col.field]" class="p-text-truncate">
+            {{profile[col.field]}}
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="columns.length">
+          <div *ngIf="!gettingData" class="p-d-flex p-jc-center p-ai-center p-pt-3">
+            <h5 *ngIf="selectedProfileType == 'mine' || selectedGroupId != null">No Profiles found.</h5>
+            <h5 *ngIf="selectedProfileType == 'group' && selectedGroupId == null">Select a Group to load Profiles.</h5>
+          </div>
+          <div *ngIf="gettingData" class="p-d-flex p-flex-column p-jc-center p-ai-center p-pt-3">
+            <h5>Loading...</h5>
+            <p-progressSpinner></p-progressSpinner>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+<div class="p-d-flex dynamic-dialog-footer">
+  <button pButton type="button" class="p-button-outlined p-mr-1" (click)="onExport()" label="Export" [disabled]="selectedProfile == null"></button>
+</div>
+

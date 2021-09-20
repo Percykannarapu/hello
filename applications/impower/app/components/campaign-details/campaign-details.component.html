@@ -5,17 +5,8 @@
                          [radSuggestions]="currentRadSuggestions$ | async"
                          (formChanged)="onDiscoveryFormChanged($event)"
                          (radSearchRequest)="onRadSearch($event)"
-                         (trackerSearchRequest)="onTrackerSearch($event)" 
+                         (trackerSearchRequest)="onTrackerSearch($event)"
                          #discoveryFormComponent>
     </val-discovery-input>
   </p-tabPanel>
 </p-tabView>
-<div>
-    <p-confirmDialog icon="pi pi-exclamation-triangle" key="mustCoverKey" appendTo="body" [closable]="false"></p-confirmDialog>
-</div>
-<div>
-    <p-confirmDialog icon="pi pi-exclamation-triangle" key="customTAKey" appendTo="body" [closable]="false"></p-confirmDialog>
-</div>
-<div>
-    <p-confirmDialog icon="pi pi-exclamation-triangle" key="customDataKey" appendTo="body" [closable]="false"></p-confirmDialog>
-</div>

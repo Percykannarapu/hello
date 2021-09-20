@@ -17,7 +17,6 @@ export interface DialogConfigData {
 }
 
 @Component({
-  selector: 'val-manual-geo-dialog',
   templateUrl: './manual-geo-dialog.component.html',
   styleUrls: ['./manual-geo-dialog.component.scss']
 })

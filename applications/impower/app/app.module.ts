@@ -13,7 +13,7 @@ import { MessagingModule } from '@val/messaging';
 import { NgTruncatePipeModule } from 'angular-pipes';
 import { CookieService } from 'ngx-cookie-service';
 import { AccordionModule } from 'primeng/accordion';
-import { ConfirmationService, MessageService, SharedModule } from 'primeng/api';
+import { MessageService, SharedModule } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -80,21 +80,20 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
-import { AdminDialogComponent } from './components/admin-dialog/admin-dialog.component';
+import { BatchMapAdminComponent } from './components/dialogs/batch-map-admin/batch-map-admin.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
-import { BatchMapStatusComponent } from './components/dialogs/batch-map-status/batch-map-status.component';
-import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
+import { BatchMapRequestComponent } from './components/dialogs/batch-map-request/batch-map-request.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { AcsGrantDirective } from './components/common/acs-grant.directive';
+import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
 import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
 import { BrokeredTreeviewComponent } from './components/common/brokered-treeview/brokered-treeview.component';
-import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
-import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
+import { ElapsedTimeComponent } from './components/common/elapsed-time/elapsed-time.component';
 import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
 import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
 import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
@@ -110,15 +109,18 @@ import { SiteTypeSelectorComponent } from './components/common/site-type-selecto
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { ValidatedTextInputComponent } from './components/common/validated-text-input/validated-text-input.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
-import { ExportCrossbowSitesComponent } from './components/export-crossbow-sites/export-crossbow-sites.component';
+import { BatchMapStatusComponent } from './components/dialogs/batch-map-status/batch-map-status.component';
+import { ExportCrossbowSitesComponent } from './components/dialogs/export-crossbow-sites/export-crossbow-sites.component';
+import { ImpowerHelpComponent } from './components/dialogs/impower-help/impower-help.component';
+import { ManualGeoDialogComponent } from './components/dialogs/manual-geo-dialog/manual-geo-dialog.component';
+import { SendSitesDigitalComponent } from './components/dialogs/send-sites-digital/send-sites-digital.component';
+import { EditLocationsComponent } from './components/dialogs/edit-locations/edit-locations.component';
 import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
 import { AppFooterComponent } from './components/frame/app.footer.component';
 import { AppHeaderComponent } from './components/frame/app.header.component';
 import { AppMenuComponent } from './components/frame/app.menu.component';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { ImpowerHelpComponent } from './components/impower-help/impower-help.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
@@ -140,8 +142,7 @@ import { UniqueVariableShaderComponent } from './components/map-settings-sidebar
 import { VariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
 import { MarketGeosComponent } from './components/market-geos/market-geos.component';
-import { ProjectComponent } from './components/project-dashboard/project.component';
-import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
+import { ExistingProjectComponent } from './components/dialogs/existing-project/existing-project.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 import { SiteListComponent } from './components/site-list/site-list.component';
 import { AudiencesCustomComponent } from './components/target-audience/audiences-custom/audiences-custom.component';
@@ -195,9 +196,6 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
-import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
-import { ManualGeoDialogComponent } from './components/dialogs/manual-geo-dialog/manual-geo-dialog.component';
-import { ElapsedTimeComponent } from './components/common/elapsed-time/elapsed-time.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -339,7 +337,7 @@ export function esriSetupFactory() : ForRootOptions {
     CustomAudienceComponent,
     TargetAudienceComponent,
     OnlineAudienceApioComponent,
-    ProjectComponent,
+    ExistingProjectComponent,
     OnlineAudienceVlhComponent,
     OnlineAudiencePixelComponent,
     TradeAreaTabComponent,
@@ -351,13 +349,11 @@ export function esriSetupFactory() : ForRootOptions {
     MapComponent,
     TableFilterLovComponent,
     SiteListContainerComponent,
-    ConfirmationContainerComponent,
-    ConfirmationDialogComponent,
     UploadMustCoverComponent,
     BatchMapComponent,
     ImpowerMainComponent,
     MapSettingsSidebarComponent,
-    BatchMapDialogComponent,
+    BatchMapRequestComponent,
     CombinedAudienceComponent,
     EditCombinedAudiencesComponent,
     ExportCrossbowSitesComponent,
@@ -402,7 +398,7 @@ export function esriSetupFactory() : ForRootOptions {
     AudiencesOfflineComponent,
     ImpowerHelpComponent,
     VisualRadiiComponent,
-    AdminDialogComponent,
+    BatchMapAdminComponent,
     FailedLocationsTabComponent,
     FailedGeocodeGridComponent,
     EditLocationsComponent,
@@ -424,7 +420,7 @@ export function esriSetupFactory() : ForRootOptions {
     ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
     MetricService, RestDataService, TransactionManager,
     // from primeng
-    MessageService, ConfirmationService,
+    MessageService,
     // from ngx-cookie-service
     CookieService,
     // from main application

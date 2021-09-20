@@ -69,17 +69,3 @@
     </div>
   </div>
 </form>
-
-<p-dialog [header]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" appendTo="body" styleClass="composite-audience-dialog">
-  <div>
-    <span>
-      {{dialogboxWarningmsg}}
-    </span>
-  </div>
-
-  <p-footer>
-    <div class="sa-footer-container">
-      <button type="button" (click)="closeDialog()" pButton label="OK"></button>
-    </div>
-  </p-footer>
-</p-dialog>

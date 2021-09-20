@@ -2,12 +2,13 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { isEmpty, isString, mapArray } from '@val/common';
+import { MessageBoxService } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
-import { ConfirmationService, SelectItem } from 'primeng/api';
+import { PrimeIcons, SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
@@ -22,7 +23,6 @@ import { UnifiedAudienceService } from '../../../../services/unified-audience.se
   styleUrls: ['./combined-audience.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-
 export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
   audienceForm: FormGroup;
@@ -38,9 +38,6 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   varNames: Map<string, string> = new Map<string, string>([]);
   destroyed$ = new Subject<void>();
   audienceTypes: Set<string> = new Set<string>([]);
-  public showDialog: boolean = false;
-  public dialogboxWarningmsg: string = '';
-  public dialogboxHeader: string = '';
 
   get audienceId() {
     return this.audienceForm.get('audienceId');
@@ -58,11 +55,11 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     return this.audienceForm.get('audienceName');
   }
 
-  constructor(private store$: Store<FullAppState>,
+  constructor(private appStateService: AppStateService,
+              private audienceService: UnifiedAudienceService,
               private fb: FormBuilder,
-              private confirmationService: ConfirmationService,
-              private appStateService: AppStateService,
-              private audienceService: UnifiedAudienceService) {
+              private messageService: MessageBoxService,
+              private store$: Store<FullAppState>) {
   }
 
   ngOnInit() {
@@ -232,38 +229,26 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   }
 
   onDelete(audience: Audience) {
-    const message = 'Are you sure you want to delete the following combined variable? <br/> <br/>' +
-      `${audience.audienceName}`;
     let isDependent: boolean = false;
     this.dependentVars.map((aud: Audience) => aud.compositeSource.forEach(a => {
       if (!isString(a) && `${a.id}` === audience.audienceIdentifier)
         isDependent = true;
     }));
     if (isDependent) {
-      this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
-      this.showDialog = true;
+      this.messageService.showSingleButtonModal('Audiences used to create a Combined, Converted or Composite Audience can not be deleted.', 'Invalid Delete', PrimeIcons.EXCLAMATION_CIRCLE);
     } else {
-      this.confirmationService.confirm({
-        message: message,
-        header: 'Delete Combined Variable',
-        icon: 'pi pi-trash',
-        accept: () => {
+      const message = `Are you sure you want to delete ${audience.audienceName} from your project?`;
+      this.messageService.showDeleteConfirmModal(message).subscribe(result => {
+        if (result) {
           this.varNames.delete(audience.audienceName);
-          this.store$.dispatch(new DeleteAudience({id: audience.audienceIdentifier}));
+          this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
 
           const metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
           this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
-          this.audienceForm.reset();
-        },
-        reject: () => {
+          this.resetForm();
         }
       });
     }
-  }
-
-  closeDialog() {
-    this.showDialog = false;
   }
 
   isDisabled() : boolean {

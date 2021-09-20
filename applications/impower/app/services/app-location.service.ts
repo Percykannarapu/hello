@@ -16,10 +16,10 @@ import {
   toNullOrNumber,
   toUniversalCoordinates
 } from '@val/common';
-import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { ErrorNotification, WarningNotification } from '@val/messaging';
+import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { ErrorNotification, MessageBoxService, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ConfirmationService, PrimeIcons, SelectItem } from 'primeng/api';
+import { PrimeIcons, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, EMPTY, merge, Observable, of } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, mergeMap, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
@@ -42,10 +42,8 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppGeocodingService } from './app-geocoding.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { BoundaryRenderingService } from './boundary-rendering.service';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -112,13 +110,10 @@ export class AppLocationService {
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private queryService: EsriQueryService,
-              private esriGeoprocessingService: EsriGeoprocessorService,
               private logger: LoggingService,
               private domainFactory: ImpDomainFactoryService,
-              private confirmationService: ConfirmationService,
               private restService: RestDataService,
-              private appProjectPrefService: AppProjectPrefService,
-              private boundaryRenderingService: BoundaryRenderingService,
+              private messageService: MessageBoxService,
               private store$: Store<FullAppState>) {
 
     this.allClientLocations$ = this.appStateService.allClientLocations$;
@@ -317,6 +312,9 @@ export class AppLocationService {
       if (isEmpty(l.locationNumber)) {
         l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
       }
+      if (isEmpty(l.locationName)) {
+        l.locationName = l.locationNumber;
+      }
       l.radius1 = toNullOrNumber(l.radius1);
       l.radius2 = toNullOrNumber(l.radius2);
       l.radius3 = toNullOrNumber(l.radius3);
@@ -345,19 +343,16 @@ export class AppLocationService {
       this.geocodingService.clearDuplicates();
     } else {
       this.cachedTradeAreas = newTradeAreas;
-      data
-        .filter(loc => loc.locationName == null || loc.locationName.length === 0)
-        .forEach(loc => loc.locationName = loc.locationNumber);
       if (isEdit) {
         if (!isResubmit) {
           this.impLocationService.update(oldData, data[0]);
         } else {
           this.impLocationService.add(data);
-          this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+          this.impLocAttributeService.add(data.flatMap(l => l.impGeofootprintLocAttribs));
         }
       } else {
         this.impLocationService.add(data);
-        this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
+        this.impLocAttributeService.add(data.flatMap(l => l.impGeofootprintLocAttribs));
       }
     }
   }
@@ -368,37 +363,32 @@ export class AppLocationService {
 
   private confirmationBox() : void {
     if (!isEmpty(this.cachedTradeAreas)) {
-      const distinctSiteIds = new Set(this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation?.locationNumber));
+      const currentCache = this.cachedTradeAreas;
+      this.cachedTradeAreas = [];
+      const distinctSiteIds = new Set(currentCache.map(ta => ta.impGeofootprintLocation?.locationNumber));
       let message = 'Your site list includes radii values.  Do you want to define your trade area with those values?';
       if (distinctSiteIds.size === 1) {
         // editing a single site - change message
         message = 'Do you want to reapply the radius uploaded with this site?';
       }
-      this.confirmationService.confirm({
-        message,
-        header: 'Define Trade Areas',
-        icon: PrimeIcons.PLUS_CIRCLE,
-        acceptLabel: 'Use Uploaded Values',
-        accept: () => {
-          this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
-          this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
-          this.appTradeAreaService.zoomToTradeArea();
-          this.cachedTradeAreas = [];
-          this.appTradeAreaService.tradeareaType = 'distance';
-        },
-        rejectLabel: 'Ignore Uploaded Values',
-        reject: () => {
-          const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
-          this.appTradeAreaService.tradeareaType = '';
-          currentLocations.forEach(loc => {
-            loc.radius1 = null;
-            loc.radius2 = null;
-            loc.radius3 = null;
-          });
-          this.impLocationService.makeDirty();
-          this.cachedTradeAreas = [];
-        }
-      });
+      this.messageService.showTwoButtonModal(message, 'Define Trade Areas', PrimeIcons.PLUS_CIRCLE, 'Use Uploaded Values', 'Ignore Uploaded Values')
+        .subscribe(result => {
+          if (result) {
+            currentCache.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+            this.appTradeAreaService.insertTradeAreas(currentCache);
+            this.appTradeAreaService.zoomToTradeArea();
+            this.appTradeAreaService.tradeareaType = 'distance';
+          } else {
+            const currentLocations = currentCache.map(ta => ta.impGeofootprintLocation);
+            this.appTradeAreaService.tradeareaType = '';
+            currentLocations.forEach(loc => {
+              loc.radius1 = null;
+              loc.radius2 = null;
+              loc.radius3 = null;
+            });
+            this.impLocationService.makeDirty();
+          }
+        });
     }
   }
 
@@ -503,25 +493,27 @@ export class AppLocationService {
         },
         err => this.logger.error.log('There was an error querying the layer', err),
         () => {
-          const dmaAttrsToAdd = [];
           locations.forEach(l => {
             const currentAttributes = attributesBySiteNumber.get(l.locationNumber);
             if (currentAttributes != null) {
               const dmaName = dmaLookup[currentAttributes['homeDma']];
               if (dmaName != null) {
                 const newAttribute = this.domainFactory.createLocationAttribute(l, 'Home DMA Name', dmaName);
-                if (newAttribute != null) dmaAttrsToAdd.push(newAttribute);
+                if (newAttribute != null) impAttributesToAdd.push(newAttribute);
               }
             }
           });
-          this.impLocAttributeService.add(dmaAttrsToAdd);
-          this.impLocationService.makeDirty();
+          if (!isEmpty(impAttributesToAdd)) {
+            this.impLocAttributeService.add(impAttributesToAdd);
+            this.impLocationService.makeDirty();
+          }
         });
+    } else {
+      if (!isEmpty(impAttributesToAdd)) this.impLocAttributeService.add(impAttributesToAdd);
     }
     if (warningNotificationFlag === 'Y'){
       this.store$.dispatch(WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
     }
-    this.impLocAttributeService.add(impAttributesToAdd);
   }
 
   private setPrimaryHomeGeocode(analysisLevel: string) {

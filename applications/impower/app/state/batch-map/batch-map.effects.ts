@@ -50,7 +50,6 @@ export class BatchMapEffects {
     )),
   );
 
-
   constructor(private actions$: Actions<BatchMapActions>,
               private store$: Store<LocalAppState>,
               private batchMapService: BatchMapService,

@@ -128,7 +128,7 @@ export class DiscoveryInputComponent implements OnInit {
     }
   }
 
-  doOnSelect(event: any){
+  doOnSelect(){
     this.projectTrackerSuggestions = [];
     this.cd.markForCheck();
   }

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { toNullOrNumber } from '@val/common';
+import { MessageBoxService } from '@val/messaging';
 import {
   DeleteAudience,
   MoveAudienceDn,
@@ -11,7 +12,7 @@ import {
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppLoggingService } from 'app/services/app-logging.service';
-import { ConfirmationService } from 'primeng/api';
+import { PrimeIcons } from 'primeng/api';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, takeUntil, tap } from 'rxjs/operators';
 import { FetchGeoVars } from '../../../impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -44,8 +45,8 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
 
   constructor(private appStateService: AppStateService,
-              private confirmationService: ConfirmationService,
               private logger: AppLoggingService,
+              private messageService: MessageBoxService,
               private store$: Store<LocalAppState>) {
   }
 
@@ -91,31 +92,29 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   }
 
   onRemove(audience: Audience) {
-    const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
-      `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
-    this.confirmationService.confirm({
-      message: message,
-      header: 'Delete Confirmation',
-      icon: 'pi pi-trash',
-      accept: () => {
-        let metricText;
-        switch (audience.audienceSourceType) {
-          case 'Custom':
-            metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-            break;
-          case 'Offline':
-            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}`;
-            break;
-          default:
-            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-            break;
-        }
-        this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
-        this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
-      },
-      reject: () => {
-      }
+    const message = 'Are you sure you want to remove ' +
+      `${audience.audienceName} (${audience.audienceSourceType}: ${audience.audienceSourceName})` +
+      ' from your project?';
+    this.messageService.showDeleteConfirmModal(message).subscribe(result => {
+      if (result) this.deleteAudience(audience);
     });
+  }
+
+  private deleteAudience(audience: Audience) {
+    let metricText;
+    switch (audience.audienceSourceType) {
+      case 'Custom':
+        metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+        break;
+      case 'Offline':
+        metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}`;
+        break;
+      default:
+        metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+        break;
+    }
+    this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
+    this.store$.dispatch(new DeleteAudience({ id: audience.audienceIdentifier }));
   }
 
   onMoveUp(audience: Audience) {

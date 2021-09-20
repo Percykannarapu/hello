@@ -1,0 +1,14 @@
+<div>
+  <div class="p-d-flex p-ai-center">
+    <i class="p-pr-3 val-large-icon {{icon}}" *ngIf="icon != null"></i>
+    <div class="p-d-flex p-flex-column">
+      <span *ngFor="let message of messages">{{message}}</span>
+    </div>
+  </div>
+  <div class="p-d-flex p-jc-end p-pt-3">
+    <button type="button" pButton icon="pi pi-times" class="p-button-raised p-button-outlined p-mr-3"
+            [label]="rejectText" (click)="onReject()" *ngIf="buttonCount == 2"></button>
+    <button type="button" pButton icon="pi pi-check" class="p-button-raised"
+            [label]="acceptText" (click)="onAccept()"></button>
+  </div>
+</div>

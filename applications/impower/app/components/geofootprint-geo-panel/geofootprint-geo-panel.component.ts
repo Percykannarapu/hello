@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
+import { MessageBoxService } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { ConfirmationService, SelectItem } from 'primeng/api';
+import { PrimeIcons } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { GridGeoVar, selectGridGeoVars } from '../../impower-datastore/state/transient/transient.selectors';
 import { AppGeoService } from '../../services/app-geo.service';
@@ -22,8 +23,10 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 export interface FlatGeo {
-   fgId: number;
+   geoLocNum: string;
    geo: ImpGeofootprintGeo;
+   isActive: boolean;
+   isMustCover: '1' | '0';
 }
 
 @Component({
@@ -42,65 +45,25 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public  allVars$: Observable<GridGeoVar>;
 
    private gridAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-
-   public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
-   public  displayedImpGeofootprintGeos$: Observable<FlatGeo[]>;
-   public  selectedImpGeofootprintGeos$: Observable<FlatGeo[]>;
-
-   // Observables for unique values to filter on in the grid
-   public  uniqueCity$: Observable<SelectItem[]>;
-   public  uniqueState$: Observable<SelectItem[]>;
-   public  uniqueMarket$: Observable<SelectItem[]>;
-   public  uniqueOwnerGroup$: Observable<SelectItem[]>;
-   public  uniqueCoverageDesc$: Observable<SelectItem[]>;
-   public  uniqueDma$: Observable<SelectItem[]>;
-
-   // Miscellaneous variables
-   public  numGeosActive: number = 0;
-   public  numGeosInactive: number = 0;
    public  dedupeGrid: boolean = false;
 
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
-               private impGeofootprintLocationService: ImpGeofootprintLocationService,
+   constructor(private appGeoService: AppGeoService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
-               private confirmationService: ConfirmationService,
-               private appGeoService: AppGeoService,
-               private store$: Store<FullAppState>,
-               private logger: LoggingService
-               ) { }
+               private impGeofootprintGeoService: ImpGeofootprintGeoService,
+               private impGeofootprintLocationService: ImpGeofootprintLocationService,
+               private logger: LoggingService,
+               private messageService: MessageBoxService,
+               private store$: Store<FullAppState>) { }
 
    ngOnInit() {
       // Subscribe to the data stores
-      this.nonNullProject$ = this.appStateService.currentProject$
-                                 .pipe(filter(project => project != null),
-                                       map(project => Object.create(project))
-                                      //,tap(data => { this.logger.debug.log("OBSERVABLE FIRED: appStateService"); })
-                                      );
-
-      this.allLocations$  = this.impGeofootprintLocationService.storeObservable
-                                .pipe(map(locs => Array.from(locs)),
-                                      tap(locs => {
-                                        if (locs != null && locs.length > 0) {
-                                       // this.logger.debug.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);
-                                          this.rankGeographies();
-                                        }
-                                      }));
-
-      this.allGeos$ = this.impGeofootprintGeoService.storeObservable
-                          .pipe(map(geos => Array.from(geos.filter(geo => geo.impGeofootprintTradeArea.isActive && geo.impGeofootprintLocation.isActive))),
-                                tap(geos => {
-                                  if (geos != null && geos.length > 0) {
-                                  // this.logger.debug.log("OBSERVABLE FIRED: impGeofootprintGeoService - " + geos.length + " Geos: ", geos);
-                                  // PB COL_ORDER this.setVariableOrder();
-                                     this.rankGeographies();
-                                     // TODO: When geos are in redux, trigger this when geo creation is complete
-                                     // this.targetAudienceService.applyAudienceSelection();
-                                  }
-                                }));
+      this.nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
+      this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+      this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
 
       // The geo grid watches this for changes in must covers to set the column
       this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
@@ -114,17 +77,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       this.allVars$ = this.store$.pipe(select(selectGridGeoVars));
     }
 
-   public rankGeographies() {
-      // Rank the geos by distance
-      // this.impGeofootprintGeoService.calculateGeoRanks();
-
-      // Sort the geos
-      // this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
-
-      // DEBUG: See that ranking is working
-      //this.logger.debug.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => this.logger.debug.log("geo: ", geo));
-   }
-
    // -----------------------------------------------------------
    // GEO GRID OUTPUT EVENTS
    // -----------------------------------------------------------
@@ -135,87 +87,51 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    }
 
    public onDeleteGeo(geo: ImpGeofootprintGeo) {
-      if (geo != null)
-      {
-         this.confirmationService.confirm({
-            message: 'Do you want to delete geocode: ' + geo.geocode + '?',
-            header: 'Delete Geography Confirmation',
-            icon: 'pi pi-trash',
-            accept: () => {
-               //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
-               //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
-               // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-               this.appGeoService.deleteGeos([geo]);
-               this.logger.debug.log('remove successful');
-            },
-            reject: () => {
-               this.logger.debug.log('cancelled remove');
+      if (geo != null) {
+        this.messageService.showDeleteConfirmModal('Do you want to delete geocode: ' + geo.geocode + '?').subscribe(result => {
+          if (result) {
+            this.appGeoService.deleteGeos([geo]);
+            this.logger.debug.log('remove successful');
+          }
+        });
+      }
+   }
+
+  public onSelectGeo({ geo, isSelected }) {
+    if (geo.isActive !== isSelected) {
+      const commonGeos = this.impGeofootprintGeoService.get().filter(g => g.geocode === geo.geocode);
+      const includesHomeGeo = commonGeos.some(g => g.impGeofootprintLocation != null && g.impGeofootprintLocation.homeGeocode === g.geocode);
+      if (includesHomeGeo && this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive) {
+        this.appGeoService.confirmMustCover(geo, isSelected, true);
+      } else if (this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive) {
+        this.appGeoService.confirmMustCover(geo, isSelected, false);
+      } else if (includesHomeGeo && geo.isActive) {
+        this.messageService.showTwoButtonModal('You are about to deselect a Home Geo for at least one site.', 'Home Geo Deactivation', PrimeIcons.QUESTION_CIRCLE, 'Continue')
+          .subscribe(result => {
+            if (result) {
+              commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+              this.impGeofootprintGeoService.makeDirty();
+            } else {
+              geo.isActive = true;
+              this.impGeofootprintGeoService.makeDirty();
             }
           });
+      } else {
+        commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+        this.impGeofootprintGeoService.makeDirty();
       }
-   }
 
-   public onSelectGeo({geo, isSelected}) {
-      if (geo.isActive !== isSelected)
-      {
-         const commonGeos = this.impGeofootprintGeoService.get().filter(g => g.geocode === geo.geocode);
-         const includesHomeGeo = commonGeos.some(g => g.impGeofootprintLocation != null && g.impGeofootprintLocation.homeGeocode === g.geocode);
-         if (includesHomeGeo && this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
-         {
-         this.appGeoService.confirmMustCover(geo, isSelected, true);
-         }
-         else if (this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
-         {
-          this.appGeoService.confirmMustCover(geo, isSelected, false);
-         }
-         else if (includesHomeGeo && geo.isActive) {
-          this.confirmationService.confirm({
-             message: 'You are about to deselect a Home Geo for at least one of the sites.',
-             header: 'Home Geo selection',
-             acceptLabel: 'Continue',
-             rejectLabel: 'Cancel',
-             accept: () => {
-                   commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-                   setTimeout(() => {
-                     this.impGeofootprintGeoService.makeDirty();
-                   }, 0);
-                   setTimeout(() => {
-                     this.impGeofootprintGeoService.makeDirty();
-                   }, 0);
-             },
-             reject: () => {
-                    geo.isActive = true;
-                    setTimeout(() => {
-                       this.impGeofootprintGeoService.makeDirty();
-                    }, 0);
-                    setTimeout(() => {
-                      this.impGeofootprintGeoService.makeDirty();
-                    }, 0);
-             }
-          });
+      const currentProject = this.appStateService.currentProject$.getValue();
+      const cpm = currentProject.estimatedBlendedCpm ?? 0;
+      const amount: number = geo.hhc * cpm / 1000;
+      const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
+      if (geo.isActive) {
+        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
+      } else {
+        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
       }
-         else {
-           commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-           setTimeout(() => {
-             this.impGeofootprintGeoService.makeDirty();
-           }, 0);
-           setTimeout(() => {
-             this.impGeofootprintGeoService.makeDirty();
-           }, 0);
-         }
-
-         const currentProject = this.appStateService.currentProject$.getValue();
-         const cpm = currentProject.estimatedBlendedCpm != null ? currentProject.estimatedBlendedCpm : 0;
-         const amount: number = geo.hhc * cpm / 1000;
-         const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
-         if (geo.isActive){
-             this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
-         }
-         else{
-           this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
-         }
-      }
-   }
+    }
+  }
 
    public onSetAllGeos(event: any) {
       if (event != null)

@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
@@ -6,7 +6,7 @@ import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/models/User';
-import { ForceMapUpdate, SetCurrentSiteNum, SetMapReady, ResetForceMapUpdate, MapViewUpdating } from 'app/state/batch-map/batch-map.actions';
+import { ForceMapUpdate, MapViewUpdating, ResetForceMapUpdate, SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
@@ -17,8 +17,14 @@ import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
-import { PrintJobPayload } from '../models/print-job.model';
-import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload, PrintAdminPayload } from '../state/app.interfaces';
+import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../models/print-job.model';
+import {
+  BatchMapPayload,
+  CurrentPageBatchMapPayload,
+  ExtentPayload,
+  LocalAppState,
+  SinglePageBatchMapPayload
+} from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -76,8 +82,8 @@ export class BatchMapService {
     return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
-  requestPrintAdminStatus(payload: PrintAdminPayload) : Observable<any>{
-    return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
+  requestPrintAdminStatus(payload: PrintJobAdminRequest) : Observable<PrintJobAdminResponse>{
+    return this.http.put<PrintJobAdminResponse>(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
   getBatchMapDetailsByUser(user: User) : Observable<PrintJobPayload[]> {

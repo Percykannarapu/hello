@@ -1,0 +1,119 @@
+<form novalidate [formGroup]="editLocationsForm" (submit)="onSubmit(editLocationsForm.value)" autocomplete="off" class="p-pt-3">
+  <div class="p-grid relaxed-spacing">
+    <div class="p-col-4 p-fluid">
+      <div class="p-inputgroup">
+        <div class="p-float-label">
+          <input pInputText id="numberInput" formControlName="locationNumber" maxlength="64" autocomplete="off"/>
+          <label class="validation-float-label" for="numberInput">Number (required)</label>
+        </div>
+        <span class="p-inputgroup-addon" *ngIf="hasErrors('locationNumber')">
+          <i class="pi pi-exclamation-circle" title="Site Number is required"></i>
+        </span>
+      </div>
+    </div>
+    <div class="p-col-11 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="nameInput" formControlName="locationName" maxlength="80" autocomplete="off"/>
+        <label for="nameInput">Name</label>
+      </span>
+    </div>
+    <div class="p-col-11 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="streetInput" formControlName="locAddress" autocomplete="off" />
+        <label for="streetInput">Street</label>
+      </span>
+    </div>
+    <div class="p-col-6 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="cityInput" formControlName="locCity" autocomplete="off" />
+        <label for="cityInput">City</label>
+      </span>
+    </div>
+    <div class="p-col-2 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="stateInput" formControlName="locState" maxlength="2" style="text-transform: uppercase" autocomplete="off" />
+        <label for="stateInput">State</label>
+      </span>
+    </div>
+    <div class="p-col-3 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="zipInput" formControlName="locZip" maxlength="10" autocomplete="off" />
+        <label for="zipInput">ZIP Code</label>
+      </span>
+    </div>
+    <div class="p-col-5 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="marketCodeInput" formControlName="marketCode" autocomplete="off"/>
+        <label for="marketCodeInput">Market Code</label>
+      </span>
+    </div>
+    <div class="p-col-6 p-fluid">
+      <span class="p-float-label">
+        <input pInputText id="marketInput" formControlName="marketName" autocomplete="off"/>
+        <label for="marketInput">Market</label>
+      </span>
+    </div>
+    <div class="p-col-6 p-fluid">
+      <div class="p-inputgroup">
+        <div class="p-float-label">
+          <input pInputText id="latInput" formControlName="coord" autocomplete="off"/>
+          <label for="latInput">Latitude (Y), Longitude(X)</label>
+        </div>
+        <span class="p-inputgroup-addon" *ngIf="hasErrors('coord')">
+          <i class="pi pi-exclamation-circle" [title]="coord.errors['latLon']"></i>
+        </span>
+      </div>
+    </div>
+    <div class="p-d-flex p-jc-between">
+      <div class="p-col-3 p-fluid">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="homeZipInput" formControlName="homeZip" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+            <label for="homeZipInput">Home ZIP</label>
+          </div>
+          <span class="p-inputgroup-addon" *ngIf="hasErrors('homeZip')">
+            <i class="pi pi-exclamation-circle" title="Not a valid Home ZIP"></i>
+          </span>
+        </div>
+      </div>
+      <div class="p-col-3 p-fluid">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="homeAtzInput" formControlName="homeAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+            <label for="stateInput">Home ATZ</label>
+          </div>
+          <span class="p-inputgroup-addon" *ngIf="hasErrors('homeAtz')">
+            <i class="pi pi-exclamation-circle" title="Not a valid Home ATZ"></i>
+          </span>
+        </div>
+      </div>
+      <div class="p-col-3 p-fluid">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="homeDigitalAtzInput" formControlName="homeDigitalAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+            <label for="zipInput">Home Digital ATZ</label>
+          </div>
+          <span class="p-inputgroup-addon" *ngIf="hasErrors('homeDigitalAtz')">
+            <i class="pi pi-exclamation-circle" title="Not a valid Home DTZ"></i>
+          </span>
+        </div>
+      </div>
+      <div class="p-col-3 p-fluid">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="homePcrInput" formControlName="homePcr" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+            <label for="cityInput">Home PCR</label>
+          </div>
+          <span class="p-inputgroup-addon" *ngIf="hasErrors('homePcr')">
+            <i class="pi pi-exclamation-circle" title="Not a valid Home PCR"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-d-flex p-jc-end p-col-12">
+      <button pButton type="button" label="Cancel" icon="pi pi-times" class="p-button-outlined p-mr-3" (click)="closeDialog()"></button>
+      <button pButton type="submit" label="Save" icon="pi pi-send" [disabled]="editLocationsForm.invalid"></button>
+    </div>
+  </div>
+</form>

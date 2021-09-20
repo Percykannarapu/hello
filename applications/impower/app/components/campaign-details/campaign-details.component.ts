@@ -1,12 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { SuccessNotification } from '@val/messaging';
+import { MessageBoxService, SuccessNotification } from '@val/messaging';
 import { AppGeoService } from 'app/services/app-geo.service';
 import { AppTradeAreaService } from 'app/services/app-trade-area.service';
-import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ConfirmationService } from 'primeng/api';
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { User } from '../../models/User';
@@ -46,10 +44,10 @@ export class CampaignDetailsComponent implements OnInit {
               private impProjectService: ImpProjectService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private logger: AppLoggingService,
-              private confirmationService: ConfirmationService,
               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
               private appGeoService: AppGeoService,
               private tradeAreaService: AppTradeAreaService,
+              private messageService: MessageBoxService,
               private store$: Store<LocalAppState>) { }
 
   ngOnInit() {
@@ -84,7 +82,6 @@ export class CampaignDetailsComponent implements OnInit {
 
   onDiscoveryFormChanged(newValues: ValDiscoveryUIModel) : void {
     const currentProject: ImpProject = this.appStateService.currentProject$.getValue();
-    const currentUser: User = this.userService.getUser();
     this.logUsageMetricForChange(this.previousForm, newValues);
 
     if (currentProject != null) {
@@ -121,59 +118,48 @@ export class CampaignDetailsComponent implements OnInit {
       this.previousForm = new ValDiscoveryUIModel({ ...newValues });
   }
 
-  validateSwitchAnalysisLevel(currentProject: ImpProject, newValues: ValDiscoveryUIModel){
-    const oldAnalysislevel = currentProject.methAnalysis;
+  validateSwitchAnalysisLevel(currentProject: ImpProject, newValues: ValDiscoveryUIModel) {
+    const oldAnalysisLevel = currentProject.methAnalysis;
 
-    if (oldAnalysislevel != null && oldAnalysislevel !== newValues.selectedAnalysisLevel){
-        const header = 'Change Analysis Level Confirmation';
-        //oldAnalysislevel = currentProject.projectId != null && oldAnalysislevel == null ? newValues.selectedAnalysisLevel : oldAnalysislevel;
-        const mustCoverExists = this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0;
-        const customTaExists = this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
-        const customDataExists = false; //this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0;
-        if (!mustCoverExists && !customTaExists && !customDataExists){
-          this.updateDiscoveryForm(newValues, currentProject);
-        }
-        else {
-          let customType = '';
-          const customTaGeos: ImpGeofootprintGeo[] = [];
-          if (customTaExists){
-            customType = 'Custom Trade Area';
-            this.impGeofootprintTradeAreaService.get().forEach(ta => { if (ta.taType === 'CUSTOM') customTaGeos.push(...ta.impGeofootprintGeos); });
-          }
-          if (mustCoverExists)
-            customType = customTaExists ? customType + '/Must Cover' : customType + 'Must Cover';
-          if (customDataExists)
-            customType = mustCoverExists || customTaExists ? customType + '/Custom Data' : customType + 'Custom Data';
-
-          const customMessage = `You have ${customType} geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?`;
-
-          this.confirmationService.confirm({
-            header: header,
-            message: customMessage,
-            key: 'mustCoverKey',
-            accept: () => {
-                if (mustCoverExists)
-                  this.store$.dispatch(new DeleteMustCoverGeos({deleteMustCover: true}));
-                if (customTaExists)
-                  this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
-                if (customDataExists)
-                  this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
-
-                newValues.forceHomeGeos = true;
-                this.updateDiscoveryForm(newValues, currentProject);
-                this.store$.dispatch(SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`,
-                                                              notificationTitle: 'Change Analysis Level Cleanup'}));
-            },
-            reject: () => {
-                newValues.selectedAnalysisLevel = oldAnalysislevel ;
-                this.updateDiscoveryForm(newValues, currentProject);
-            }
-          });
-        }
-      }else{
+    if (oldAnalysisLevel != null && oldAnalysisLevel !== newValues.selectedAnalysisLevel) {
+      const header = 'Change Analysis Level Confirmation';
+      const mustCoverExists = this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0;
+      const customTaExists = this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+      const customDataExists = false;
+      if (!mustCoverExists && !customTaExists && !customDataExists) {
         this.updateDiscoveryForm(newValues, currentProject);
-      }
+      } else {
+        let customType = '';
+        if (customTaExists) {
+          customType = 'Custom Trade Area';
+        }
+        if (mustCoverExists)
+          customType = customTaExists ? customType + '/Must Cover' : customType + 'Must Cover';
+        if (customDataExists)
+          customType = mustCoverExists || customTaExists ? customType + '/Custom Data' : customType + 'Custom Data';
 
+        const customMessage = `You have ${customType} geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?`;
+
+        this.messageService.showTwoButtonModal(customMessage, header).subscribe(result => {
+          if (result) {
+            if (mustCoverExists) this.store$.dispatch(new DeleteMustCoverGeos({ deleteMustCover: true }));
+            if (customTaExists) this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
+            if (customDataExists) this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
+            newValues.forceHomeGeos = true;
+            this.updateDiscoveryForm(newValues, currentProject);
+            this.store$.dispatch(SuccessNotification({
+              message          : `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`,
+              notificationTitle: 'Change Analysis Level Cleanup'
+            }));
+          } else {
+            newValues.selectedAnalysisLevel = oldAnalysisLevel;
+            this.updateDiscoveryForm(newValues, currentProject);
+          }
+        });
+      }
+    } else {
+      this.updateDiscoveryForm(newValues, currentProject);
+    }
   }
 
   onTrackerSearch(searchTerm: string) : void {
@@ -208,10 +194,10 @@ export class CampaignDetailsComponent implements OnInit {
     const previousRad = previousForm != null && previousForm.selectedRadLookup != null ? previousForm.selectedRadLookup.display : null;
     const currentRad = currentForm != null && currentForm.selectedRadLookup != null ? currentForm.selectedRadLookup.display : null;
     if (previousRad !== currentRad) {
-      const previousProduct = previousRad == null ? null : previousForm.selectedRadLookup.product;
-      const currentProduct = currentRad == null ? null : currentForm.selectedRadLookup.product;
-      const previousCategory = previousRad == null ? null : previousForm.selectedRadLookup.category;
-      const currentCategory = currentRad == null ? null : currentForm.selectedRadLookup.category;
+      const previousProduct = previousRad == null ? null : previousForm?.selectedRadLookup?.product;
+      const currentProduct = currentRad == null ? null : currentForm?.selectedRadLookup?.product;
+      const previousCategory = previousRad == null ? null : previousForm?.selectedRadLookup?.category;
+      const currentCategory = currentRad == null ? null : currentForm?.selectedRadLookup?.category;
       this.logSingleUsage(previousProduct, currentProduct, 'product');
       this.logSingleUsage(previousCategory, currentCategory, 'category');
     }
@@ -227,6 +213,4 @@ export class CampaignDetailsComponent implements OnInit {
   onDiscoveryFormClose(){
     this.discoveryFormComponent.onFormClose();
   }
-
-
 }

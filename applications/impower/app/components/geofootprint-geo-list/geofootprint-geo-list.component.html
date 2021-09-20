@@ -1,8 +1,8 @@
 <div class="p-col-12">
   <div id="geoGrid">
     <p-table #geoGrid
-             dataKey="fgId"
-             [rowTrackBy]="trackByFgId"
+             dataKey="geoLocNum"
+             [(first)]="firstRowIndex"
              [columns]="selectedColumns"
              [value]="allImpGeofootprintGeos$ | async"
              [selection]="selectedImpGeofootprintGeos$ | async"
@@ -115,11 +115,11 @@
       </ng-template>
 
       <ng-template pTemplate="body" let-flatGeo>
-        <tr [pSelectableRow]="flatGeo" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
+        <tr [pSelectableRow]="flatGeo">
           <td>
             <div class="p-d-flex p-jc-center">
-              <p-checkbox [ngModel]="flatGeo.geo.isActive" (ngModelChange)="onClickSelectGeocode(flatGeo.geo)"
-                          [binary]="true" pTooltip="{{flatGeo['sitesTooltip']}}" tooltipPosition="right"></p-checkbox>
+              <p-checkbox [ngModel]="flatGeo.isActive" (ngModelChange)="onClickSelectGeocode(flatGeo.geo)" [binary]="true" tooltipPosition="right"
+                          [pTooltip]="flatGeo.geo.geocode + ' is in ' + flatGeo['siteCount'] + (flatGeo['siteCount'] > 1 ? ' sites' : ' site')"></p-checkbox>
             </div>
           </td>
           <td>

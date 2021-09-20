@@ -17,7 +17,8 @@
             "allowedCommonJsDependencies": [
               "xlsx",
               "moment",
-              "stacktrace-js"
+              "stacktrace-js",
+              "papaparse"
             ],
             "outputPath": "dist/impower",
             "index": "applications/impower/index.html",

@@ -23,10 +23,11 @@
           (onNodeCollapse)="closeNode($event.node)">
     <ng-template let-node pTemplate="default">
       <ng-container *ngIf="node.escaped">
-        <span [innerHTML]="node.label"></span>
+        <span [innerHTML]="node.label"
+              [attr.title]="node.isReserved ? 'Cannot remove an audience used for Combined, Composite, or Converted variables.' : null"></span>
       </ng-container>
       <ng-container *ngIf="!node.escaped">
-        <span>{{node.label}}</span>
+        <span [attr.title]="node.isReserved ? 'Cannot remove an audience used for Combined, Composite, or Converted variables.' : null">{{node.label}}</span>
       </ng-container>
     </ng-template>
   </p-tree>

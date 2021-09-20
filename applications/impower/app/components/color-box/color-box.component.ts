@@ -1,11 +1,9 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { selectors } from '@val/messaging';
+import { MessageBoxService } from '@val/messaging';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
-import { FullAppState } from '../../state/app.interfaces';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 
 @Component({
@@ -35,7 +33,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
 
    constructor(private appStateService: AppStateService,
                private logger: LoggingService,
-               private store$: Store<FullAppState>) {
+               private messageBoxService: MessageBoxService) {
      this.flags = new Map<string, boolean>();
     }
 
@@ -61,7 +59,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
        event.stopPropagation();
        event.stopImmediatePropagation();
        if (this.dialogSub) this.dialogSub.unsubscribe();
-       this.dialogSub = this.store$.select(selectors.simpleMessageDisplay).pipe(
+       this.dialogSub = this.messageBoxService.messageIsOpen$.pipe(
          distinctUntilChanged()
        ).subscribe(dialogVisible => {
          if (dialogVisible) {

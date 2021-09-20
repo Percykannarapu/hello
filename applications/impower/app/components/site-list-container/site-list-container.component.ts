@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isEmpty, toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
-import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, MessageBoxService, StopBusyIndicator } from '@val/messaging';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
-import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
@@ -13,7 +12,6 @@ import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { AppLocationService, HomeGeoQueryResult } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
@@ -51,12 +49,11 @@ export class SiteListContainerComponent implements OnInit {
       private appLocationService: AppLocationService,
       private geocoderService: AppGeocodingService,
       private appStateService: AppStateService,
-      private appTradeAreaService: AppTradeAreaService,
       private esriMapService: EsriMapService,
-      private confirmationService: ConfirmationService,
       private store$: Store<LocalAppState>,
       private appEditSiteService: AppEditSiteService,
       private domainFactory: ImpDomainFactoryService,
+      private messageService: MessageBoxService,
       private logger: LoggingService) {}
 
    ngOnInit() {
@@ -155,17 +152,14 @@ export class SiteListContainerComponent implements OnInit {
     // }
 
     if ((ifAddressChanged || ifLatLongChanged) && anyChangeInHomeGeoFields) {
-      this.confirmationService.confirm({
-        message: 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.',
-        header: 'Edit Warning',
-        acceptLabel: 'OK',
-        accept: () => {
-          siteOrSites['Home Zip Code'] = null;
-          siteOrSites['Home ATZ'] = null;
-          siteOrSites['Home Carrier Route'] = null;
-          siteOrSites['Home Digital ATZ'] = null;
-          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
-        }
+      const message = 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.';
+      const header = 'Edit Warning';
+      this.messageService.showSingleButtonModal(message, header).subscribe(() => {
+        siteOrSites['Home Zip Code'] = null;
+        siteOrSites['Home ATZ'] = null;
+        siteOrSites['Home Carrier Route'] = null;
+        siteOrSites['Home Digital ATZ'] = null;
+        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       });
     } else if (!ifAddressChanged && !ifLatLongChanged && anyChangeInHomeGeoFields) {
       const attributeList: HomeGeoQueryResult[] = [{

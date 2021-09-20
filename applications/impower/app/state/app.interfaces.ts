@@ -6,7 +6,6 @@ import { BatchMapState } from './batch-map/batch-map.reducer';
 import { DataShimState } from './data-shim/data-shim.reducer';
 import { FormsState } from './forms/forms.interfaces';
 import { HomeGeoState } from './homeGeocode/homeGeo.reducer';
-import { MenuState } from './menu/menu.reducer';
 import { RenderingState } from './rendering/rendering.reducer';
 import { RouterStateUrl } from './shared/router.interfaces';
 
@@ -24,7 +23,6 @@ interface ImpowerAppState {
 
 export interface ImpowerState {
   dataShim: DataShimState;
-  menu: MenuState;
   homeGeo: HomeGeoState;
   rendering: RenderingState;
   batchMap: BatchMapState;
@@ -121,21 +119,6 @@ export interface CurrentPageBatchMapPayload {
       }
     }
   }];
-}
-
-export interface PrintAdminPayload{
-  calls:[{
-    service: string,
-    function: string,
-    args: {}
-  }]
-}
-
-export interface CrossBowSitesPayload {
-  email: string;
-  id: number;
-  profileId?: number;
-  groupId?: number;
 }
 
 export interface TitlePayload {

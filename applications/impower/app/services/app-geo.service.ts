@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { arrayToSet, filterArray, groupByExtended, isEmpty, mergeArrayMaps, reduceConcat, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriQueryService, EsriUtils } from '@val/esri';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { ConfirmationService } from 'primeng/api';
+import { ErrorNotification, MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { PrimeIcons } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
@@ -68,8 +68,8 @@ export class AppGeoService {
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private store$: Store<FullAppState>,
-              private logger: AppLoggingService,
-              private confirmationService: ConfirmationService) {
+              private messageService: MessageBoxService,
+              private logger: AppLoggingService) {
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
@@ -613,58 +613,24 @@ export class AppGeoService {
 
   public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean) {
     const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);
+    let message: string;
+    let header: string;
     if (isHomeGeo) {
-      this.confirmationService.confirm({
-        message: 'Are you sure you want to unselect a Must Cover & Home Geocode geography?',
-        header: 'Must Cover/Home Geocode selection',
-        acceptLabel: 'Yes',
-        rejectLabel: 'No',
-        accept: () => {
-          commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-        },
-        reject: () => {
-          geo.isActive = true;
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-        }
-      });
+      message = 'Are you sure you want to unselect a Must Cover & Home Geocode geography?';
+      header = 'Must Cover/Home Geocode selection';
     } else {
-      this.confirmationService.confirm({
-        message: 'Are you sure you want to unselect a Must Cover geography?',
-        header: 'Must Cover selection',
-        acceptLabel: 'Yes',
-        rejectLabel: 'No',
-        accept: () => {
-          commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-        },
-        reject: () => {
-          geo.isActive = true;
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-          setTimeout(() => {
-            this.impGeoService.makeDirty();
-          }, 0);
-        }
-      });
-
+      message = 'Are you sure you want to unselect a Must Cover geography?';
+      header = 'Must Cover selection';
     }
+    this.messageService.showDeleteConfirmModal(message, header, PrimeIcons.QUESTION_CIRCLE).subscribe(ready => {
+      if (ready) {
+        commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+        setTimeout(() => this.impGeoService.makeDirty());
+      } else {
+        geo.isActive = true;
+        setTimeout(() => this.impGeoService.makeDirty());
+      }
+    });
   }
 
   private setupFilterGeosObservable() : void {

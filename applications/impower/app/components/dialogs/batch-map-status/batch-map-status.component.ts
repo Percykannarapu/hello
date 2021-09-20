@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { removeNullProperties } from '@val/common';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { LocalAppState } from 'app/state/app.interfaces';
@@ -10,7 +11,6 @@ import { PrintJobPayload } from '../../../models/print-job.model';
 import { FileService } from '../../../val-modules/common/services/file.service';
 
 @Component({
-  selector   : 'val-batch-map-status',
   templateUrl: './batch-map-status.component.html',
   styleUrls  : ['./batch-map-status.component.scss']
 })
@@ -56,13 +56,13 @@ export class BatchMapStatusComponent implements OnInit {
 
   cancel(job: PrintJobPayload) {
     this.batchService.cancelBatchMapInProcess(job.jobId).subscribe(response => {
-      this.printJobDetails = [response].concat(this.printJobDetails.filter(jd => jd.jobId === response.jobId));
+      this.replaceSingleJob(response);
     });
   }
 
   refresh(job: PrintJobPayload) {
     this.batchService.getBatchMapDetailsById(job.jobId).subscribe(response => {
-      this.printJobDetails = [response].concat(this.printJobDetails.filter(jd => jd.jobId === response.jobId));
+      this.replaceSingleJob(response);
     });
   }
 
@@ -88,5 +88,15 @@ export class BatchMapStatusComponent implements OnInit {
 
   copy(job: PrintJobPayload) {
     window.navigator.clipboard.writeText(job.jobNumber).catch(e => console.error('There was an error copying data to the clipboard:', e));
+  }
+
+  private replaceSingleJob(payload: PrintJobPayload) {
+    const strippedResponse = removeNullProperties(payload);
+    const oldObject = this.printJobDetails.filter(jd => jd.jobId === strippedResponse.jobId)[0];
+    const newObject = {
+      ...oldObject,
+      ...strippedResponse
+    };
+    this.printJobDetails = [newObject].concat(this.printJobDetails.filter(jd => jd.jobId !== strippedResponse.jobId));
   }
 }

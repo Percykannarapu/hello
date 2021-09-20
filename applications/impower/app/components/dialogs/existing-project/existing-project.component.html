@@ -1,0 +1,96 @@
+<div class="p-d-flex p-flex-column p-pb-3">
+  <div class="p-d-flex p-jc-between p-pb-3">
+    <div class="p-d-flex p-ai-center p-jc-between">
+      <label class="p-pr-3">View:</label>
+      <p-radioButton name="filterGroup" value="myProject" label="My Projects" class="p-pr-3"
+                     [ngModel]="triggerDataFilter$ | async" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+      <p-radioButton name="filterGroup" value="allProjects" label="All Projects" class="p-pr-3"
+                     [ngModel]="triggerDataFilter$ | async" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+    </div>
+    <div class="p-d-flex p-jc-end">
+      <p-dropdown [options]="timeSpans" [ngModel]="selectedTimeSpan$ | async" (ngModelChange)="selectedTimeSpan$.next($event)"></p-dropdown>
+    </div>
+  </div>
+  <p-table #projGrid [columns]="allColumns"
+           [value]="currentProjectData$ | async"
+           [(selection)]="selectedRow"
+           selectionMode="single"
+           dataKey="projectId"
+           [rowTrackBy]="trackByProjectId"
+           [resizableColumns]="false"
+           [reorderableColumns]="false"
+           [paginator]="true" [rows]="10"
+           sortField="modifyDate" [sortOrder]="-1">
+    <ng-template pTemplate="caption">
+      <div class="val-flex-layout p-ai-end">
+        <div>
+          <val-search-input (resultChanged)="projGrid.filterGlobal($event, 'contains')" style="flex-basis: 75%"></val-search-input>
+        </div>
+        <div class="p-jc-center">
+          <label>Projects: {{dataLength}}</label>
+        </div>
+        <div class="p-jc-end">
+          <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"
+                         selectedItemsLabel="{0} items selected"></p-multiSelect>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size" [title]="col.header">
+          <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+            <div class="p-text-truncate">
+              {{col.header}}
+            </div>
+            <p-sortIcon [field]="col.field"></p-sortIcon>
+          </div>
+        </th>
+      </tr>
+      <tr *ngIf="(currentProjectData$ | async)?.length && gettingData">
+        <th [colSpan]="selectedColumns.length">
+          <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center">
+            <i class="pi pi-spin pi-spinner"></i>
+            Refreshing data, please wait...
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-project>
+      <tr [pSelectableRow]="project" (dblclick)="onDoubleClick(project, $event)">
+        <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+          <div *ngSwitchCase="'modifyDate'" class="p-text-truncate" [title]="project[col.field] | date:'short'">
+            {{project[col.field] | date:'short' }}
+          </div>
+          <div *ngSwitchDefault [title]="project[col.field]" class="p-text-truncate">
+            {{project[col.field]}}
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage" let-columns>
+      <tr>
+        <td [attr.colspan]="columns.length">
+          <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center" *ngIf="gettingData">
+            <h5>Loading...</h5>
+            <p-progressSpinner strokeWidth="3" [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+          </div>
+          <div class="p-col-12 p-d-flex p-jc-center" *ngIf="!gettingData">
+            <h5>No results</h5>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<div class="p-d-flex">
+  <button pButton type="button" label="Load" class="p-button-outlined p-mr-1" (click)="loadProject(selectedRow.projectId)"
+          [disabled]="selectedRow == null"></button>
+  <button pButton type="button" label="Clone" class="p-button-outlined p-mr-1" (click)="cloneProject(selectedRow.projectId)"
+          [disabled]="selectedRow == null"></button>
+  <button pButton type="button" label="Remove" class="p-button-outlined p-mr-1" (click)="deActivateProject(selectedRow.projectId)"
+          [disabled]="selectedRow == null || deleteButtonDisabled"></button>
+</div>

@@ -23,7 +23,7 @@
         <span class="p-float-label">
           <p-autoComplete id="projectTrackerLookup" formControlName="selectedProjectTracker" field="display"
                           [minLength]="3" [dropdown]="false" [forceSelection] = "true" [suggestions]="projectTrackerSuggestions"
-                          (completeMethod)="trackerSearchRequest.emit($event.query)" (onSelect)="doOnSelect($event)" >
+                          (completeMethod)="trackerSearchRequest.emit($event.query)" (onSelect)="doOnSelect()" >
           </p-autoComplete>
           <label for="projectTrackerLookup">Search for Project Tracker ID</label>
         </span>

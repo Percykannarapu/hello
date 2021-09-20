@@ -1,10 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { arrayToSet, filterArray, groupByExtended, isNotNil, isString, resolveFieldData } from '@val/common';
-import { AppProjectPrefService } from 'app/services/app-project-pref.service';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ConfirmationService, SelectItem, SortEvent, SortMeta } from 'primeng/api';
+import { arrayToSet, filterArray, groupByExtended, isNil, isNotNil, isString, resolveFieldData } from '@val/common';
+import { MessageBoxService } from '@val/messaging';
+import { SelectItem, SortEvent, SortMeta } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take, tap } from 'rxjs/operators';
@@ -23,6 +22,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { SearchInputComponent } from '../common/search-input/search-input.component';
+import { EditLocationsComponent } from '../dialogs/edit-locations/edit-locations.component';
 
 export class FlatSite {
   fgId: number;
@@ -35,6 +35,7 @@ export class FlatSite {
   selector: 'val-site-list',
   templateUrl: './site-list.component.html',
   styleUrls: ['./site-list.component.scss'],
+  providers: [DialogService]
 })
 export class SiteListComponent implements OnInit {
   first: number = 0;
@@ -157,11 +158,7 @@ export class SiteListComponent implements OnInit {
     ];
   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
   public selectedColumns: LocationGridColumn[] = [];
-  public displayData: any;
-  public selectedRowData: FlatSite;
   @ViewChild('locGrid', { static: true }) public _locGrid: Table;
-
-  public showDialog: boolean = false;
 
   // Selection variables
   private selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
@@ -193,14 +190,12 @@ export class SiteListComponent implements OnInit {
   trackByFgId = (index: number, rowData: FlatSite) => rowData.fgId;
 
   constructor(private appLocationService: AppLocationService,
-              private confirmationService: ConfirmationService,
               private appStateService: AppStateService,
+              private dialogService: DialogService,
               private impLocationService: ImpGeofootprintLocationService,
-              private domainFactory: ImpDomainFactoryService,
-              private impLocAttributeService: ImpGeofootprintLocAttribService,
-              private appProjectPrefService: AppProjectPrefService,
-              private store$: Store<FullAppState>,
-              private logger: LoggingService) {}
+              private logger: LoggingService,
+              private messageService: MessageBoxService,
+              private store$: Store<FullAppState>) {}
 
   ngOnInit() {
     // Observe the behavior subjects on the input parameters
@@ -213,7 +208,7 @@ export class SiteListComponent implements OnInit {
       take(1)
     ).subscribe(() => {
       this.failures$ = combineLatest([this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$]).pipe(
-        map(([sites, competitors]) => [...sites, ...competitors])
+        map(([sites, competitors]) => sites.concat(competitors))
       );
       this.hasFailures$ = this.appLocationService.hasFailures$;
       this.totalCount$ = this.appLocationService.totalCount$;
@@ -242,20 +237,20 @@ export class SiteListComponent implements OnInit {
     this.multiSortMeta.push({field: 'locationNumber', order: 1});
   }
 
-  manuallyGeocode(site: ValGeocodingRequest, siteType) {
-    site.Group = this.selectedRowData.loc.groupName;
-    site.Description = this.selectedRowData.loc.description;
-    if (site.RADIUS1 === undefined) {
-      site.RADIUS1 = this.selectedRowData.loc.radius1;
-      site.RADIUS2 = this.selectedRowData.loc.radius2;
-      site.RADIUS3 = this.selectedRowData.loc.radius3;
+  manuallyGeocode(newSiteData: ValGeocodingRequest, previousSite: ImpGeofootprintLocation, siteType: any) {
+    newSiteData.Group = previousSite.groupName;
+    newSiteData.Description = previousSite.description;
+    newSiteData.previousAddress1 = previousSite.origAddress1;
+    newSiteData.previousCity = previousSite.origCity;
+    newSiteData.previousState = previousSite.origState;
+    newSiteData.previousZip = previousSite.origPostalCode;
+    if (isNil(newSiteData.RADIUS1)) {
+      newSiteData.RADIUS1 = previousSite.radius1;
+      newSiteData.RADIUS2 = previousSite.radius2;
+      newSiteData.RADIUS3 = previousSite.radius3;
     }
-    site.previousAddress1 = this.selectedRowData.loc.origAddress1;
-    site.previousCity = this.selectedRowData.loc.origCity;
-    site.previousState = this.selectedRowData.loc.origState;
-    site.previousZip = this.selectedRowData.loc.origPostalCode;
-    const oldData = this.currentAllSitesBS$.getValue().filter(l => l.locationNumber === this.selectedRowData.loc.locationNumber)[0];
-    this.editLocations.emit({site: site, siteType: siteType, oldData });
+    const oldData = this.currentAllSitesBS$.getValue().filter(l => l.locationNumber === previousSite.locationNumber)[0];
+    this.editLocations.emit({site: newSiteData, siteType: siteType, oldData });
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -289,10 +284,10 @@ export class SiteListComponent implements OnInit {
     this.setLocationHierarchyActiveFlag(event.data, isSelected);
   }
 
-  public onEdit(rowFlat: FlatSite) {
-    const row = rowFlat.loc;
+  public onEdit(oldData: FlatSite) {
+    const row = oldData.loc;
     const locAttribs = row['impGeofootprintLocAttribs'];
-    this.displayData = {
+    const displayData = {
       locationNumber: row.locationNumber,
       locationName: row.locationName,
       locAddress: row.locAddress,
@@ -306,18 +301,21 @@ export class SiteListComponent implements OnInit {
       homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0]?.attributeValue ?? '',
       homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0]?.attributeValue ?? '',
       homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : '',
-      radius1: rowFlat['radius1'],
-      radius2: rowFlat['radius2'],
-      radius3: rowFlat['radius3']
+      radius1: oldData['radius1'],
+      radius2: oldData['radius2'],
+      radius3: oldData['radius3']
     };
-    this.selectedRowData = rowFlat;
-    this.showDialog = true;
-  }
-
-  public onDialogHide() {
-    this.showDialog = false;
-    this.displayData = '';
-    this.selectedRowData = null;
+    const ref = this.dialogService.open(EditLocationsComponent, {
+      header: 'Edit Location',
+      width: '33vw',
+      modal: true,
+      data: displayData
+    });
+    ref.onClose.subscribe((result: ValGeocodingRequest) => {
+      if (isNotNil(result)) {
+        this.manuallyGeocode(result, row, this.selectedListType);
+      }
+    });
   }
 
   /**
@@ -327,41 +325,30 @@ export class SiteListComponent implements OnInit {
    * @param row The location to delete
    */
   public onRowDelete(row: ImpGeofootprintLocation) {
-    const metricText = AppLocationService.createMetricTextForLocation(row);
-    this.confirmationService.confirm({
-        message: 'Do you want to delete this record?',
-        header: 'Delete Confirmation',
-        icon: 'pi pi-trash',
-        accept: () => {
-          this.onDeleteLocations.emit({locations: [row], metricText: metricText, selectedListType: this.selectedListType});
-          this.logger.debug.log('remove successful');
-        },
-        reject: () => {
-          this.logger.debug.log('cancelled remove');
-        }
+    this.messageService.showDeleteConfirmModal('Do you want to delete this record?').subscribe(result => {
+      if (result) {
+        const metricText = AppLocationService.createMetricTextForLocation(row);
+        this.onDeleteLocations.emit({ locations: [row], metricText: metricText, selectedListType: this.selectedListType });
+        this.logger.debug.log('remove successful');
+      }
     });
   }
 
-  onDeleteSelectedLocations(){
-    const locsForDelete: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site =>
-                         this.selectedLocationsForDelete.has(site.locationNumber));
-       // const metricText = AppLocationService.createMetricTextForLocation(row);
-        this.confirmationService.confirm({
-            message: 'Do you want to delete this record?',
-            header: 'Delete Confirmation',
-            icon: 'pi pi-trash',
-            accept: () => {
-                this.onDeleteLocations.emit({locations: locsForDelete, metricText: 'selected locations for delete', selectedListType: this.selectedListType});
-                this.logger.debug.log('remove successful');
-            },
-            reject: () => {
-                this.logger.debug.log('cancelled remove');
-            }
+  onDeleteSelectedLocations() {
+    this.messageService.showDeleteConfirmModal('Do you want to delete the selected records?').subscribe(result => {
+      if (result) {
+        const locsForDelete: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => this.selectedLocationsForDelete.has(site.locationNumber));
+        this.onDeleteLocations.emit({
+          locations       : locsForDelete,
+          metricText      : 'selected locations for delete',
+          selectedListType: this.selectedListType
         });
+        this.logger.debug.log('remove successful');
+      }
+    });
   }
 
   onSelectLoc(row: ImpGeofootprintLocation){
-
     if (!this.selectedLocationsForDelete.has(row.locationNumber)){
       this.selectedLocationsForDelete.add(row.locationNumber);
       row.isSelected = true;
@@ -377,14 +364,12 @@ export class SiteListComponent implements OnInit {
    * the deletion of all locations
    */
   public onDelete() {
-    this.confirmationService.confirm({
-        message: 'Do you want to delete all ' + this.selectedListType + 's ?',
-        header: 'Delete Confirmation',
-        accept: () => {
-          this.onDeleteAllLocations.emit(this.selectedListType);
-          this.flatSiteGridColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
-          this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
-        }
+    this.messageService.showDeleteConfirmModal(`Do you want to delete all ${this.selectedListType}s?`).subscribe(result => {
+      if (result) {
+        this.onDeleteAllLocations.emit(this.selectedListType);
+        this.flatSiteGridColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
+        this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
+      }
     });
   }
 
@@ -554,7 +539,7 @@ export class SiteListComponent implements OnInit {
    */
   onFilterBySelection()
   {
-    let filterVal: boolean = true;
+    let filterVal: boolean;
     switch (this.isSelectedFilterState) {
       case this.filterSelectedIcon:
         this.isSelectedFilterState = this.filterDeselectedIcon;
@@ -676,7 +661,7 @@ export class SiteListComponent implements OnInit {
   }
 
   customSort(event: SortEvent) : void {
-    let sortFn = (a: any, b: any) => 0;
+    let sortFn: (a: any, b: any) => number = () => 0;
     if (event.mode === 'single') {
       sortFn = this.addSortCallback(sortFn, event.field, event.order);
     } else {

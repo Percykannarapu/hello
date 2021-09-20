@@ -1,0 +1,8 @@
+.list-root {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  li > span {
+    display: inline-table;
+    vertical-align: middle;
+  }
+}

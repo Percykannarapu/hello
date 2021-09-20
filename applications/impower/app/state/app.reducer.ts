@@ -7,12 +7,10 @@ import { batchMapReducer } from './batch-map/batch-map.reducer';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { formsReducer } from './forms/forms.reducer';
 import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
-import { menuReducer } from './menu/menu.reducer';
 import { renderingReducer } from './rendering/rendering.reducer';
 
 const impowerReducer: ActionReducerMap<ImpowerState> = {
   dataShim: dataShimReducer,
-  menu: menuReducer,
   homeGeo: homeGeoReducer,
   rendering: renderingReducer,
   batchMap: batchMapReducer,

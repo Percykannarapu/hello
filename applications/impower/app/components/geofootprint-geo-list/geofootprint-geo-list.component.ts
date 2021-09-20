@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { arrayToSet, entityToMap, isArray, isEmpty, isInteger, isNil, isNotNil, isNumber, isString, resolveFieldData } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { FilterMetadata, FilterService, SelectItem, SortMeta } from 'primeng/api';
@@ -166,6 +166,7 @@ export class GeofootprintGeoListComponent implements OnInit {
   public flatGeoGridExtraColumns: SimpleGridColumn[];
   public selectedColumns: SimpleGridColumn[] = [];
   public columnOptions: SelectItem[] = [];
+  public firstRowIndex: number = 0;
 
   // Miscellaneous variables
   public gridStats = {
@@ -187,12 +188,11 @@ export class GeofootprintGeoListComponent implements OnInit {
   public dupeCount: number = 0;
   public dupeMsg: string;
 
-  trackByFgId = (index: number, rowData: FlatGeo) => rowData.fgId;
-
   // -----------------------------------------------------------
   // LIFECYCLE METHODS
   // -----------------------------------------------------------
   constructor(private appStateService: AppStateService,
+              private cd: ChangeDetectorRef,
               private filterService: FilterService,
               private logger: LoggingService) {
   }
@@ -217,6 +217,7 @@ export class GeofootprintGeoListComponent implements OnInit {
       // In the event of a project load, clear the grid filters
       if (this.lastProjectId !== project.projectId) {
         this.lastProjectId = project.projectId;
+        this.firstRowIndex = 0;
         this.clearFilters(this._geoGrid);
       }
     });
@@ -245,6 +246,8 @@ export class GeofootprintGeoListComponent implements OnInit {
       tap(() => this.syncHeaderFilter()),
       map(([discovery, audiences, geos, mustCovers, attributes, vars]) => {
         if (!this.gridUpdateFlag) {
+          const currentIndex = this.firstRowIndex;
+          setTimeout(() => this.firstRowIndex = currentIndex); // ugly hack, but it will do for now
           return this.createComposite(discovery, audiences, geos, mustCovers, attributes, vars);
         }
         return [];
@@ -255,7 +258,8 @@ export class GeofootprintGeoListComponent implements OnInit {
     this.selectedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$.pipe(
       map((allFlatGeos) => {
         const fullCount = allFlatGeos?.length ?? 0;
-        const activeCount = allFlatGeos?.filter(flatGeo => flatGeo.geo.isActive === true)?.length ?? 0;
+        const activeGeos = allFlatGeos?.filter(flatGeo => flatGeo.geo.isActive === true) ?? [];
+        const activeCount = activeGeos.length;
         const inactiveCount = fullCount - activeCount;
         this.gridStats = {
           ...this.gridStats,
@@ -263,7 +267,7 @@ export class GeofootprintGeoListComponent implements OnInit {
           numGeosActive: activeCount,
           numGeosInactive: inactiveCount
         };
-        return allFlatGeos.filter(flatGeo => flatGeo.geo.isActive === true);
+        return activeGeos;
       })
     );
 
@@ -349,33 +353,28 @@ export class GeofootprintGeoListComponent implements OnInit {
       this.initializeGridTotals();
       return [];
     }
+    console.log('current first', this.firstRowIndex);
     this.logger.debug.log('createComposite:',
       ' geos:', (geos.length),
       ' must covers:', mustCovers?.length,
       ' geo vars:', gridGeoVars?.geoVars
     );
 
-    let fgId = 0; // fgId is a fabricated flat geo id used by turbo grid to uniquely identify a row for filtering and selection
     const geoGridData: FlatGeo[] = [];
     const varPkSet = new Set<string>();
+    const mustCoverSet = new Set<string>(mustCovers);
+    const geoSiteCounter = new Map<string, Set<string>>();
+    const geoGrouper = new Map<string, FlatGeo[]>();
     this.flatGeoGridExtraColumns = [];
 
-    audiences.forEach(audience => {
-      varPkSet.add(audience.audienceIdentifier);
-    });
-
-    // Clear out the filtered values so it will rebuild them, especially when a filter is cleared
-    this._geoGrid.filteredValue = null;
-
     // Initialize grid totals & numDupes
+    if (this.gridStats.numGeos !== geos.length) this.firstRowIndex = 0;
     this.initializeGridTotals();
     this.dupeCount = 0;
 
-    // Create a map, keyed by geocode to store the sites in order to count them up at the end
-    const geoSites: Map<string, Set<string>> = new Map();
-
     // Create grid columns for the variables
     audiences.forEach(audience => {
+      varPkSet.add(audience.audienceIdentifier);
       // If more than one variable has this audience name, add the source name to the header
       const dupeNameCount = audiences.filter(aud => aud.audienceName === audience.audienceName).length;
       const audienceHeader = (dupeNameCount > 1 && audience.audienceSourceType !== 'Composite') ? `${audience.audienceName} (${audience.audienceSourceName})` : audience.audienceName;
@@ -388,127 +387,118 @@ export class GeofootprintGeoListComponent implements OnInit {
       });
     });
 
-    // Geocodes whose site count tooltip needs to be fixed
-    const fixGeos = new Set<String>();
-
-    geos.filter(geo => geo.impGeofootprintLocation?.isActive && geo.impGeofootprintTradeArea?.isActive).forEach(geo => {
-      const gridGeo: FlatGeo = {
-        geo,
-        fgId: fgId++
-      };
-
-      // Is the geo a must cover?
-      if (mustCovers != null && mustCovers.includes(geo.geocode))// && geo.rank === 0)
-        gridGeo['isMustCover'] = '1';
-      else
-        gridGeo['isMustCover'] = '0';
-
-      // Count dupes for display
-      this.dupeCount += (gridGeo.geo.isDeduped === 1) ? 0 : 1;
-
-      // Grid doesn't work well with child values.  Can use resolveFieldData in the template, but then filtering doesn't work
-      this.flatGeoGridColumns.forEach(col => {
-        gridGeo[col.field] = resolveFieldData(gridGeo, String(col.field)) || '';
-      });
-
-      // Track sites per geo, but only for deduped geos
-      if (geo.isDeduped === 0 && gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null) {
-        if (!geoSites.has(geo.geocode)) {
-          geoSites.set(geo.geocode, new Set([geo.impGeofootprintLocation.locationNumber]));
-        } else if (geoSites.get(geo.geocode).has(geo.impGeofootprintLocation.locationNumber) === false) {
-          geoSites.get(geo.geocode).add(geo.impGeofootprintLocation.locationNumber);
-        }
+    geos.forEach(geo => {
+      if (geo.impGeofootprintLocation?.isActive && geo.impGeofootprintTradeArea?.isActive) {
+        geoGridData.push(this.createFlatGeo(project, geo, mustCoverSet, geoSiteCounter, geoGrouper, geoAttributes, gridGeoVars, varPkSet));
       }
-
-      if (gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null) {
-        gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
-      }
-
-      // Add attributes the grid is interested in and massage them where needed
-      const currentAttribute = geoAttributes[geo.geocode];
-      if (currentAttribute != null) {
-        gridGeo['pob'] = (currentAttribute['pob'] === 'B') ? 'Y' : 'N';
-        gridGeo['coveragedescription'] = (currentAttribute['cov_desc'] == null) ? '' : currentAttribute['cov_desc'];
-        gridGeo['dma'] = (currentAttribute['dma_name'] == null) ? '' : currentAttribute['dma_name'];
-        gridGeo['ownergroup'] = (currentAttribute['owner_group_primary'] == null) ? '' : currentAttribute['owner_group_primary'];
-
-        const cityName = currentAttribute['city_name'];
-        if (cityName != null && typeof cityName === 'string') {
-          gridGeo['city_name'] = cityName.substring(0, 1).toUpperCase() + cityName.substring(1, cityName.length - 3).toLowerCase() + ' ' + cityName.substring(cityName.length - 2);
-        }
-
-        if (project.estimatedBlendedCpm != null)
-          gridGeo['cpm'] = project.estimatedBlendedCpm;
-        else
-          switch (currentAttribute['owner_group_primary']) {
-            case 'VALASSIS':
-              gridGeo['cpm'] = project.smValassisCpm;
-              break;
-
-            case 'ANNE':
-              gridGeo['cpm'] = project.smAnneCpm;
-              break;
-
-            default:
-              gridGeo['cpm'] = project.smSoloCpm;
-              break;
-          }
-      }
-      gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
-      gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
-      gridGeo['allocInvestment'] = (gridGeo.geo.isDeduped === 1) ? ((gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0) : null;
-      if (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
-        gridGeo['home_geo'] = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
-      }
-
-      // Update current number of dupes when dedupe filter is on
-      this.dupeMsg = (this.dedupeGrid) ? 'Filtered Dupe Geos' : 'Total Dupe Geos';
-
-      if (gridGeoVars?.geoVars?.hasOwnProperty(geo.geocode)) {
-        for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
-          const n = varPk.indexOf(':');
-          const location = varPk.substr(0, n);
-          const pk = varPk.substr(n + 1);
-          if (location == null || location === '' || gridGeo.geo.impGeofootprintLocation?.locationNumber === location) {
-            gridGeo[pk] = varValue;
-          }
-        }
-      } else {
-        varPkSet.forEach(pvID => {
-          if (!gridGeo[pvID]) {
-            gridGeo['geocode'] = geo.geocode;
-            gridGeo[pvID] = '';
-          }
-        });
-      }
-
-      // Set the tooltip for the geography
-      gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
-
-      // Update geos with the dupecount
-      if (geoSites != null && geoSites.has(gridGeo.geo.geocode))
-        fixGeos.add(gridGeo.geo.geocode);
-      else
-        gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in 1 site';
-
-      geoGridData.push(gridGeo);
     });
 
-    // After flat geos are processed, we have a count of sites a geo is in. For overlapping geos, set the tooltip to show the number of sites
-    geoGridData.filter(geoGrid => fixGeos.has(geoGrid.geo.geocode))
-      .map(flatGeo => flatGeo['sitesTooltip'] = flatGeo.geo.geocode + ' is in ' + (geoSites.get(flatGeo.geo.geocode).size + 1) + ' sites');
-
-    // Clear out the temporary map of sites for geos
-    geoSites?.clear();
-
     // Rebuild Selected columns including the variable columns, maintaining order
-    this.selectedColumns = this.selectedColumns.filter(col => this.flatGeoGridColumns.includes(col)).concat(this.flatGeoGridExtraColumns);
+    if (this.flatGeoGridExtraColumns.length > 0) {
+      this.selectedColumns = this.selectedColumns.filter(col => this.flatGeoGridColumns.includes(col)).concat(this.flatGeoGridExtraColumns);
+    }
 
     // Update geo grid total columns
     this.setGridTotals(geoGridData);
 
     //console.table(geoGridData);
     return geoGridData;
+  }
+
+  private createFlatGeo(project: ImpProject,
+                        geo: ImpGeofootprintGeo,
+                        mustCovers: Set<string>,
+                        geoSites: Map<string, Set<string>>,
+                        geoGroups: Map<string, FlatGeo[]>,
+                        geoAttributes: AttributeEntity,
+                        gridGeoVars: GridGeoVar,
+                        varPkSet: Set<string>) : FlatGeo {
+    const gridGeo: FlatGeo = {
+      geoLocNum: `${geo.geocode}-${geo.impGeofootprintLocation.locationNumber}`,
+      geo,
+      isActive: geo.isActive,
+      isMustCover: mustCovers.has(geo.geocode) ? '1' : '0'
+    };
+
+    // Count dupes for display
+    this.dupeCount += (gridGeo.geo.isDeduped === 1) ? 0 : 1;
+
+    // Grid doesn't work well with child values. Can use resolveFieldData in the template, but then filtering doesn't work
+    this.flatGeoGridColumns.forEach(col => {
+      gridGeo[col.field] = resolveFieldData(gridGeo, String(col.field)) || '';
+    });
+
+    if (gridGeo.geo.impGeofootprintLocation != null && gridGeo.geo.impGeofootprintLocation.locZip != null) {
+      gridGeo.geo.impGeofootprintLocation.locZip = gridGeo.geo.impGeofootprintLocation.locZip.slice(0, 5);
+    }
+
+    // Add attributes the grid is interested in and massage them where needed
+    const currentAttribute = geoAttributes[geo.geocode];
+    if (currentAttribute != null) {
+      gridGeo['pob'] = (currentAttribute['pob'] === 'B') ? 'Y' : 'N';
+      gridGeo['coveragedescription'] = (currentAttribute['cov_desc'] == null) ? '' : currentAttribute['cov_desc'];
+      gridGeo['dma'] = (currentAttribute['dma_name'] == null) ? '' : currentAttribute['dma_name'];
+      gridGeo['ownergroup'] = (currentAttribute['owner_group_primary'] == null) ? '' : currentAttribute['owner_group_primary'];
+
+      const cityName = currentAttribute['city_name'];
+      if (cityName != null && typeof cityName === 'string') {
+        gridGeo['city_name'] = cityName.substring(0, 1).toUpperCase() + cityName.substring(1, cityName.length - 3).toLowerCase() + ' ' + cityName.substring(cityName.length - 2);
+      }
+
+      if (project.estimatedBlendedCpm != null)
+        gridGeo['cpm'] = project.estimatedBlendedCpm;
+      else
+        switch (currentAttribute['owner_group_primary']) {
+          case 'VALASSIS':
+            gridGeo['cpm'] = project.smValassisCpm;
+            break;
+
+          case 'ANNE':
+            gridGeo['cpm'] = project.smAnneCpm;
+            break;
+
+          default:
+            gridGeo['cpm'] = project.smSoloCpm;
+            break;
+        }
+    }
+    gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
+    gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
+    gridGeo['allocInvestment'] = (gridGeo.geo.isDeduped === 1) ? ((gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0) : null;
+    if (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
+      gridGeo['home_geo'] = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
+    }
+
+    // Update current number of dupes when dedupe filter is on
+    this.dupeMsg = (this.dedupeGrid) ? 'Filtered Dupe Geos' : 'Total Dupe Geos';
+
+    if (gridGeoVars?.geoVars?.hasOwnProperty(geo.geocode)) {
+      for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
+        const n = varPk.indexOf(':');
+        const location = varPk.substr(0, n);
+        const pk = varPk.substr(n + 1);
+        if (location == null || location === '' || gridGeo.geo.impGeofootprintLocation?.locationNumber === location) {
+          gridGeo[pk] = varValue;
+        }
+      }
+    } else {
+      varPkSet.forEach(pvID => {
+        if (!gridGeo[pvID]) {
+          gridGeo['geocode'] = geo.geocode;
+          gridGeo[pvID] = '';
+        }
+      });
+    }
+
+    // Set the tooltip for the geography
+    gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
+
+    // track geos for site count per geocode
+    geoGroups.set(geo.geocode, (geoGroups.get(geo.geocode) ?? []).concat(gridGeo));
+    geoSites.set(geo.geocode, (geoSites.get(geo.geocode) ?? new Set<string>()).add(geo.impGeofootprintLocation.locationNumber));
+    geoGroups.get(geo.geocode).forEach(fg => fg['siteCount'] = geoSites.get(geo.geocode).size);
+
+    return gridGeo;
   }
 
   /**

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { HideAllNotifications, MessageCenterData } from '@val/messaging';
+import { MessageCenterData } from '@val/messaging';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Observable } from 'rxjs';
@@ -8,8 +7,7 @@ import { map } from 'rxjs/operators';
 import { MessageCenterComponent } from '../../../../../modules/messaging/components/message-center/message-center.component';
 import { MessageCenterService } from '../../../../../modules/messaging/core/message-center.service';
 import { UserService } from '../../services/user.service';
-import { FullAppState } from '../../state/app.interfaces';
-import { ImpowerHelpOpen } from '../../state/menu/menu.actions';
+import { ImpowerHelpComponent } from '../dialogs/impower-help/impower-help.component';
 
 @Component({
   selector: 'val-app-header',
@@ -30,7 +28,6 @@ export class AppHeaderComponent implements OnInit {
 
   constructor(private dialogService: DialogService,
               private messageCenter: MessageCenterService,
-              private store$: Store<FullAppState>,
               private userService: UserService) {}
 
   ngOnInit() {
@@ -67,11 +64,14 @@ export class AppHeaderComponent implements OnInit {
     this.messageCenter.clearMessages();
   }
 
-  showHelp(e: any) : void {
+  showHelp() : void {
     if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])) {
       window.open(this.helpLinkAddress, '_blank');
     } else {
-      this.store$.dispatch(new ImpowerHelpOpen(e));
+      this.dialogService.open(ImpowerHelpComponent, {
+        header: 'Impower Help Resources',
+        width : '33vw'
+      });
     }
   }
 }

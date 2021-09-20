@@ -1,0 +1,9 @@
+<form novalidate [formGroup]="digitalForm" autocomplete="off" (ngSubmit)="send(digitalForm.value)">
+  <div class="p-d-flex p-flex-column">
+    <validated-text-input formControlName="clientName" labelText="Client Name" validationMessage="Required"></validated-text-input>
+    <div class="p-pt-3">
+      <button pButton type="submit" label="Send" icon="pi pi-upload" iconPos="right" [disabled]="digitalForm.invalid"></button>
+    </div>
+  </div>
+</form>
+

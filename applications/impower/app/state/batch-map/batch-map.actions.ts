@@ -7,13 +7,7 @@ export enum BatchMapActionTypes {
   MoveToSite = '[BatchMap] Move To Site',
   SiteMoved = '[BatchMap] Site Moved',
   SetMapReady = '[BatchMap] Set Map Ready',
-  OpenBatchMapDialog = '[Batch Map] Open Batch Map Dialog',
-  CloseBatchMapDialog = '[Batch Map] Close Batch Map Dialog',
   SetCurrentSiteNum = '[Batch Map] Set Current Site Number',
-  OpenBatchMapStatusDialog = '[Batch Map] Open Status Dialog',
-  CloseBatchMapStatusDialog = '[Batch Map] Close Status Dialog',
-  BatchMapAdminDialogOpen = '[Batch Map] Admin Batch Map Dialog',
-  BatchMapAdminDialogClose = '[Batch Map] Admin Close Dialog',
   ForceMapUpdate= '[Batch Map] Force Batch Map update',
   ResetForceMapUpdate= '[Batch Map] Reset Force Batch Map update',
   MapViewUpdating= '[Batch Map] Set Mapview Updating'
@@ -43,25 +37,9 @@ export class SetMapReady implements Action {
     constructor(public payload: { mapReady: boolean }) {}
 }
 
-export class OpenBatchMapDialog implements Action {
-  readonly type = BatchMapActionTypes.OpenBatchMapDialog;
-}
-
-export class CloseBatchMapDialog implements Action {
-  readonly type = BatchMapActionTypes.CloseBatchMapDialog;
-}
-
 export class SetCurrentSiteNum implements Action {
   readonly type = BatchMapActionTypes.SetCurrentSiteNum;
   constructor(public payload: { currentSiteNum: string }) {}
-}
-
-export class BatchMapAdminDialogOpen implements Action{
-  readonly type = BatchMapActionTypes.BatchMapAdminDialogOpen;
-}
-
-export class BatchMapAdminDialogClose implements Action{
-  readonly type = BatchMapActionTypes.BatchMapAdminDialogClose;
 }
 
 export class ForceMapUpdate  implements Action{
@@ -77,6 +55,6 @@ export class MapViewUpdating implements Action {
   constructor(public payload: { isUpdating: boolean }) {}
 }
 
-export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode
+export type BatchMapActions = CreateBatchMap | SetBatchMode
             | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum
-            | BatchMapAdminDialogOpen | BatchMapAdminDialogClose | ForceMapUpdate| ResetForceMapUpdate | MapViewUpdating;
+            | ForceMapUpdate| ResetForceMapUpdate | MapViewUpdating;

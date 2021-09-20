@@ -225,6 +225,12 @@ form.ng-touched {
 .p-tree {
   padding: 0.75rem 0;
   .p-treenode {
+    &.val-protected-node {
+      .p-checkbox.p-checkbox-disabled {
+        display: inline-flex;
+        opacity: 0.25;
+      }
+    }
     .p-checkbox.p-checkbox-disabled {
       display: none;
     }

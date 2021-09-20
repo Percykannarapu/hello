@@ -1,13 +1,13 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
+import { ErrorNotification, MessageBoxService, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { AppDiscoveryService } from 'app/services/app-discovery.service';
 import { DeleteCustomTAMustCoverGeosReset, ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
 import { deleteCustomTa, projectIsReady } from 'app/state/data-shim/data-shim.selectors';
-import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
+import { SelectItem } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, finalize, take } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { TradeAreaDataRow, tradeAreaFileParser } from '../../../common/file-parsing-rules';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
@@ -29,7 +29,6 @@ export class UploadTradeAreasComponent implements OnInit {
   public impGeofootprintLocations: ImpGeofootprintLocation[];
   public uploadFailures: TradeAreaDataRow[] = [];
   public totalUploadedRowCount = 0;
-  //public isCustomTAExists: boolean;
   public isDisable: boolean = true;
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
@@ -40,21 +39,19 @@ export class UploadTradeAreasComponent implements OnInit {
   fileAnalysisSelected: string;
   fileAnalysisLabel: string;
 
-  public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   @Output() isCustomTAExists = new EventEmitter<boolean>();
 
 
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
 
-  constructor(private messageService: MessageService,
-              private appGeoService: AppGeoService,
+  constructor(private appGeoService: AppGeoService,
               private stateService: AppStateService,
               private tradeAreaService: AppTradeAreaService,
               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-              private confirmationService: ConfirmationService,
               private appEditSiteService: AppEditSiteService,
               private logger: LoggingService,
               private appDiscoveryService: AppDiscoveryService,
+              private messageService: MessageBoxService,
               private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
 
@@ -152,8 +149,9 @@ export class UploadTradeAreasComponent implements OnInit {
     }
     this.stateService.uniqueIdentifiedGeocodes$.pipe(
       filter(geos => geos != null && geos.length > 0),
-      take(1)
-    ).subscribe (null, null, () => this.tradeAreaService.zoomToTradeArea());
+      take(1),
+      finalize(() => this.tradeAreaService.zoomToTradeArea())
+    ).subscribe ();
 
     this.fileUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
@@ -203,7 +201,7 @@ export class UploadTradeAreasComponent implements OnInit {
             const successCount = data.parsedData ? data.parsedData.length : 0;
             this.totalUploadedRowCount = failedCount;
             if (failedCount > 0) {
-              this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
+              this.store$.dispatch(ErrorNotification({notificationTitle: 'Upload Error', message: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`}));
               this.logger.error.log('Failed Trade Area Upload Rows:', data.failedRows);
             }
             if (successCount > 0) {
@@ -213,7 +211,7 @@ export class UploadTradeAreasComponent implements OnInit {
             //this.store$.dispatch(new StopBusyIndicator({ key}));
           } else {
             this.store$.dispatch(new StopBusyIndicator({ key}));
-            this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
+            this.store$.dispatch(ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
           }
          /*else {
           this.store$.dispatch(new StopBusyIndicator({ key}));
@@ -244,21 +242,16 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   public deleteCustomTradeArea() : void {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to delete your custom trade area?',
-      header: 'Delete Custom TA',
-      key: 'delete',
-      accept: () => {
+    this.messageService.showDeleteConfirmModal('Are you sure you want to delete your custom trade area?').subscribe(result => {
+      if (result) {
         this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
         this.appGeoService.ensureMustCovers();
         this.isCustomTAExists.emit(false);
         if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {
-          this.confirmationService.confirm({
-            message: 'Would you like to also delete the manually selected geos?',
-            header: 'Delete Manual Geos',
-            accept: () => {
-                this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL'));
-                this.appGeoService.ensureMustCovers();
+          this.messageService.showDeleteConfirmModal('Would you like to also delete the manually selected geos?').subscribe(innerResult => {
+            if (innerResult) {
+              this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL'));
+              this.appGeoService.ensureMustCovers();
             }
           });
         }

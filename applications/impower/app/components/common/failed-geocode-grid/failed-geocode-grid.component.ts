@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { WarningNotification } from '@val/messaging';
+import { MessageBoxService, WarningNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
+import { SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject } from 'rxjs';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 
@@ -63,7 +62,6 @@ export class FailedGeocodeGridComponent implements OnInit {
   ];
 
   // Track unique values for text variables for filtering
-  public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
   public failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public  selectedLov = [{isActive: true}, {isActive: false}];
@@ -89,7 +87,6 @@ export class FailedGeocodeGridComponent implements OnInit {
   private tableWrapOff: string = 'val-table-no-wrap';
   public  tableWrapStyle: string = this.tableWrapOff;
   public  tableWrapIcon: string = 'pi pi-minus';
-  public  tableHdrSlice: boolean = false;
 
   // Grid filter UI variables
   private filterAllIcon = 'fa fa-check-square';
@@ -104,10 +101,9 @@ export class FailedGeocodeGridComponent implements OnInit {
   public  isSelectedToolTip: string = this.filterAllTip;
 
   constructor(private appLocationService: AppLocationService,
-              private confirmationService: ConfirmationService,
-              private store$: Store<LocalAppState>,
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
-              private logger: LoggingService) {}
+              private messageService: MessageBoxService,
+              private store$: Store<LocalAppState>) {}
 
   ngOnInit() {
     // Column Picker Model
@@ -224,12 +220,9 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onRemove(site: ImpGeofootprintLocation) : void {
     if (site != null) {
-    this.confirmationService.confirm({
-      message: 'Delete location: ' + site.locationNumber + ' - ' + site.origAddress1 + '?',
-      header: 'Delete Location',
-      accept: () => {
-          this.remove.emit([site]);
-        }
+      const message = `Delete location: ${site.locationNumber} - ${site.origAddress1}?`;
+      this.messageService.showDeleteConfirmModal(message).subscribe(result => {
+        if (result) this.remove.emit([site]);
       });
     }
   }
@@ -237,12 +230,9 @@ export class FailedGeocodeGridComponent implements OnInit {
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
     if (selectedSites.length > 0) {
-    this.confirmationService.confirm({
-      message: 'Are you sure you wish to delete the ' + selectedSites.length + ' selected locations?',
-      header: 'Delete All Selected Locations',
-      accept: () => {
-          this.remove.emit(selectedSites);
-        }
+      const message = 'Are you sure you wish to delete the ' + selectedSites.length + ' selected locations?';
+      this.messageService.showDeleteConfirmModal(message).subscribe(result => {
+        if (result) this.remove.emit(selectedSites);
       });
     }
   }
@@ -251,28 +241,6 @@ export class FailedGeocodeGridComponent implements OnInit {
     const googleMapUri = `https://www.google.com/maps/place/${site.origAddress1},${site.origCity},${site.origState},${site.origPostalCode}`;
     const strWindowFeatures = 'height=1000px,width=1000px';
     window.open(googleMapUri, '_blank', strWindowFeatures);
-  }
-
-  /**
-   * Ensures that the header checkbox is in sync with the actual state of the geos.isActive flag.
-   * If one geo is inactive, then the header checkbox is unselected.  If all geos are selected, its checked.
-   */
-  public syncHeaderFilter() {
-    /*
-    if (this._failureGrid.filteredValue != null)
-       this.headerFilter = !this._failureGrid.filteredValue.some(flatGeo => flatGeo.geo.isActive === false);
-    else
-       this.headerFilter = !this._failureGrid._value.some(site => site.isActive === false);
-       */
-  }
-
-  public applyHeaderFilter() {
-    /*
-    if (this._failureGrid.filteredValue != null)
-       this.onSetFilteredGeos.emit({value: this.headerFilter, geos: this._failureGrid.filteredValue.map(flatGeo => flatGeo.geo)});
-    else
-      this.onSetAllGeos.emit({value: this.headerFilter});
-      */
   }
 
   // Sets isActive to true for all sites
@@ -288,7 +256,7 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onFilterSelected()
   {
-     let filterVal: boolean = true;
+     let filterVal: boolean;
      switch (this.isSelectedFilterState) {
        case this.filterSelectedIcon:
          this.isSelectedFilterState = this.filterDeselectedIcon;

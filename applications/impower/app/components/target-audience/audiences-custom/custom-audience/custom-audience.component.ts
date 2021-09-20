@@ -1,14 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { DeleteAudiences } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { AppDiscoveryService } from 'app/services/app-discovery.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { deleteCustomData } from 'app/state/data-shim/data-shim.selectors';
-import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
-import { ConfirmationService } from 'primeng/api';
+import { PrimeIcons } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
 import * as xlsx from 'xlsx';
@@ -31,16 +29,13 @@ export class CustomAudienceComponent implements OnInit {
   @ViewChild('audienceUpload', {static: true}) private audienceUploadEl: FileUpload;
 
   constructor(private appProjectPrefService: AppProjectPrefService,
-              private confirmationService: ConfirmationService,
-              private customDataService: CustomDataService,
               private appStateService: AppStateService,
-              private appDiscoveryService: AppDiscoveryService,
-              private impProjectPrefService: ImpProjectPrefService,
-              private store$: Store<LocalAppState>) {
-    this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
-  }
+              private customDataService: CustomDataService,
+              private messageService: MessageBoxService,
+              private store$: Store<LocalAppState>) {}
 
   ngOnInit() {
+    this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
     this.store$.select(fromAudienceSelectors.allAudiences).subscribe(audiences => this.audiences = audiences.filter(aud => aud.audienceSourceType === 'Custom'));
     this.store$.select(deleteCustomData).subscribe(() => this.deleteCustomDataStore());
   }
@@ -112,15 +107,8 @@ export class CustomAudienceComponent implements OnInit {
   }
 
   public deleteCustomData() {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to delete all custom data?',
-      header: 'Delete Custom Data',
-      icon: 'pi pi-trash',
-      accept: () => {
-        this.deleteCustomDataStore();
-      },
-      reject: () => {
-      }
+    this.messageService.showDeleteConfirmModal('Are you sure you want to delete all custom data?').subscribe(result => {
+      if (result) this.deleteCustomDataStore();
     });
   }
 

@@ -6,7 +6,7 @@ declare global {
   }
 
   // interface Object {
-  //   hasOwnProperty<V extends PropertyKey>(v: V) : this is this & { [_ in V]: any };
+  //   hasOwnProperty<V extends PropertyKey>(v: V) : this is this & { [_ in V]: V[_] };
   // }
 }
 
@@ -40,4 +40,8 @@ export type DeepOmit<T, U, V extends keyof U> = unknown extends T ? T : {
 
 export type FormConfig<T> = {
   [P in keyof T]: any;
+};
+
+export type ExportHeader<T> = {
+  [P in keyof T]?: string;
 };

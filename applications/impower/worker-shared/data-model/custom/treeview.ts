@@ -4,6 +4,7 @@ import { FieldContentTypeCodes } from '../impower.data-model.enums';
 
 export interface ValassisTreeNode<T = any> extends TreeNode<T> {
   escaped?: boolean;
+  isReserved?: boolean;
 }
 
 export interface OfflineCategoryResponse {

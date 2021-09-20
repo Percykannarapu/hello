@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isEmpty, isNil, isNotNil } from '@val/common';
-import { ShowSimpleMessageBox } from '@val/messaging';
-import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { isEmpty, isNil } from '@val/common';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import { ObservableWorker } from '../../../../worker-shared/common/core-interfaces';
 import { ValassisTreeNode } from '../../../../worker-shared/data-model/custom/treeview';
 import { TreeviewPayload, TreeViewResponse } from '../../../../worker-shared/treeview-workers/payloads';
+import { isValidChange } from '../../../common/ui-helpers';
 import { DeleteAudience } from '../../../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
@@ -40,18 +40,17 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   public loading = true;
 
   private destroyed$ = new Subject<void>();
-  private selectedReset$ = new BehaviorSubject<void>(null);
   private nodeMap: Record<string, ValassisTreeNode> = {};
   private brokerResultMap: Record<string, ValassisTreeNode[]> = {};
 
   public trackByKey = (index: number, node: ValassisTreeNode) => node.key;
 
   constructor(private appStateService: AppStateService,
+              private audienceService: UnifiedAudienceService,
               private authService: AuthService,
               private cd: ChangeDetectorRef,
               private logger: LoggingService,
-              private store$: Store<LocalAppState>,
-              private audienceService: UnifiedAudienceService) {
+              private store$: Store<LocalAppState>) {
   }
 
   public ngOnDestroy() : void {
@@ -81,9 +80,10 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
       }
     });
 
-    this.selectedNodes$ = combineLatest([(this.selectedAudiences$ || of([])), this.selectedReset$]).pipe(
+    this.selectedNodes$ = this.selectedAudiences$.pipe(
       takeUntil(this.destroyed$),
-      map(([selected]) => selected.map(s => ({ key: s.audienceIdentifier }))),
+      map(selected => selected.map(s => ({ key: s.audienceIdentifier }))),
+      startWith([])
     );
 
     this.appStateService.clearUI$.pipe(
@@ -95,7 +95,7 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public ngOnChanges(changes: SimpleChanges) : void {
-    if (isNotNil(changes.currentBrokerId) && changes.currentBrokerId.currentValue !== changes.currentBrokerId.previousValue) {
+    if (isValidChange(changes.currentBrokerId) || isValidChange(changes.reservedAudienceIds)) {
       this.updateCurrentNodes();
     }
   }
@@ -130,17 +130,9 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
 
   public nodeDeselect(event: ValassisTreeNode) : void {
     const nodePk = this.audiencePkGetter(event);
-    const isDependent = this.reservedAudienceIds.has(nodePk);
-    if (isDependent) {
-      const header = 'Invalid Delete';
-      const message = 'Audiences used to create a Combined, Converted, or Composite Audience can not be removed.';
-      this.store$.dispatch(new ShowSimpleMessageBox({ message, header }));
-      this.selectedReset$.next();
-    } else {
-      this.store$.dispatch(new DeleteAudience({ id: `${nodePk}` }));
-      const model = this.audienceGenerator(event);
-      this.generateMetric(false, model);
-    }
+    this.store$.dispatch(new DeleteAudience({ id: `${nodePk}` }));
+    const model = this.audienceGenerator(event);
+    this.generateMetric(false, model);
   }
 
   public openNode(node: ValassisTreeNode) : void {
@@ -178,7 +170,21 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private updateCurrentNodes() : void {
-    this.currentNodes = this.brokerResultMap[this.currentBrokerId] ?? [];
+    const nodes = this.brokerResultMap[this.currentBrokerId] ?? [];
+    this.updateNodeReservation(nodes);
+    this.currentNodes = nodes;
+  }
+
+  private updateNodeReservation(nodes: ValassisTreeNode[]) {
+    nodes.forEach(node => {
+      const nodePk = this.audiencePkGetter(node);
+      if (this.reservedAudienceIds.has(nodePk)) {
+        node.styleClass = 'val-protected-node';
+        node.selectable = false;
+        node.isReserved = true;
+      }
+      if (node.children?.length > 0) this.updateNodeReservation(node.children);
+    });
   }
 
   private generateMetric(isChecked: boolean, audience: AudienceDataDefinition) {

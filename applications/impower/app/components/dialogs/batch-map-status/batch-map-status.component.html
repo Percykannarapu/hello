@@ -61,7 +61,7 @@
       </td>
       <td>
         <div *ngIf="actionsAvailable.has(rowData.status)">
-          <button pButton class="p-button-sm p-button-icon-only p-button-rounded" icon="pi pi-refresh" (click)="refresh(rowData)" title="refresh"></button>
+          <button pButton class="p-button-sm p-button-icon-only p-button-rounded p-mr-2" icon="pi pi-refresh" (click)="refresh(rowData)" title="refresh"></button>
           <button pButton class="p-button-sm p-button-icon-only p-button-rounded p-button-danger" icon="pi pi-times" (click)="cancel(rowData)" title="cancel"></button>
         </div>
       </td>
