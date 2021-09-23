@@ -1,17 +1,9 @@
 <val-site-list
-   [impGeofootprintLocations]="allLocations$ | async"
-   [impGeofootprintLocAttribs]="allAttributes$ | async"
-   [allClientLocations]="siteListService.allClientLocations$ | async"
-   [activeClientLocations]="siteListService.activeClientLocations$ | async"
-   [allCompetitorLocations]="siteListService.allCompetitorLocations$ | async"
-   [activeCompetitorLocations]="siteListService.activeCompetitorLocations$ | async"
-   [impGeofootprintGeos]="allGeos$ | async"
+   [impGeofootprintLocations$]="allLocations$"
+   [impGeofootprintGeos$]="allGeos$"
    (onToggleLocations)="onToggleLocations($event)"
    (onDeleteLocations)="onDeleteLocations($event)"
    (onDeleteAllLocations)="onDeleteAllLocations($event)"
    (onMakeDirty)="onMakeDirty()"
    (onZoomToLocation)="onZoomToLocation($event)"
-   (editLocations)="onEditLocations($event)"
->
-</val-site-list>
-   <!-- (resubmitFailedGrid)="resubmit($event)" -->
+   (editLocations)="onEditLocations($event)"></val-site-list>

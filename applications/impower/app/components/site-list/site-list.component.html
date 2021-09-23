@@ -1,19 +1,19 @@
 <div #listRoot class="component-root">
   <div class="p-d-flex p-jc-between p-col-6">
     <label>Manage:</label>
-    <p-radioButton value="Site" label="Sites" [(ngModel)]="selectedListType"
-                   (ngModelChange)="onListTypeChange($event); clearFilters(locGrid)"></p-radioButton>
-    <p-radioButton value="Competitor" label="Competitors" [(ngModel)]="selectedListType"
-                   (ngModelChange)="onListTypeChange($event); clearFilters(locGrid)"></p-radioButton>
+    <p-radioButton value="Site" label="Sites" [ngModel]="selectedListType$ | async"
+                   (ngModelChange)="onSiteTypeChanged($event)"></p-radioButton>
+    <p-radioButton value="Competitor" label="Competitors" [ngModel]="selectedListType$ | async"
+                   (ngModelChange)="onSiteTypeChanged($event)"></p-radioButton>
   </div>
   <div class="p-d-flex p-jc-between p-col-6">
     <button pButton class="p-button-outlined" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
     <button pButton class="p-button-outlined" label="HGC Issues Log" (click)="onHGCIssuesLog()"></button>
     <button pButton class="p-button-outlined" label="Delete All" (click)="onDelete()"></button>
   </div>
-  <div *ngIf="getSelectionMessage() != null" class="alertMessage">
-    {{getSelectionMessage()}}
-  </div>
+  <p-message *ngIf="(siteCountDifference$ | async) != 0" class="p-mb-2" severity="warn"
+             text="Only visible sites will appear in the map below, Geo grid and created Site Map PDFs. Site allocation for created site maps, site lists, and GeoFootPrint All will honor all uploaded sites for geographic allocation">
+  </p-message>
   <div id="locGrid">
     <p-table #locGrid
              [columns]="flatSiteGridColumns"

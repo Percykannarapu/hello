@@ -1,11 +1,12 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { formatDateForFuse } from '@val/common';
 import { MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { PrimeIcons, SelectItem } from 'primeng/api';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { map, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, interval, Observable, Subscription } from 'rxjs';
+import { filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { RestPayload } from '../../../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../../../app.config';
 import { User } from '../../../models/User';
 import { LocalAppState } from '../../../state/app.interfaces';
@@ -20,7 +21,7 @@ export interface ExistingProjectResponse {
 
 type FilterType = 'myProject' | 'allProjects';
 type TimeSpanType = 'sixMonths' | 'currentMonth' | 'fourWeeks' | 'threeMonths' | 'twelveMonths' | 'currentYear' | 'previousYear';
-const timeSpanSortOrder: TimeSpanType[] = ['sixMonths', 'currentMonth', 'fourWeeks', 'threeMonths', 'twelveMonths', 'currentYear', 'previousYear'];
+const timeSpanSortOrder: TimeSpanType[] = ['currentMonth', 'fourWeeks', 'threeMonths', 'sixMonths', 'twelveMonths', 'currentYear', 'previousYear'];
 const timeSpanFriendlyNames: Record<TimeSpanType, string> = {
   sixMonths: 'Last 6 Months',
   currentMonth: 'Current Month',
@@ -34,37 +35,40 @@ const timeSpanFriendlyNames: Record<TimeSpanType, string> = {
 @Component({
   templateUrl: './existing-project.component.html'
 })
-export class ExistingProjectComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ExistingProjectComponent implements OnInit, OnDestroy {
 
   private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
   private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
   private readonly deActivateProjectUrl = 'v1/targeting/base/deactivate/project/';
 
   private hasExistingData: boolean = false;
-  private triggerDataRefresh$ = new Subject<void>();
-  private destroyed$ = new Subject<void>();
+  private triggerDataRefresh$ = new BehaviorSubject<void>(null);
   private currentUser: User;
 
-  public triggerDataFilter$ = new BehaviorSubject<FilterType>('myProject');
+  public selectedListType$ = new BehaviorSubject<FilterType>('myProject');
   public timeSpans: SelectItem[];
-  public selectedTimeSpan$ = new BehaviorSubject<TimeSpanType>('sixMonths');
+  public selectedTimeSpan$ = new BehaviorSubject<TimeSpanType>('threeMonths');
   public currentProjectData$: Observable<Partial<ImpProject>[]>;
   public selectedRow: Partial<ImpProject> = null;
   public dataLength: number;
 
-  public deleteButtonDisabled = false;
+  public isFetching = true;
+  private fetchingMyData = true;
+  private fetchingAllData = true;
+  private mustForceRefresh = true;
+  private myProjectsReadyToRefresh = true;
+  private allProjectsReadyToRefresh = true;
+  private projectSubscriptions = new Subscription();
 
-  public gettingData: boolean;
-
-  public columnOptions: SelectItem[] = [];
-  public selectedColumns: any[] = [];
   public allColumns: any[] = [
-    { field: 'projectId',                header: 'imPower ID',           size: '11%' },
-    { field: 'projectTrackerId',         header: 'Project Tracker ID',   size: '15%' },
-    { field: 'projectName',              header: 'imPower Project Name', size: '24%' },
-    { field: 'projectTrackerClientName', header: 'Client Name',          size: '20%' },
-    { field: 'modifyUserLoginname',      header: 'Username',             size: '10%' },
-    { field: 'modifyDate',               header: 'Last Modified Date',   size: '20%' }
+    // @formatter:off
+    { field: 'projectId',            header: 'imPower ID',           size: '11%' },
+    { field: 'projectTrackerId',     header: 'Project Tracker ID',   size: '15%' },
+    { field: 'projectName',          header: 'imPower Project Name', size: '24%' },
+    { field: 'clientIdentifierName', header: 'Client Name',          size: '20%' },
+    { field: 'modifyUserLoginname',  header: 'Username',             size: '10%' },
+    { field: 'modifyDate',           header: 'Last Modified Date',   size: '20%' }
+    // @formatter:on
   ];
 
   public trackByProjectId = (index: number, project: ImpProject) => project.projectId;
@@ -79,49 +83,73 @@ export class ExistingProjectComponent implements OnInit, AfterViewInit, OnDestro
       label: timeSpanFriendlyNames[ts],
       value: ts
     }));
-    for (const column of this.allColumns) {
-      this.columnOptions.push({ label: column.header, value: column });
-      this.selectedColumns.push(column);
-    }
   }
 
   public ngOnInit() {
+    const fiveMinutes = 1000 * 60 * 5;
     this.currentUser = this.ddConfig.data.user;
     this.hasExistingData = this.ddConfig.data.hasExistingData;
+    const timerSub = interval(fiveMinutes).subscribe(() => {
+      this.myProjectsReadyToRefresh = true;
+      this.allProjectsReadyToRefresh = true;
+    });
+    const fetchUpdateSub = this.selectedListType$.subscribe(() => this.updateFetchStatus());
+    this.projectSubscriptions.add(timerSub);
+    this.projectSubscriptions.add(fetchUpdateSub);
 
-    const allProjectData$ = combineLatest([this.selectedTimeSpan$, this.triggerDataRefresh$]).pipe(
-      takeUntil(this.destroyed$),
-      switchMap(([timeSpan]) => this.getData(timeSpan)),
-      shareReplay()
+    const myProjectList$ = combineLatest([this.selectedTimeSpan$, this.selectedListType$, this.triggerDataRefresh$]).pipe(
+      filter(([, listType]) => (listType === 'myProject' && this.myProjectsReadyToRefresh && !this.fetchingMyData) || this.mustForceRefresh),
+      tap(() => {
+        this.fetchingMyData = true;
+        this.updateFetchStatus();
+      }),
+      switchMap(([timeSpan]) => this.getData(timeSpan, true)),
+      tap(() => setTimeout(() => {
+        this.myProjectsReadyToRefresh = false;
+        this.fetchingMyData = false;
+        this.updateFetchStatus();
+      })),
+      startWith([])
+    );
+    const allProjectList$ = combineLatest([this.selectedTimeSpan$, this.selectedListType$, this.triggerDataRefresh$]).pipe(
+      filter(([, listType]) => (listType === 'allProjects' && this.allProjectsReadyToRefresh && !this.fetchingAllData) || this.mustForceRefresh),
+      tap(() => {
+        this.fetchingAllData = true;
+        this.updateFetchStatus();
+      }),
+      switchMap(([timeSpan]) => this.getData(timeSpan, false)),
+      tap(() => setTimeout(() => {
+        this.allProjectsReadyToRefresh = false;
+        this.fetchingAllData = false;
+        this.updateFetchStatus();
+      })),
+      startWith([])
     );
 
-    this.currentProjectData$ = combineLatest([this.triggerDataFilter$, allProjectData$]).pipe(
-      takeUntil(this.destroyed$),
-      map(([filterType, data]) => {
-        const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.currentUser.userId && p.isActive) : data.filter(p => p.isActive);
-        this.deleteButtonDisabled = filterType !== 'myProject';
-        return [filterType, result] as [FilterType, Partial<ImpProject>[]];
-      }),
+    this.currentProjectData$ = combineLatest([this.selectedListType$, myProjectList$, allProjectList$]).pipe(
+      map(([listType, myProjects, allProjects]) => [listType, (listType === 'myProject' ? myProjects : allProjects)] as const),
       tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
+      tap(([, data]) => setTimeout(() => {
+        this.mustForceRefresh = false;
+        this.dataLength = data.length;
+      })),
       map(([, data]) => data)
     );
   }
 
-  public ngAfterViewInit() {
-    this.refreshData();
+  public ngOnDestroy() {
+    this.projectSubscriptions.unsubscribe();
   }
 
-  public ngOnDestroy() : void {
-    this.destroyed$.next();
-  }
-
-  public refreshData() : void {
+  public forceRefresh() : void {
+    this.mustForceRefresh = true;
     this.triggerDataRefresh$.next();
   }
 
   public onDoubleClick(data: { projectId: number }, event: MouseEvent) {
     if (this.config.environmentName === 'DEV') {
       event.preventDefault();
+      event.stopPropagation();
       this.loadProject(data.projectId);
     }
   }
@@ -147,38 +175,43 @@ export class ExistingProjectComponent implements OnInit, AfterViewInit, OnDestro
     this.store$.dispatch(new StartBusyIndicator({ key, message: `Cloning project ${projectId}`}));
 
     this.restService.post(this.cloneProjectUrl, payload).subscribe(() => {
-      this.refreshData();
+      this.forceRefresh();
       this.store$.dispatch(new StopBusyIndicator({ key }));
     });
   }
 
-  deActivateProject(projectId: number) {
+  public deActivateProject(projectId: number) {
     this.messageService.showDeleteConfirmModal('Are you sure you want to remove this project?').subscribe(result => {
       if (result) {
         const key = 'DEACTIVATE_PROJECT';
         this.store$.dispatch(new StartBusyIndicator({ key, message: `Deactivating project ${projectId}` }));
         this.restService.delete(this.deActivateProjectUrl, projectId).subscribe(() => {
-          this.refreshData();
+          this.forceRefresh();
           this.store$.dispatch(new StopBusyIndicator({ key }));
         });
       }
     });
   }
 
-  private getData(timeSpan: TimeSpanType) : Observable<Partial<ImpProject>[]> {
+  private updateFetchStatus() {
+    this.isFetching = (this.fetchingMyData && this.selectedListType$.getValue() === 'myProject')
+                     || (this.fetchingAllData && this.selectedListType$.getValue() === 'allProjects');
+  }
+
+  private getData(timeSpan: TimeSpanType, includeUserFilter: boolean) : Observable<Partial<ImpProject>[]> {
     const dates = this.getDates(timeSpan);
-    const query = `${this.projectSearchUrl}&updatedDateFrom=${formatDateForFuse(dates.start)}&updatedDateTo=${formatDateForFuse(dates.end)}`;
-    this.gettingData = true;
-    return this.restService.get(query).pipe(
-      map((result) => result.payload.rows as Partial<ImpProject>[]),
+    let query = `${this.projectSearchUrl}&updatedDateFrom=${formatDateForFuse(dates.start)}&updatedDateTo=${formatDateForFuse(dates.end)}`;
+    if (includeUserFilter) {
+      query += `&modifyUser=${this.currentUser.userId}`;
+    }
+    return this.restService.get<RestPayload<Partial<ImpProject>>>(query).pipe(
+      map((result) => result.payload.rows)
     );
   }
 
   private recordMetrics(filterType: FilterType, dataLength: number) : void {
-    this.dataLength = dataLength;
     const metricText  = `userFilter=${filterType}~timeFilter=${this.selectedTimeSpan$.getValue()}`;
     this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, dataLength));
-    this.gettingData = false;
   }
 
   private getDates(timeSpan: TimeSpanType) : { start: Date, end: Date } {

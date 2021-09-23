@@ -28,18 +28,10 @@ export function mergeVariablesToEntity(entities: Dictionary<DynamicVariable>, va
     const mergedVars: DynamicVariable = Object.assign({}, ...currentVars);
     const existingVars = entities[geocode];
     if (isNil(existingVars)) {
-      newEntities[geocode] = {
-        ...mergedVars
-      };
+      newEntities[geocode] = mergedVars;
     } else {
-      newEntities[geocode] = {
-        ...existingVars,
-        ...mergedVars
-      };
+      newEntities[geocode] = Object.assign({}, existingVars, mergedVars);
     }
   });
-  return {
-    ...entities,
-    ...newEntities
-  };
+  return Object.assign({}, entities, newEntities);
 }

@@ -156,10 +156,16 @@ export function toNullOrNumber(value: any) : number | null {
   return isConvertibleToNumber(value) ? Number(value) : null;
 }
 
-export function mergeSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
+export function unionSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
   if (isNil(setA) || setA.size === 0) return setB;
   if (isNil(setB) || setB.size === 0) return setA;
   return new Set(function*() { yield* setA; yield* setB; }());
+}
+
+export function disjointSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
+  if (isNil(setA) || setA.size === 0) return setB;
+  if (isNil(setB) || setB.size === 0) return setA;
+  return new Set<T>(([...setA].filter(x => !setB.has(x))).concat([...setB].filter(x => !setA.has(x))));
 }
 
 export function convertKeys<T>(data: Record<string, T>, processor: (key: string) => string) : Record<string, T>;
@@ -192,8 +198,8 @@ export function removeNonAsciiChars(value: string) : string {
   return value.replace(/[^\x00-\x7F]/g, '').replace(/&nbsp;/gi, ' ');
 }
 
-export function removeTabAndNewLineRegx(value: string): string{
-  return value.replace(/[\t\n\r]/gm,'');
+export function removeTabAndNewLineRegx(value: string) : string{
+  return value.replace(/[\t\n\r]/gm, '');
 }
 
 export function removeNullProperties(obj) {

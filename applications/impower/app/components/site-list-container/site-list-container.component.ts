@@ -5,7 +5,7 @@ import { EsriMapService } from '@val/esri';
 import { ErrorNotification, MessageBoxService, StopBusyIndicator } from '@val/messaging';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../services/app-editsite.service';
@@ -26,12 +26,10 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 @Component({
   selector: 'val-site-list-container',
   templateUrl: './site-list-container.component.html',
-  // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListContainerComponent implements OnInit {
    // Data store observables
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
-   public  allAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
 
    private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
@@ -40,44 +38,25 @@ export class SiteListContainerComponent implements OnInit {
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(
-      public  siteListService: AppLocationService,
-      private impGeofootprintLocationService: ImpGeofootprintLocationService,
-      private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
-      private tradeAreaService: ImpGeofootprintTradeAreaService,
-      private impGeofootprintGeoService: ImpGeofootprintGeoService,
-      private appLocationService: AppLocationService,
-      private geocoderService: AppGeocodingService,
-      private appStateService: AppStateService,
-      private esriMapService: EsriMapService,
-      private store$: Store<LocalAppState>,
-      private appEditSiteService: AppEditSiteService,
-      private domainFactory: ImpDomainFactoryService,
-      private messageService: MessageBoxService,
-      private logger: LoggingService) {}
+  constructor(private siteListService: AppLocationService,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService,
+              private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
+              private appLocationService: AppLocationService,
+              private geocoderService: AppGeocodingService,
+              private appStateService: AppStateService,
+              private esriMapService: EsriMapService,
+              private store$: Store<LocalAppState>,
+              private appEditSiteService: AppEditSiteService,
+              private domainFactory: ImpDomainFactoryService,
+              private messageService: MessageBoxService,
+              private logger: LoggingService) {}
 
    ngOnInit() {
-      // Subscribe to the data stores
-      this.allLocations$  = this.impGeofootprintLocationService.storeObservable
-                                .pipe(map(locs => Array.from(locs))
-                                 //  ,tap(locs => {
-                                 //     if (locs != null && locs.length > 0) {
-                                 //       this.logger.info.log("CONTAINER OBSERVABLE FIRED: locationService - Locs:", locs);
-                                 //     }})
-                                     );
-
-      this.allAttributes$ = this.impGeofootprintLocAttribService.storeObservable
-                                .pipe(map(attribs => Array.from(attribs))
-//                                   ,tap(data => this.logger.debug.log("CONTAINER OBSERVABLE FIRED: impGeofootprintGeoAttribService", data))
-                                     );
-
-      this.allGeos$ = this.impGeofootprintGeoService.storeObservable
-                          .pipe(map(geos => Array.from(geos))
-//                             ,tap(geos => this.logger.debug.log("SITE-LIST-CONTAINER - allGeos$ fired", geos))
-                               );
-
+      this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+      this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
    }
-
 
    // -----------------------------------------------------------
    // GRID OUTPUT EVENTS

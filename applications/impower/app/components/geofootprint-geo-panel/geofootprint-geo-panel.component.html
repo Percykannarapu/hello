@@ -2,13 +2,13 @@
   <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true" (onAfterToggle)="triggerCollapseOnToggle($event.collapsed)"  expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
     <p-header style="text-align: center;" pTooltip="Locations: {{(allLocations$ | async)?.length}}, Geos: {{(allGeos$ | async)?.length}}">Locations / Geographies</p-header>
     <val-geofootprint-geo-list
-      [impProject]="nonNullProject$ | async"
-      [audiences]="gridAudiences$ | async"
-      [impGeofootprintLocations]="allLocations$ | async"
-      [impGeofootprintGeoAttribs]="allAttributes$ | async"
-      [impGeofootprintGeos]="allGeos$ | async"
-      [mustCoverGeos]="allMustCovers$ | async"
-      [impGeofootprintVars]="allVars$ | async"
+      [project$]="nonNullProject$"
+      [allAudiences$]="gridAudiences$"
+      [allLocations$]="allLocations$"
+      [allAttributes$]="allAttributes$"
+      [allGeos$]="allGeos$"
+      [allMustCovers$]="allMustCovers$"
+      [allVars$]="allVars$"
       (onZoomGeo)="onZoomGeo($event)"
       (onDeleteGeo)="onDeleteGeo($event)"
       (onSelectGeo)="onSelectGeo($event)"

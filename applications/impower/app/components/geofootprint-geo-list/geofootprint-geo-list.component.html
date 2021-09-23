@@ -94,7 +94,7 @@
           <th *ngFor="let col of selectedColumns" [ngSwitch]="col.filterType">
             <p-columnFilter *ngSwitchCase="'multi'" matchMode="in" field="{{col.field}}" [showMenu]="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                <p-multiSelect [options]="createMultiOptionList(col.field) | async" [ngModel]="value" (ngModelChange)="filter($event)" appendTo="body"></p-multiSelect>
+                <p-multiSelect [options]="filterValues[col.field] || []" [ngModel]="value" (ngModelChange)="filter($event)" appendTo="body"></p-multiSelect>
               </ng-template>
             </p-columnFilter>
             <val-boolean-column-filter *ngSwitchCase="'bool10'" [field]="col.field" class="p-d-flex p-jc-center"></val-boolean-column-filter>
@@ -228,9 +228,16 @@
 
       <ng-template pTemplate="emptymessage" let-columns>
         <tr>
-          <td colspan="2" style="border-right-width: 0">&nbsp;</td>
-          <td [attr.colspan]="columns.length" class="p-pt-3" style="border-left-width: 0">
-              <h5>No geographies found.</h5>
+          <td [attr.colspan]="columns.length + 2" class="p-pt-3">
+            <div [style.width]="'95vw'">
+              <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center" *ngIf="generatingComposite">
+                <h5>Please Wait...</h5>
+                <p-progressSpinner strokeWidth="3" [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
+              </div>
+              <div class="p-col-12 p-d-flex p-jc-center p-ai-center" *ngIf="!generatingComposite">
+                <h5>No geographies found.</h5>
+              </div>
+            </div>
           </td>
         </tr>
       </ng-template>

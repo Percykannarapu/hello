@@ -62,7 +62,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    ngOnInit() {
       // Subscribe to the data stores
       this.nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
-      this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+      this.allLocations$  = this.appStateService.allClientLocations$;
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
 
       // The geo grid watches this for changes in must covers to set the column

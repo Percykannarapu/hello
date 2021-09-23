@@ -96,8 +96,6 @@ export class AppLocationService {
   public siteLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
   public competitorLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
 
-  public siteTypeBS$ = new BehaviorSubject<'Site' | 'Competitor'>('Site');
-
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeoService: ImpGeofootprintGeoService,
@@ -188,6 +186,7 @@ export class AppLocationService {
     );
     this.failureCount$ = combineLatest([this.failedClientLocations$, this.failedCompetitorLocations$]).pipe(
       map(([site, competitor]) => site.length + competitor.length),
+      distinctUntilChanged(),
       startWith(0),
     );
     this.hasFailures$ = this.failureCount$.pipe(map(count => count > 0));
