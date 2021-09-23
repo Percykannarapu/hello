@@ -536,7 +536,7 @@ export class AppLocationService {
       const currentLocations = this.impLocationService.get();
       for (const loc of currentLocations) {
         if (siteMap.has(`${loc.clientLocationTypeCode}-${loc.locationNumber}`)) {
-          loc.homeGeocode = siteMap.get(loc.locationNumber).attributeValue;
+          loc.homeGeocode = siteMap.get(`${loc.clientLocationTypeCode}-${loc.locationNumber}`).attributeValue;
         } else {
           loc.homeGeocode = null;
         }
