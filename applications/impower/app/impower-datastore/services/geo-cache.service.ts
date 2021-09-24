@@ -31,7 +31,7 @@ export class GeoCacheService {
 
   public removeCache(transactionId: number) : Observable<void> {
     return this.restService.delete(this.config.serviceUrlFragments.deleteGeoCacheUrl, transactionId).pipe(
-      map(() => { return; })
+      map(() => undefined)
     );
   }
 }

@@ -1,22 +1,19 @@
 <div class="p-d-flex" [formGroup]="currentRoot">
-  <div class="p-d-flex p-col p-pl-3">
-    <div class="p-d-flex p-ac-center">
-      <p-checkbox [readonly]="readonly" [tabindex]="tabIndex + 99" formControlName="isActive" label="" binary="true"></p-checkbox>
+  <div class="p-d-flex p-ai-end p-pl-3">
+    <boolean-input [readonly]="readonly" formControlName="isActive" displayType="checkbox" class="p-mr-2"></boolean-input>
+    <validated-text-input *ngIf="!readonly" formControlName="radius" labelText="Trade Area {{radiusIdentifier}} (in miles)"></validated-text-input>
+    <div *ngIf="readonly">
+      <div class="p-inputgroup p-pt-4">
+        <div class="p-float-label">
+          <input pInputText [disabled]="true" [readOnly]="true" style="height: 2rem;" value="Provided in Upload"/>
+          <label>Trade Area {{radiusIdentifier}}</label>
+        </div>
+      </div>
     </div>
-    <div class="p-d-flex p-ac-center p-ml-2">
-      <validated-text-input *ngIf="!readonly" formControlName="radius" labelText="Trade Area {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
-      <span *ngIf="readonly">
-        Provided in Upload
-      </span>
-    </div>
-    <div *ngIf="showAddNew" class="p-d-flex p-ac-center p-ml-2">
-      <button pButton type="button" icon="pi pi-plus" class="p-button-icon-only" (click)="addNewClicked.emit()" [disabled]="currentRoot.invalid"></button>
-    </div>
-    <div *ngIf="showDelete" class="p-d-flex p-ac-center p-ml-2">
-      <button pButton type="button" icon="pi pi-trash" class="p-button-icon-only" (click)="deleteClicked.emit()"></button>
-    </div>
+    <button *ngIf="showAddNew" pButton type="button" icon="pi pi-plus" class="p-button-icon-only p-ml-3 val-square" (click)="addNewClicked.emit()" [disabled]="currentRoot.invalid"></button>
+    <button *ngIf="showDelete" pButton type="button" icon="pi pi-trash" class="p-button-icon-only p-ml-2 val-square" (click)="deleteClicked.emit()"></button>
   </div>
-  <div class="p-d-flex p-ai-center p-col-nogutter p-col">
+  <div class="p-d-flex p-ai-end">
     <ng-container *ngIf="currentRoot.get('radius').touched">
       <p-message *ngIf="hasError('required')" severity="error" text="Required"></p-message>
       <p-message *ngIf="hasError('numeric')" severity="error" text="Radius must be a numeric value"></p-message>

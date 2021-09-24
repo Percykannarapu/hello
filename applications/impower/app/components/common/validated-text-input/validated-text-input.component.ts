@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
-import { AfterViewInit, Component, Input, Optional, Self, ViewChild } from '@angular/core';
-import { ControlValueAccessor, NgControl, NgModel } from '@angular/forms';
+import { Component, Input, Optional, Self } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { getUuid } from '@val/common';
 
 @Component({

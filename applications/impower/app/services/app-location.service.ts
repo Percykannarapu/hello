@@ -26,6 +26,7 @@ import { EnvironmentData } from '../../environments/environment';
 import { ImpClientLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
+import { GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -194,9 +195,10 @@ export class AppLocationService {
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Site));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Competitor));
     this.appStateService.analysisLevel$.pipe(
-        withLatestFrom(projectReady$),
-        filter(([level, isReady]) => !isEmpty(level) && isReady)
-      ).subscribe(([analysisLevel]) => {
+      withLatestFrom(projectReady$),
+      filter(([level, isReady]) => !isEmpty(level) && isReady)
+    ).subscribe(([analysisLevel]) => {
+      this.store$.dispatch(RemoveGeoCache({ geoType: GeoTransactionType.Geofootprint }));
       this.setPrimaryHomeGeocode(analysisLevel);
       this.appTradeAreaService.onAnalysisLevelChange();
     });

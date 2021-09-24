@@ -95,14 +95,15 @@ export class MapComponent implements OnInit {
     const vpString = localStorage.getItem(VIEWPOINT_KEY);
     const heightString = localStorage.getItem(HEIGHT_KEY);
     const heightNum = toNullOrNumber(heightString) ?? 400;
-    if (!isEmpty(vpString)) {
-      const vp = JSON.parse(vpString);
-      this.appMapService.setViewpoint(Viewpoint.fromJSON(vp));
-    }
     if (heightNum < 50) {
       this.mapHeight$.next(400);
     } else {
       this.mapHeight$.next(heightNum);
+    }
+    if (!isEmpty(vpString)) {
+      const vp = JSON.parse(vpString);
+      // using set timeout here to ensure map height is set before the viewpoint, avoiding the southerly creep of the map view
+      setTimeout(() => this.appMapService.setViewpoint(Viewpoint.fromJSON(vp)));
     }
   }
 

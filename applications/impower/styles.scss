@@ -205,6 +205,13 @@ tr {
   font-size: 2rem;
 }
 
+.p-button-icon-only {
+  &.val-square {
+    height: $buttonIconOnlyWidth;
+  }
+}
+
+
 // esri styling overrides
 body {
   div.esri-ui {
