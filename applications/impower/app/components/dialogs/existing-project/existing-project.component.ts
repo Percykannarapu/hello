@@ -5,7 +5,7 @@ import { MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { PrimeIcons, SelectItem } from 'primeng/api';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { BehaviorSubject, combineLatest, interval, Observable, Subscription } from 'rxjs';
-import { filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { exhaustMap, filter, map, startWith, tap } from 'rxjs/operators';
 import { RestPayload } from '../../../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../../../app.config';
 import { User } from '../../../models/User';
@@ -42,7 +42,7 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
   private readonly deActivateProjectUrl = 'v1/targeting/base/deactivate/project/';
 
   private hasExistingData: boolean = false;
-  private triggerDataRefresh$ = new BehaviorSubject<void>(null);
+  private triggerForcedRefresh$ = new BehaviorSubject<void>(null);
   private currentUser: User;
 
   public selectedListType$ = new BehaviorSubject<FilterType>('myProject');
@@ -55,7 +55,6 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
   public isFetching = true;
   private fetchingMyData = true;
   private fetchingAllData = true;
-  private mustForceRefresh = true;
   private myProjectsReadyToRefresh = true;
   private allProjectsReadyToRefresh = true;
   private projectSubscriptions = new Subscription();
@@ -96,14 +95,21 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
     const fetchUpdateSub = this.selectedListType$.subscribe(() => this.updateFetchStatus());
     this.projectSubscriptions.add(timerSub);
     this.projectSubscriptions.add(fetchUpdateSub);
+    const refreshMyList$ = this.selectedListType$.pipe(
+      filter(listType => listType === 'myProject' && this.myProjectsReadyToRefresh),
+      startWith('myProject')
+    );
+    const refreshAllList$ = this.selectedListType$.pipe(
+      filter(listType => listType === 'allProjects' && this.allProjectsReadyToRefresh),
+      startWith('allProjects')
+    );
 
-    const myProjectList$ = combineLatest([this.selectedTimeSpan$, this.selectedListType$, this.triggerDataRefresh$]).pipe(
-      filter(([, listType]) => (listType === 'myProject' && this.myProjectsReadyToRefresh && !this.fetchingMyData) || this.mustForceRefresh),
-      tap(() => {
+    const myProjectList$ = combineLatest([this.selectedTimeSpan$, refreshMyList$, this.triggerForcedRefresh$]).pipe(
+      exhaustMap(([timeSpan]) => {
         this.fetchingMyData = true;
         this.updateFetchStatus();
+        return this.getData(timeSpan, true);
       }),
-      switchMap(([timeSpan]) => this.getData(timeSpan, true)),
       tap(() => setTimeout(() => {
         this.myProjectsReadyToRefresh = false;
         this.fetchingMyData = false;
@@ -111,13 +117,12 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
       })),
       startWith([])
     );
-    const allProjectList$ = combineLatest([this.selectedTimeSpan$, this.selectedListType$, this.triggerDataRefresh$]).pipe(
-      filter(([, listType]) => (listType === 'allProjects' && this.allProjectsReadyToRefresh && !this.fetchingAllData) || this.mustForceRefresh),
-      tap(() => {
+    const allProjectList$ = combineLatest([this.selectedTimeSpan$, refreshAllList$, this.triggerForcedRefresh$]).pipe(
+      exhaustMap(([timeSpan]) => {
         this.fetchingAllData = true;
         this.updateFetchStatus();
+        return this.getData(timeSpan, false);
       }),
-      switchMap(([timeSpan]) => this.getData(timeSpan, false)),
       tap(() => setTimeout(() => {
         this.allProjectsReadyToRefresh = false;
         this.fetchingAllData = false;
@@ -129,10 +134,7 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
     this.currentProjectData$ = combineLatest([this.selectedListType$, myProjectList$, allProjectList$]).pipe(
       map(([listType, myProjects, allProjects]) => [listType, (listType === 'myProject' ? myProjects : allProjects)] as const),
       tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
-      tap(([, data]) => setTimeout(() => {
-        this.mustForceRefresh = false;
-        this.dataLength = data.length;
-      })),
+      tap(([, data]) => setTimeout(() => this.dataLength = data.length)), // using setTimeout so I don't have to introduce a change detector
       map(([, data]) => data)
     );
   }
@@ -142,8 +144,7 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
   }
 
   public forceRefresh() : void {
-    this.mustForceRefresh = true;
-    this.triggerDataRefresh$.next();
+    this.triggerForcedRefresh$.next();
   }
 
   public onDoubleClick(data: { projectId: number }, event: MouseEvent) {
@@ -205,7 +206,7 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
       query += `&modifyUser=${this.currentUser.userId}`;
     }
     return this.restService.get<RestPayload<Partial<ImpProject>>>(query).pipe(
-      map((result) => result.payload.rows)
+      map((result) => result.payload.rows.filter(row => row.isActive))
     );
   }
 

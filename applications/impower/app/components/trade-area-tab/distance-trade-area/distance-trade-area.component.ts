@@ -1,6 +1,9 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
+import { AppStateService } from 'app/services/app-state.service';
+import { LocalAppState } from 'app/state/app.interfaces';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
@@ -12,9 +15,6 @@ import {
 import { ValassisValidators } from '../../../common/valassis-validators';
 import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-distance-trade-area',
@@ -150,8 +150,8 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
     }
     const analysisLevelValidator = this.locationType === ImpClientLocationTypeCodes.Site ? [Validators.required] : undefined;
     const formSetup: FormConfig<DistanceTradeAreaUiModel> = {
-      mergeType: this._currentMergeType || TradeAreaMergeTypeCodes.MergeEach,
-      isReadOnly: this._hasProvidedTradeAreas || false,
+      mergeType: this._currentMergeType ?? TradeAreaMergeTypeCodes.MergeEach,
+      isReadOnly: this._hasProvidedTradeAreas ?? false,
       tradeAreas: new FormArray(tradeAreaSetups),
       hasLocations: new FormControl(this._hasLocations, [Validators.requiredTrue]),
       analysisLevel: new FormControl(this._analysisLevel, analysisLevelValidator)
@@ -160,8 +160,12 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
     this.setupRadiusValidations();
   }
 
-  private resetForm() : void{
-    this.radiusForm.reset();
+  private resetForm() : void {
+    this.currentTradeAreaCount = 1;
+    this._currentTradeAreas = [];
+    this._currentMergeType = null;
+    this._hasProvidedTradeAreas = null;
+    this.setupForm();
   }
 
   private setupRadiusValidations() : void {
