@@ -283,6 +283,7 @@ export class SiteListContainerComponent implements OnInit {
       this.appStateService.clearUserInterface();
       const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(selectedListType));
       this.appStateService.setProvidedTradeAreas(false, siteCode );
+      this.impGeofootprintGeoService.makeDirty();
    }
 
    public onMakeDirty() {
