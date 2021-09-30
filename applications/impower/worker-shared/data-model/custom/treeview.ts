@@ -1,4 +1,4 @@
-import { isConvertibleToInteger, isEmpty } from '@val/common';
+import { isConvertibleToInteger, isEmpty, isNotNil } from '@val/common';
 import { TreeNode } from 'primeng/api';
 import { FieldContentTypeCodes } from '../impower.data-model.enums';
 
@@ -58,7 +58,7 @@ export function fixupOffline(category: OfflineCategoryResponse, audience: Offlin
   const result = fixupPk(audience);
   result.fieldconte = FieldContentTypeCodes.parse(audience.fieldconte);
   result.searchTags = createTagArray(result.fielddescr, /[\s]+/);
-  result.searchTags.push(result.fieldname);
+  if (isNotNil(result.fieldname)) result.searchTags.push(result.fieldname.toLowerCase());
   result.folderSearchTags = createTagArray(parent.tabledesc, /[\s\/]+/);
   result.parentPk = parent.pk;
   return result;
