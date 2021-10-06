@@ -168,6 +168,24 @@ export class BatchMapRequestComponent implements OnInit {
           }
         });
       }
+
+      if (savedFormData.sitesPerPage === 'sitesGroupedBy')
+         this.batchMapForm.get('sitesByGroup').enable();
+      else    
+         this.batchMapForm.get('sitesByGroup').disable();
+
+      if (savedFormData.neighboringSites === 'exclude'){
+        this.batchMapForm.get('enableTradeAreaShading').disable();
+        this.batchMapForm.get('enableLabels').disable();
+        this.batchMapForm.get('enableSymbols').disable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
+      }else{
+        this.batchMapForm.get('enableTradeAreaShading').enable();
+        this.batchMapForm.get('enableLabels').enable();
+        this.batchMapForm.get('enableSymbols').enable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').enable();
+      }
+
     } else {
       this.batchMapForm.patchValue({
         title: 'user-defined',
@@ -440,7 +458,7 @@ export class BatchMapRequestComponent implements OnInit {
   private getSiteIds() : Array<string> {
     const siteIds: Array<string> = [];
     this.stateService.currentProject$.getValue().getImpGeofootprintLocations().forEach(s => {
-      if (ImpClientLocationTypeCodes.parse(s.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) {
+      if (ImpClientLocationTypeCodes.parse(s.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site && s.isActive) {
         siteIds.push(s.locationNumber);
       }
     });
