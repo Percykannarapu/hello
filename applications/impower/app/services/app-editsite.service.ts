@@ -3,7 +3,7 @@ import { isEmpty, isNil, toNullOrNumber } from '@val/common';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AbstractControl, ValidatorFn } from '@angular/forms';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppEditSiteService {
   data: any = null;
   private editLocationData: BehaviorSubject<any> = new BehaviorSubject<any>(this.data);

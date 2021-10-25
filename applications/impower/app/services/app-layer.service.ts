@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EsriLayerService } from '@val/esri';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppLayerService {
 
   constructor(private layerService: EsriLayerService) { }

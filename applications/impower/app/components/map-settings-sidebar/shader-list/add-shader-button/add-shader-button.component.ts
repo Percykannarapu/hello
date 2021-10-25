@@ -2,7 +2,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
-import { GfpShaderKeys } from '../../../../models/ui-enums';
+import { GfpShaderKeys } from '../../../../common/models/ui-enums';
 
 interface InlineAudience {
   displayName: string;

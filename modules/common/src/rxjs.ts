@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
 
 export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
@@ -56,5 +56,19 @@ export function skipUntilFalseBecomesTrue() : (source$: Observable<boolean>) => 
 export function reduceConcat<T>() : (source$: Observable<T[]>) => Observable<T[]> {
   return source$ => source$.pipe(
     reduce((acc, val) => acc.concat(val), [] as T[])
+  );
+}
+
+export function distinctUntilFieldsChanged<T>(fields: (keyof T)[]) : (source$: Observable<T>) => Observable<T> {
+  const comparer: Partial<T> = fields.reduce((a, c) => {
+    a[c] = null;
+    return a;
+  }, {} as Partial<T>);
+  return source$ => source$.pipe(
+    distinctUntilChanged((a, b) => fields.every(f => {
+      const result = comparer[f] === b[f];
+      comparer[f] = b[f];
+      return result;
+    }))
   );
 }

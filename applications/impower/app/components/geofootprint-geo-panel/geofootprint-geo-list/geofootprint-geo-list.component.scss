@@ -1,0 +1,13 @@
+@import "../../../../assets/valassis-variables";
+
+.select-column {
+  width: 3rem;
+}
+
+.val-truncate-all {
+  * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

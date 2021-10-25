@@ -22,7 +22,7 @@ import { ImpGeofootprintGeoService } from './ImpGeofootprintGeo.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprinttradearea/load';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTradeArea>
 {
    constructor(transactionManager: TransactionManager,

@@ -4,7 +4,7 @@ import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/au
 import { TreeNode } from 'primeng/api';
 import { OfflineAudienceResponse } from '../../../../../worker-shared/data-model/custom/treeview';
 import { WorkerFactory } from '../../../../common/worker-factory';
-import { createOfflineAudienceInstance } from '../../../../models/audience-factories';
+import { createOfflineAudienceInstance } from '../../../../common/models/audience-factories';
 import { LocalAppState } from '../../../../state/app.interfaces';
 
 @Component({

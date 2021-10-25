@@ -12,7 +12,6 @@ import {
   TradeAreaTypeCodes
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { quadPartitionGeos } from '../common/quad-tree';
 import * as ValSort from '../common/valassis-sorters';
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { ChangeAnalysisLevel } from '../state/app.actions';
@@ -83,8 +82,6 @@ export class AppStateService {
   public hasCompetitorProvidedTradeAreas$: CachedObservable<boolean> = this.hasCompetitorProvidedTradeAreas;
 
   private getVisibleGeos$ = new Subject<void>();
-
-  private isCollapsed = new BehaviorSubject<boolean>(false);
 
   public filterFlag: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
@@ -306,13 +303,5 @@ export class AppStateService {
       filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
-  }
-
-  getCollapseObservable() {
-    return this.isCollapsed.asObservable();
-  }
-
-  triggerChangeInCollapse(collapse: boolean){
-    this.isCollapsed.next(collapse);
   }
 }

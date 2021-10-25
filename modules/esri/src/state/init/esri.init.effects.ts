@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@angular/core';
 import IdentityManager from '@arcgis/core/identity/IdentityManager';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Actions, Effect, ofType, OnInitEffects } from '@ngrx/effects';
+import { Action } from '@ngrx/store';
 import { of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EsriAuthenticationParams, EsriAuthenticationToken, EsriConfigOptions, EsriLoaderToken } from '../../configuration';
 import { displayInitializationError, generateToken, setupEsriConfig } from '../../core/esri-initialize';
 import { LoggingService } from '../../services/logging.service';
-import { AuthenticateFailure, AuthenticateSuccess, EsriInitActionTypes, InitializeComplete } from './esri.init.actions';
+import { AuthenticateFailure, AuthenticateSuccess, EsriInitActionTypes, Initialize, InitializeComplete } from './esri.init.actions';
 
 @Injectable()
-export class EsriInitEffects {
+export class EsriInitEffects implements OnInitEffects {
 
   @Effect()
   initialize$ = this.actions$.pipe(
@@ -39,4 +40,8 @@ export class EsriInitEffects {
               private logger: LoggingService,
               @Inject(EsriAuthenticationToken) private authConfig: EsriAuthenticationParams,
               @Inject(EsriLoaderToken) private loadConfig: EsriConfigOptions) {}
+
+  ngrxOnInitEffects() : Action {
+    return new Initialize();
+  }
 }

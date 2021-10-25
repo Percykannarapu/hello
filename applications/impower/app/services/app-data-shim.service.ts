@@ -19,8 +19,8 @@ import { Audience } from '../impower-datastore/state/transient/audience/audience
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
-import { createExistingAudienceInstance } from '../models/audience-factories';
-import { ProjectFilterChanged } from '../models/ui-enums';
+import { createExistingAudienceInstance } from '../common/models/audience-factories';
+import { ProjectFilterChanged } from '../common/models/ui-enums';
 import { FullAppState, MustCoverPref } from '../state/app.interfaces';
 import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';

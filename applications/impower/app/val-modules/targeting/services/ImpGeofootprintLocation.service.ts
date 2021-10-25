@@ -32,7 +32,7 @@ import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.serv
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLocation>
 {
    public  removes: ImpGeofootprintLocation[];
@@ -144,7 +144,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                this.impGeoFootprintLocAttribService.filterBy(attrib => attrib.glId === loc.glId  && attrib.baseStatus === DAOBaseStatus.DELETE, (attrib) => this.impGeoFootprintLocAttribService.getTreeRemoveCount(attrib), false, true, true),
                  false, false);
                this.impGeofootprintTradeAreaService.performDBRemoves(
-               this.impGeofootprintTradeAreaService.filterBy(ta => ta.glId === loc.glId && ta.baseStatus === DAOBaseStatus.DELETE, (ta) => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta),false, true, true),
+               this.impGeofootprintTradeAreaService.filterBy(ta => ta.glId === loc.glId && ta.baseStatus === DAOBaseStatus.DELETE, (ta) => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta), false, true, true),
                  false, false);
             }
          }

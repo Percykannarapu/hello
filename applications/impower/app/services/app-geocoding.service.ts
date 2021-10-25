@@ -6,8 +6,8 @@ import { merge, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
+import { ValGeocodingRequest } from '../common/models/val-geocoding-request.model';
+import { ValGeocodingResponse } from '../common/models/val-geocoding-response.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { resetNamedForm } from '../state/forms/forms.actions';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -16,7 +16,7 @@ import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppStateService } from './app-state.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppGeocodingService {
 
   public duplicateKeyMap = new Map<SuccessfulLocationTypeCodes, Set<string>>();

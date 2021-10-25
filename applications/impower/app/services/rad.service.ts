@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { RestPayload, RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
-import { RadData } from '../models/RadData';
+import { RadData } from '../common/models/RadData';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { MetricMessage, MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -14,7 +14,7 @@ import { AppStateService } from './app-state.service';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class RadService {
 
   private radData: Array<RadData>;

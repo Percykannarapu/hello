@@ -19,7 +19,7 @@ import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocattrib/search?q=impGeofootprintLocAttrib';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLocAttrib>
 {
    constructor(transactionManager: TransactionManager,

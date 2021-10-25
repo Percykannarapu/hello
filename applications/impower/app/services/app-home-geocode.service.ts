@@ -7,7 +7,7 @@ import { PrimeIcons } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { reduce, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
-import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { ValGeocodingRequest } from '../common/models/val-geocoding-request.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';

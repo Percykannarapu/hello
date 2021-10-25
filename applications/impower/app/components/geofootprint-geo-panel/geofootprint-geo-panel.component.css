@@ -1,3 +1,5 @@
-.grid-panel-wrapper {
-  padding: 0.5em;
+:host {
+  display: inline-block;
+  padding: 0.5rem;
+  width: 100%;
 }

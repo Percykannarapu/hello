@@ -6,54 +6,22 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { RestResponse, ServiceError } from '../../../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../../../app.config';
+import { UserService } from '../../../services/user.service';
 import { LoggingService } from './logging.service';
 
-/**
- * Data store configuration, holds the oauth token for communicating with Fuse
- */
-export class OauthConfiguration {
-  public oauthToken: string;
-  public tokenExpiration: number;
-  public tokenRefreshFunction: Function;
-}
-
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class RestDataService
 {
-  private static configuration: OauthConfiguration;
-  private static acsUsername: string;
-  private static acsPassword: string;
-
   public baseUrl: string;
 
    constructor(private http: HttpClient,
                private appConfig: AppConfig,
-               private logger: LoggingService) {
+               private logger: LoggingService,
+               private userService: UserService) {
       // Assign the base url from configuration
       this.baseUrl = appConfig.valServiceBase;
       this.logger.debug.log('RestDataService - baseUrl: ' + this.baseUrl);
    }
-
-  /**
-   * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
-   */
-  public static bootstrap(config: OauthConfiguration, acsUsername?: string, acsPassword?: string) {
-    this.configuration = config;
-    this.acsUsername = acsUsername;
-    this.acsPassword = acsPassword;
-  }
-
-  public static getConfig() : OauthConfiguration {
-    return this.configuration;
-  }
-
-  public static getAcsUsername() : string {
-    return this.acsUsername;
-  }
-
-  public static getAcsPassword() : string {
-    return this.acsPassword;
-  }
 
    // -----------------------------------------------------------------------------------
    // HTTP METHODS
@@ -125,12 +93,8 @@ export class RestDataService
    }
 
    private rawPostArrayBuffer(url: string, body: ArrayBuffer) : Observable<ArrayBuffer> {
-     const config = RestDataService.configuration;
+     const user = this.userService.getUser();
      const loggerInstance = this.logger.debug;
-     let token = null;
-     if (config != null && config.oauthToken != null) {
-       token = config.oauthToken;
-     }
      return new Observable<any>(observer => {
         try {
           this.logger.debug.log('Creating XHR');
@@ -140,8 +104,8 @@ export class RestDataService
           req.setRequestHeader('Accept', '*/*');
           req.setRequestHeader('Cache-Control', 'no-cache');
           req.setRequestHeader('Pragma', 'no-cache');
-          if (token != null) {
-            req.setRequestHeader('Authorization', 'Bearer ' + token);
+          if (user?.token != null) {
+            req.setRequestHeader('Authorization', user.token);
           }
           req.onreadystatechange = function (this: XMLHttpRequest, ev: Event) {
             loggerInstance.log('Event Fired in XHR', ev);

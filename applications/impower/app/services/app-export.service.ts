@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { Observable } from 'rxjs';
+import { asyncScheduler, Observable, of, scheduled } from 'rxjs';
 import { concatMap, filter, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { WorkerResult, WorkerStatus } from '../../worker-shared/common/core-interfaces';
 import { RestPayload, RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { GeoFootprintExportFormats, LocationExportFormats } from '../../worker-shared/export-workers/payloads';
 import { AppConfig } from '../app.config';
-import { CrossbowGroupTuple, CrossbowProfileResponse, CrossbowSite } from '../models/crossbow.model';
+import { CrossbowGroupTuple, CrossbowProfileResponse, CrossbowSite } from '../common/models/crossbow.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
@@ -44,7 +44,8 @@ export class AppExportService {
     const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
     const key = 'GFP_Export';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Exporting Geofootprint' }));
-    return this.audienceService.requestGeofootprintExportData(currentProject.methAnalysis).pipe(
+    return scheduled(of(currentProject.methAnalysis), asyncScheduler).pipe(
+      switchMap(analysisLevel => this.audienceService.requestGeofootprintExportData(analysisLevel)),
       switchMap(geoVars => this.impGeofootprintGeoService.exportStore(null, GeoFootprintExportFormats.alteryx, currentProject, geoVars, selectedOnly)),
       filter(result => result.rowsProcessed > 0),
       concatMap(result => ([

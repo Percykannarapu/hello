@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from 'app/app.config';
-import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { ValGeocodingRequest } from 'app/common/models/val-geocoding-request.model';
 import {
   DAOBaseStatus,
   FieldContentTypeCodes,
@@ -8,7 +8,7 @@ import {
   TradeAreaTypeCodes
 } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
-import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
+import { ValGeocodingResponse } from '../../../common/models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';

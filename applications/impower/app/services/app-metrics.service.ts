@@ -24,7 +24,7 @@ export interface MetricDefinition<T> {
   calcFlagState?: () => boolean;
 }
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ValMetricsService implements OnDestroy {
   private metricSub: Subscription;
   private metricDefinitions: MetricDefinition<any>[] = [];

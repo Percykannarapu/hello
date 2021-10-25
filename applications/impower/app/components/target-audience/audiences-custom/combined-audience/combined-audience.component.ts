@@ -13,8 +13,8 @@ import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
-import { VarSpecs } from '../../../../models/audience-data.model';
-import { createCombinedAudienceInstance } from '../../../../models/audience-factories';
+import { VarSpecs } from '../../../../common/models/audience-data.model';
+import { createCombinedAudienceInstance } from '../../../../common/models/audience-factories';
 import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
 
 @Component({

@@ -1,0 +1,165 @@
+<div class="p-col-12">
+  <div id="geoGrid">
+    <p-table #geoGrid
+             [value]="currentLazyRows"
+             [columns]="selectedColumns" [resizableColumns]="true" columnResizeMode="expand"
+             [globalFilterFields]="globalFields"
+             scrollable="true"
+             sortMode="multiple" [multiSortMeta]="initialSort"
+             [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25,50,100]"
+             [lazy]="true" [lazyLoadOnInit]="true" [totalRecords]="totalRecords" [loading]="loading$ | async"
+             (onLazyLoad)="load($event)" [filterDelay]="0">
+
+      <!-- Caption is the area just above the column headers -->
+      <ng-template pTemplate="caption">
+        <div class="val-flex-layout p-ai-end p-pt-3">
+          <div class="p-jc-between p-ai-end">
+            <val-search-input (resultChanged)="geoGrid.filterGlobal($event, 'contains')"></val-search-input>
+            <button pButton type="button" icon="pi pi-filter-slash" pTooltip="Clear All Filters" class="p-button-rounded p-button-outlined p-button-inverse"
+                    (click)="clearFilters()">
+            </button>
+            <div class="p-d-flex p-flex-column p-jc-start p-ai-center">
+              <button type="button" pButton icon="pi pi-file" label="Export" pTooltip="Export data to a CSV file"
+                      (click)="showExportDialog()" class="p-button-outlined p-button-inverse"></button>
+            </div>
+          </div>
+          <div class="p-flex-column p-jc-center p-ai-center">
+            <label [escape]="false"
+                   pTooltip="<table><tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats?.activeGeoCount}}</td></tr>
+                                    <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats?.geoCount - gridStats?.activeGeoCount}}</td></tr></table>">
+              Locations: {{gridStats?.activeLocationCount}} of {{gridStats?.locationCount}}, Geos: {{gridStats?.geoCount}}
+            </label>
+            <label *ngIf="gridStats?.geoCount > gridStats?.currentGeoCount">
+              (Currently filtered; showing {{gridStats?.currentGeoCount}} geos)
+            </label>
+          </div>
+          <div class="p-jc-end">
+            <boolean-input labelText="Remove Dupes" [(ngModel)]="dedupeGrid" (ngModelChange)="onClickDedupeToggle($event)"></boolean-input>
+            <multiselect-input [options]="columnOptions" [(ngModel)]="selectedColumns" class="p-pl-2"></multiselect-input>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- This keeps header and detail widths in sync -->
+      <ng-template pTemplate="colgroup">
+        <colgroup>
+          <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+        </colgroup>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn [pSortableColumn]="col.field" [title]="col.header" [pSortableColumnDisabled]="col.unsorted">
+            <div class="p-d-flex p-jc-center" *ngIf="col.field == 'isActive'">
+              <button pButton type="button" class="p-button-text"
+                      [pTooltip]="gridStats?.currentActiveGeoCount > 0 ? 'Deselect all rows' : 'Select all rows'"
+                      [icon]="gridStats?.currentActiveGeoCount > 0 ? 'pi pi-check-circle' : 'pi pi-circle-off'"
+                      (click)="selectVisibleRows()"></button>
+            </div>
+            <div *ngIf="col.isPlaceHolder">&nbsp;</div>
+            <div class="p-d-flex p-jc-between p-pt-1 p-pb-1" *ngIf="col.field != 'isActive' && !col.isPlaceHolder">
+              <div class="p-text-truncate">
+                {{col.header}}
+              </div>
+              <p-sortIcon field="{{col.field}}" *ngIf="!col.unsorted"></p-sortIcon>
+            </div>
+          </th>
+        </tr>
+        <tr>
+          <th *ngFor="let col of selectedColumns" [ngSwitch]="col.filterType">
+            <val-boolean-column-filter *ngSwitchCase="'bool'" [field]="col.field" class="p-d-flex p-jc-center"></val-boolean-column-filter>
+            <p-columnFilter *ngSwitchCase="'multi'" matchMode="in" field="{{col.field}}" [showMenu]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-multiSelect [options]="multiSelectFilterValues[col.field] || []" [ngModel]="value" (ngModelChange)="filter($event)" appendTo="body"></p-multiSelect>
+              </ng-template>
+            </p-columnFilter>
+            <p-columnFilter *ngSwitchCase="'numeric'" type="numeric" [field]="col.field" display="menu" [showOperator]="false" operator="or">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+              </ng-template>
+            </p-columnFilter>
+            <ng-container *ngSwitchDefault>
+              <div *ngIf="col.isPlaceHolder">&nbsp;</div>
+              <p-columnFilter *ngIf="!col.isPlaceHolder" matchMode="contains" field="{{col.field}}" [showMenu]="false">
+                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                  <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+                </ng-template>
+              </p-columnFilter>
+            </ng-container>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr [ngClass]="{ 'p-highlight': row.isActive }">
+          <td *ngFor="let col of selectedColumns" class="val-truncate-all" [ngSwitch]="col.field">
+            <div class="p-d-flex p-jc-center" *ngSwitchCase="'isActive'">
+              <p-checkbox [ngModel]="row.isActive" (ngModelChange)="toggleGeoState(row)" [binary]="true" tooltipPosition="right"
+                          [pTooltip]="row.geocode + ' is in ' + row.siteCount + (row.siteCount > 1 ? ' sites' : ' site')"></p-checkbox>
+            </div>
+            <div class="p-d-flex p-jc-center" *ngSwitchCase="'delete'">
+              <button pButton type="button" class="p-button-text" pTooltip="Permanently Remove Geo" tooltipPosition="right"
+                      icon="pi pi-trash" (click)="onClickDeleteGeo(row)"></button>
+            </div>
+            <div class="p-d-flex p-jc-between p-ai-center" *ngSwitchCase="'geocode'">
+              <span [pTooltip]="row.geocodeTooltip">{{row.geocode}} <i *ngIf="row.isHomeGeo" class="pi pi-home"></i></span>
+              <button pButton type="button" class="p-button-text p-button-rounded" icon="pi pi-search" (click)="onZoomToGeo(row)"></button>
+            </div>
+            <ng-container *ngSwitchDefault>
+              <div *ngIf="col.boolInfo == null && col.digitsInfo == null && !col.isCurrency" [title]="row[col.field]">
+                {{ (col.isDynamic ? row.audienceData[col.field] : row[col.field]) }}
+              </div>
+              <div *ngIf="col.boolInfo != null" class="p-d-flex p-jc-center">
+                {{ (col.isDynamic ? row.audienceData[col.field] : row[col.field]) | boolToString:col.boolInfo }}
+              </div>
+              <div *ngIf="col.digitsInfo != null" class="p-d-flex p-jc-end">
+                {{ (col.isDynamic ? row.audienceData[col.field] : row[col.field]) | number:col.digitsInfo }}
+              </div>
+              <div *ngIf="col.isCurrency" class="p-d-flex p-jc-end">
+                {{ (col.isDynamic ? row.audienceData[col.field] : row[col.field]) | currency }}
+              </div>
+            </ng-container>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr>
+          <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+            <div *ngIf="gridStats?.columnStats[col.field] == null">&nbsp;</div>
+            <div *ngIf="gridStats?.columnStats[col.field] != null" [escape]="false" pTooltip="{{ gridStats?.columnStats[col.field] | statTableTooltip }}" class="p-d-flex p-jc-end">
+              <ng-container *ngIf="gridStats?.columnStats[col.field].Total != null">
+                <ng-container *ngIf="col.isCurrency">
+                  {{gridStats?.columnStats[col.field].Total | currency}}
+                </ng-container>
+                <ng-container *ngIf="!col.isCurrency">
+                  {{gridStats?.columnStats[col.field].Total | number:gridStats?.columnStats[col.field].digitsInfo}}
+                </ng-container>
+              </ng-container>
+              <ng-container *ngIf="gridStats?.columnStats[col.field].Total == null">
+                <ng-container *ngIf="col.isCurrency">
+                  {{gridStats?.columnStats[col.field].Average | currency}}
+                </ng-container>
+                <ng-container *ngIf="!col.isCurrency">
+                  {{gridStats?.columnStats[col.field].Average | number:gridStats?.columnStats[col.field].digitsInfo}}
+                </ng-container>
+              </ng-container>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length" class="p-pt-3">
+            <div [style.width]="'95vw'">
+              <div class="p-col-12 p-d-flex p-jc-center p-ai-center">
+                <h5>No geographies found.</h5>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

@@ -15,4 +15,5 @@ export interface ImpGeofootprintGeoPayload extends BaseModelPayload {
   isActive:      boolean;
 
   isDeduped:     number;         /// TODO: figure out if this really belongs here
+  ownerSite:     string;
 }

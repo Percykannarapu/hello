@@ -7,8 +7,9 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { BehaviorSubject, combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { exhaustMap, filter, map, startWith, tap } from 'rxjs/operators';
 import { RestPayload } from '../../../../worker-shared/data-model/core.interfaces';
+import { TypedGridColumn } from '../../../../worker-shared/data-model/custom/grid';
 import { AppConfig } from '../../../app.config';
-import { User } from '../../../models/User';
+import { User } from '../../../common/models/User';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { CreateProjectUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { RestDataService } from '../../../val-modules/common/services/restdata.service';
@@ -59,14 +60,14 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
   private allProjectsReadyToRefresh = true;
   private projectSubscriptions = new Subscription();
 
-  public allColumns: any[] = [
+  public allColumns: TypedGridColumn<ImpProject>[] = [
     // @formatter:off
-    { field: 'projectId',            header: 'imPower ID',           size: '11%' },
-    { field: 'projectTrackerId',     header: 'Project Tracker ID',   size: '15%' },
-    { field: 'projectName',          header: 'imPower Project Name', size: '24%' },
-    { field: 'clientIdentifierName', header: 'Client Name',          size: '20%' },
-    { field: 'modifyUserLoginname',  header: 'Username',             size: '10%' },
-    { field: 'modifyDate',           header: 'Last Modified Date',   size: '20%' }
+    { field: 'projectId',            header: 'imPower ID',           width: '11%' },
+    { field: 'projectTrackerId',     header: 'Project Tracker ID',   width: '15%' },
+    { field: 'projectName',          header: 'imPower Project Name', width: '24%' },
+    { field: 'clientIdentifierName', header: 'Client Name',          width: '20%' },
+    { field: 'modifyUserLoginname',  header: 'Username',             width: '10%' },
+    { field: 'modifyDate',           header: 'Last Modified Date',   width: '20%' }
     // @formatter:on
   ];
 
@@ -148,7 +149,7 @@ export class ExistingProjectComponent implements OnInit, OnDestroy {
   }
 
   public onDoubleClick(data: { projectId: number }, event: MouseEvent) {
-    if (this.config.environmentName === 'DEV') {
+    if (this.config.environmentName === 'DEV' || this.config.environmentName === 'LOCAL') {
       event.preventDefault();
       event.stopPropagation();
       this.loadProject(data.projectId);

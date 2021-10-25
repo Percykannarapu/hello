@@ -34,7 +34,7 @@ import { allCustomVars } from '../impower-datastore/state/transient/custom-vars/
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { getAllMappedAudiences, getFirstTimeCustomShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
-import { GfpShaderKeys } from '../models/ui-enums';
+import { GfpShaderKeys } from '../common/models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -50,7 +50,7 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { BoundaryRenderingService } from './boundary-rendering.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppRendererService {
 
   private selectedWatcher: Subscription;

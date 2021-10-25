@@ -12,7 +12,7 @@ import { getTypedBatchQueryParams } from '../shared/router.interfaces';
 import { BatchMapActions, BatchMapActionTypes, MoveToSite, SiteMoved } from './batch-map.actions';
 import { getBatchMapReady, getBatchMode } from './batch-map.selectors';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class BatchMapEffects {
 
   @Effect()

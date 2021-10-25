@@ -20,7 +20,7 @@ import { ImpProjectPref } from '../models/ImpProjectPref';
 
 const dataUrl = 'v1/imptargeting/base/impprojectpref/load';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpProjectPrefService extends DataStore<ImpProjectPref>
 {
    constructor(transactionManager: TransactionManager,

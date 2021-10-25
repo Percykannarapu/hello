@@ -11,7 +11,7 @@ import { AudienceFetchService } from '../../../services/audience-fetch.service';
 import { fetchableAudiences } from '../audience/audience.selectors';
 import { FetchMapVarsComplete, FetchMapVarsFailed, MapVarActions, MapVarActionTypes } from './map-vars.actions';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class MapVarsEffects {
 
   fetch$ = createEffect(() => this.actions$.pipe(

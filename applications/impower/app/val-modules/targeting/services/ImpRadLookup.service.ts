@@ -6,7 +6,7 @@ import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpRadLookupService extends DataStore<ImpRadLookup>
 {
    constructor(restDataService: RestDataService, logger: LoggingService) {super(restDataService, radDataUrl, logger); }

@@ -1,0 +1,17 @@
+<div class="p-d-flex p-flex-column p-pb-3">
+  <p-radioButton name="export" label="Export All Rows ({{geoCount}})" class="p-mt-2"
+                 [(ngModel)]="export" [value]="exportFormats.All"></p-radioButton>
+  <p-radioButton name="export" label="Export Selected Rows ({{activeGeoCount}})" class="p-mt-2"
+                 [(ngModel)]="export" [value]="exportFormats.Selected"
+                 *ngIf="geoCount != activeGeoCount"></p-radioButton>
+  <ng-container *ngIf="currentGeoCount != geoCount">
+    <p-radioButton name="export" label="Export All Filtered Rows ({{currentGeoCount}})" class="p-mt-2"
+                   [(ngModel)]="export" [value]="exportFormats.AllFiltered"></p-radioButton>
+    <p-radioButton name="export" label="Export Selected Filtered Rows ({{currentActiveGeoCount}})" class="p-mt-2"
+                   [(ngModel)]="export" [value]="exportFormats.SelectedFiltered"
+                   *ngIf="currentGeoCount != currentActiveGeoCount"></p-radioButton>
+  </ng-container>
+</div>
+<div class="p-d-flex">
+  <button pButton type="button" class="p-button-outlined p-mr-1" (click)="onExport()" label="Export"></button>
+</div>

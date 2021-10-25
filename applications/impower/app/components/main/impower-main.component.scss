@@ -1,0 +1,33 @@
+@import "../../../assets/valassis-variables";
+
+.layout-menu {
+  padding-top: $valTitleHeight;
+  width: 100%;
+}
+
+.layout-main {
+  width: 100%;
+  .main-content {
+    display: flex;
+    flex-direction: row;
+    .primary-content {
+      flex: 1;
+      max-width: calc(100% - 1.3rem);
+    }
+    .side-panel-content {
+      width: 1.3em;
+      padding-top: 40vh;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .layout-menu {
+    .menu-addons {
+      flex-direction: column;
+      .val-project-name {
+        display: none;
+      }
+    }
+  }
+}

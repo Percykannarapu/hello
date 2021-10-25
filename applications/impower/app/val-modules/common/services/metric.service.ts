@@ -24,7 +24,7 @@ export class CounterMetrics {
       constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number){}
 }
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class MetricService
 {
    // Map of metric maps - Key: colorbox name, Value: map of metrics tracked by the colorbox

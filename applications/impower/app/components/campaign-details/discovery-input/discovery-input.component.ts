@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { SelectItem } from 'primeng/api';
 import { debounceTime, map } from 'rxjs/operators';
 import { ProjectCpmTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
+import { ValDiscoveryUIModel } from '../../../common/models/val-discovery.model';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
 import { Store } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';

@@ -6,8 +6,8 @@ import { BatchMapService } from 'app/services/batch-map.service';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { Table } from 'primeng/table';
-import { SimpleGridColumn } from '../../../common/ui-helpers';
-import { PrintJobPayload } from '../../../models/print-job.model';
+import { SimpleGridColumn } from '../../../../worker-shared/data-model/custom/grid';
+import { PrintJobPayload } from '../../../common/models/print-job.model';
 import { FileService } from '../../../val-modules/common/services/file.service';
 
 @Component({
@@ -22,15 +22,15 @@ export class BatchMapStatusComponent implements OnInit {
   public printJobDetails: PrintJobPayload[] = [];
   public allColumns: SimpleGridColumn[] = [
     // @formatter:off
-    { field: 'projectId',     header: 'Project ID',          width: '5rem', sortable: true  },
-    { field: 'projectName',   header: 'Project Name',        width: null,   sortable: true  },
-    { field: 'pages',         header: 'No of Pages',         width: '5rem', sortable: true  },
-    { field: 'pageSize',      header: 'Page Size',           width: '8rem', sortable: true  },
-    { field: 'jobType',       header: 'Job Type',            width: '10rem', sortable: true  },
-    { field: 'jobNumber',     header: 'Job Id',              width: '6rem', sortable: false },
-    { field: 'createDate',    header: 'Date/Time Requested', width: '10rem', sortable: true  },
-    { field: 'status',        header: 'Status',              width: '8rem', sortable: true  },
-    { field: 'queuePosition', header: 'Queue Position',      width: '5rem', sortable: true  },
+    { field: 'projectId',     header: 'Project ID',          width: '5rem'  },
+    { field: 'projectName',   header: 'Project Name',        width: null    },
+    { field: 'pages',         header: 'No of Pages',         width: '5rem'  },
+    { field: 'pageSize',      header: 'Page Size',           width: '8rem'  },
+    { field: 'jobType',       header: 'Job Type',            width: '10rem' },
+    { field: 'jobNumber',     header: 'Job Id',              width: '6rem', unsorted: true },
+    { field: 'createDate',    header: 'Date/Time Requested', width: '10rem' },
+    { field: 'status',        header: 'Status',              width: '8rem'  },
+    { field: 'queuePosition', header: 'Queue Position',      width: '5rem'  },
     // @formatter:on
   ];
 

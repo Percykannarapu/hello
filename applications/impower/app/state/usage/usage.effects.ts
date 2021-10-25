@@ -43,7 +43,7 @@ export class UsageEffects {
   private createGaugeFromAction(action: CreateGaugeMetric) : void {
     const counterMetricsDiscover = this.discoveryService.discoveryUsageMetricsCreate(action.payload.gaugeAction);
     const counterMetricsColorBox = this.metricService.colorboxUsageMetricsCreate(action.payload.gaugeAction);
-    this.usageService.creategaugeMetrics(counterMetricsDiscover);
-    this.usageService.creategaugeMetrics(counterMetricsColorBox);
+    this.usageService.createGaugeMetrics(counterMetricsDiscover);
+    this.usageService.createGaugeMetrics(counterMetricsColorBox);
   }
 }

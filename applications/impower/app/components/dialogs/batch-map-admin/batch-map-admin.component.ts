@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { TreeNode } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
-import { SimpleGridColumn } from '../../../common/ui-helpers';
-import { PrintJobAdminPayload, PrintJobAdminRequest, PrintJobAdminStatsPayload } from '../../../models/print-job.model';
+import { SimpleGridColumn } from '../../../../worker-shared/data-model/custom/grid';
+import { PrintJobAdminPayload, PrintJobAdminRequest, PrintJobAdminStatsPayload } from '../../../common/models/print-job.model';
 
 interface StatRow {
   name: string;

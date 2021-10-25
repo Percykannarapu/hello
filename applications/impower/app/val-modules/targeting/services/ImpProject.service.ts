@@ -28,7 +28,7 @@ const restUrl = 'v1/targeting/base/';
 const dataUrl = restUrl + 'impproject/load';
 const packUrl = restUrl + 'impprojectmsgpack/load';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpProjectService extends DataStore<ImpProject>
 {
    constructor(transactionManager: TransactionManager,

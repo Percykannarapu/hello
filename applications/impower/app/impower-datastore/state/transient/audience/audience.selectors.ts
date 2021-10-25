@@ -1,6 +1,6 @@
 import { createSelector } from '@ngrx/store';
 import { isStringArray } from '@val/common';
-import { OnlineSourceTypes } from '../../../../models/audience-enums';
+import { OnlineSourceTypes } from '../../../../common/models/audience-enums';
 import { transientSlice } from '../../impower-datastore.selectors';
 import * as fromAudience from '../audience/audience.reducer';
 import { Audience } from './audience.model';

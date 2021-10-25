@@ -42,7 +42,7 @@ export class CounterMetrics {
   constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number) { }
 }
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppDiscoveryService {
   private radCacheRetrieved: boolean = false;
   private radCache: RadLookupUIModel[] = [];

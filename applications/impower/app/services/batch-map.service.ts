@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { User } from 'app/models/User';
+import { User } from 'app/common/models/User';
 import { ForceMapUpdate, MapViewUpdating, ResetForceMapUpdate, SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
@@ -17,7 +17,7 @@ import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
-import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../models/print-job.model';
+import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../common/models/print-job.model';
 import {
   BatchMapPayload,
   CurrentPageBatchMapPayload,

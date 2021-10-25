@@ -1,0 +1,24 @@
+@import '../../../../assets/valassis-variables';
+
+header {
+  position: fixed;
+  width: 100%;
+  height: $valTitleHeight;
+  background-color: $horizontalMenuBg;
+  z-index: 99;
+  .logo {
+    background: url('../../../../assets/val/images/valassis-header-logo.png') center no-repeat;
+    width: 137px;
+    height: 47px;
+  }
+  .announcement {
+    max-width: 40vw;
+    .message > a {
+      color: $midGray02;
+      outline: $midGray04 dotted 1px;
+      &:hover {
+        color: $blueBird;
+      }
+    }
+  }
+}

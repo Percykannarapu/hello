@@ -1,4 +1,4 @@
-import { VarSpecs } from 'app/models/audience-data.model';
+import { VarSpecs } from 'app/common/models/audience-data.model';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 
 export interface Audience {

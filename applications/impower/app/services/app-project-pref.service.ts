@@ -190,9 +190,4 @@ export class AppProjectPrefService {
 
       return prefVal;
    }
-
-   public debugShowPrefs()
-   {
-      this.impProjectPrefService.debugLogStore('Project Prefs');
-   }
 }

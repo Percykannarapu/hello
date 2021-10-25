@@ -1,156 +1,321 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { toUniversalCoordinates } from '@val/common';
-import { EsriMapService } from '@val/esri';
-import { MessageBoxService } from '@val/messaging';
+import { disjointSets, distinctUntilFieldsChanged, isEmpty, isNotNil } from '@val/common';
+import { MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { PrimeIcons } from 'primeng/api';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
-import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { LazyLoadEvent, PrimeIcons } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, shareReplay, startWith, take, takeUntil, tap } from 'rxjs/operators';
+import { DualObservableWorker } from '../../../worker-shared/common/core-interfaces';
+import { GeoGridMetaData, GeoGridResponse, GeoGridRow, GeoGridStats, TypedGridColumn } from '../../../worker-shared/data-model/custom/grid';
+import { GeoGridExportRequest, GeoGridPayload } from '../../../worker-shared/grid-workers/payloads';
+import { getCpmForGeo } from '../../common/complex-rules';
+import { WorkerFactory } from '../../common/worker-factory';
 import { GridGeoVar, selectGridGeoVars } from '../../impower-datastore/state/transient/transient.selectors';
 import { AppGeoService } from '../../services/app-geo.service';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { FileService } from '../../val-modules/common/services/file.service';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ExportFormats, ExportGeoGridComponent } from '../dialogs/export-geo-grid/export-geo-grid.component';
+import { GeofootprintGeoListComponent } from './geofootprint-geo-list/geofootprint-geo-list.component';
 
-export interface FlatGeo {
-   geoLocNum: string;
-   geo: ImpGeofootprintGeo;
-   isActive: boolean;
-   isMustCover: '1' | '0';
+function AudienceDistinctComparison(a: Audience[], b: Audience[]) : boolean {
+  const aPks = new Set(a.map(x => `${x.audienceIdentifier}-${x.sortOrder}`));
+  const bPks = new Set(b.map(x => `${x.audienceIdentifier}-${x.sortOrder}`));
+  return disjointSets(aPks, bPks).size === 0;
+}
+
+function GridGeoVarDistinctComparison(a: GridGeoVar, b: GridGeoVar) : boolean {
+  const aGeocodeSize = Object.keys(a?.geoVars ?? {}).length;
+  const bGeocodeSize = Object.keys(b?.geoVars ?? {}).length;
+  if (aGeocodeSize === bGeocodeSize && aGeocodeSize > 0) {
+    let usableGeocode;
+    for (const currentGeocode of Object.keys(a.geoVars)) {
+      if (Object.keys(a.geoVars[currentGeocode]).length > 1) {
+        usableGeocode = currentGeocode;
+        break;
+      }
+    }
+    if (isNotNil(usableGeocode)) {
+      return Object.keys(a.geoVars[usableGeocode]).length === Object.keys(b.geoVars[usableGeocode] ?? {}).length;
+    } else {
+      return false; // if I couldn't find a geocode to detect changes with, I'll just let it pass through to createComposite
+    }
+  } else {
+    return aGeocodeSize === bGeocodeSize;
+  }
 }
 
 @Component({
-  selector: 'val-geofootprint-geo-panel',
+  selector   : 'val-geofootprint-geo-panel',
   templateUrl: './geofootprint-geo-panel.component.html',
-  styleUrls: ['./geofootprint-geo-panel.component.css']
+  styleUrls: ['./geofootprint-geo-panel.component.css'],
+  providers: [DialogService]
 })
-export class GeofootprintGeoPanelComponent implements OnInit {
-   // Data store observables
-   public  nonNullProject$: Observable<ImpProject>;
-   public  gridAudiences$: Observable<Audience[]>;
-   public  allLocations$: Observable<ImpGeofootprintLocation[]>;
-   public  allGeos$: Observable<ImpGeofootprintGeo[]>;
-   public  allMustCovers$: Observable<string[]>;
-   public  allAttributes$: Observable<{ [geocode: string] : GeoAttribute }>;
-   public  allVars$: Observable<GridGeoVar>;
+export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnDestroy {
 
-   private gridAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-   public  dedupeGrid: boolean = false;
+  @ViewChild(GeofootprintGeoListComponent) geoGrid: GeofootprintGeoListComponent;
 
-   // -----------------------------------------------------------
-   // LIFECYCLE METHODS
-   // -----------------------------------------------------------
-   constructor(private appGeoService: AppGeoService,
-               private appStateService: AppStateService,
-               private esriMapService: EsriMapService,
-               private impGeofootprintGeoService: ImpGeofootprintGeoService,
-               private impGeofootprintLocationService: ImpGeofootprintLocationService,
-               private logger: LoggingService,
-               private messageService: MessageBoxService,
-               private store$: Store<FullAppState>) { }
+  public workerDataResult$: Observable<GeoGridRow[]>;
+  public workerGridStats$: Observable<GeoGridStats>;
+  public workerAdditionalAudienceColumns$: Observable<TypedGridColumn<GeoGridRow>[]>;
+  public workerSelectOptions$: Observable<Record<string, string[]>>;
 
-   ngOnInit() {
-      // Subscribe to the data stores
-      this.nonNullProject$ = this.appStateService.currentProject$.pipe(filter(project => project != null));
-      this.allLocations$  = this.appStateService.allClientLocations$;
-      this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+  public locationCount: number = 0;
+  public geoCount: number = 0;
 
-      // The geo grid watches this for changes in must covers to set the column
-      this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
+  private allGeocodes = new Set<string>();
+  private homeGeocodes = new Set<string>();
+  private mustCoverGeocodes = new Set<string>();
 
-      this.allAttributes$ = this.store$.pipe(select(selectGeoAttributeEntities));
+  private lastProjectId: number;
 
-      // Subscribe to store selectors
-      this.store$.select(fromAudienceSelectors.getAudiencesInGrid).subscribe(this.gridAudiencesBS$);
-      this.gridAudiences$ = this.store$.select(fromAudienceSelectors.getAudiencesInGrid);
+  private exportFilename: string;
+  private loadEvent$ = new BehaviorSubject<LazyLoadEvent>(null);
+  private workerInstance: DualObservableWorker<GeoGridPayload, GeoGridResponse, GeoGridExportRequest, string>;
 
-      this.allVars$ = this.store$.pipe(select(selectGridGeoVars));
-    }
+  private destroyed$ = new Subject();
+  private requestAccumulator: GeoGridPayload;
+  private timeoutHandle: number;
 
-   // -----------------------------------------------------------
-   // GEO GRID OUTPUT EVENTS
-   // -----------------------------------------------------------
-   public onZoomGeo(geo: ImpGeofootprintGeo) {
-      if (geo != null) {
-         this.esriMapService.zoomToPoints(toUniversalCoordinates([geo])).subscribe();
+  private geoAttributes: Record<string, Record<string, any>>;
+
+  constructor(private appGeoService: AppGeoService,
+              private appStateService: AppStateService,
+              private dialogService: DialogService,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
+              private impTradeAreaService: ImpGeofootprintTradeAreaService,
+              private logger: LoggingService,
+              private messageService: MessageBoxService,
+              private store$: Store<FullAppState>) {}
+
+  ngOnInit() {
+    this.setupWorker();
+    this.setupObservables();
+  }
+
+  ngAfterViewInit() {
+    this.workerInstance.sendNewMessage({ gridData: { primaryColumnDefs: this.geoGrid.gridColumns }});
+  }
+
+  ngOnDestroy() {
+    this.destroyed$.next();
+  }
+
+  public onGridLoad(event: LazyLoadEvent) : void {
+    this.loadEvent$.next(event);
+  }
+
+  public onExportGrid(event: GeoGridStats) : void {
+    const dRef = this.dialogService.open(ExportGeoGridComponent, {
+      header: 'Export Geo List',
+      width : '25vw',
+      data  : { ...event }
+    });
+    dRef.onClose.pipe(take(1)).subscribe((result: ExportFormats) => {
+      if (isNotNil(result)) {
+        this.exportFile(result);
       }
-   }
+    });
+  }
 
-   public onDeleteGeo(geo: ImpGeofootprintGeo) {
-      if (geo != null) {
-        this.messageService.showDeleteConfirmModal('Do you want to delete geocode: ' + geo.geocode + '?').subscribe(result => {
-          if (result) {
-            this.appGeoService.deleteGeos([geo]);
-            this.logger.debug.log('remove successful');
-          }
-        });
-      }
-   }
-
-  public onSelectGeo({ geo, isSelected }) {
-    if (geo.isActive !== isSelected) {
-      const commonGeos = this.impGeofootprintGeoService.get().filter(g => g.geocode === geo.geocode);
-      const includesHomeGeo = commonGeos.some(g => g.impGeofootprintLocation != null && g.impGeofootprintLocation.homeGeocode === g.geocode);
-      if (includesHomeGeo && this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive) {
-        this.appGeoService.confirmMustCover(geo, isSelected, true);
-      } else if (this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive) {
-        this.appGeoService.confirmMustCover(geo, isSelected, false);
-      } else if (includesHomeGeo && geo.isActive) {
-        this.messageService.showTwoButtonModal('You are about to deselect a Home Geo for at least one site.', 'Home Geo Deactivation', PrimeIcons.QUESTION_CIRCLE, 'Continue')
-          .subscribe(result => {
-            if (result) {
-              commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-              this.impGeofootprintGeoService.makeDirty();
-            } else {
-              geo.isActive = true;
-              this.impGeofootprintGeoService.makeDirty();
-            }
-          });
-      } else {
-        commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-        this.impGeofootprintGeoService.makeDirty();
-      }
-
-      const currentProject = this.appStateService.currentProject$.getValue();
-      const cpm = currentProject.estimatedBlendedCpm ?? 0;
-      const amount: number = geo.hhc * cpm / 1000;
-      const metricText = `${geo.geocode}~${geo.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
-      if (geo.isActive) {
-        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'selected', metricText));
-      } else {
-        this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', 'deselected', metricText));
-      }
+  // -----------------------------------------------------------
+  // GEO GRID OUTPUT EVENTS
+  // -----------------------------------------------------------
+  public onZoomGeo(geocode: string) {
+    if (!isEmpty(geocode)) {
+      this.appGeoService.zoomToGeocode(geocode);
     }
   }
 
-   public onSetAllGeos(event: any) {
-      if (event != null)
-      {
-         this.impGeofootprintGeoService.get().forEach(geo => geo.isActive = event.value);
-         this.impGeofootprintGeoService.makeDirty();
+  public onDeleteGeo(ggId: number) {
+    this.messageService.showDeleteConfirmModal('Are you sure you want to delete this geo?').subscribe(result => {
+      if (result) {
+        this.impGeofootprintGeoService.deleteGeosById([ggId]);
       }
-   }
+    });
+  }
 
-   public onSetFilteredGeos(event: any) {
-      if (event != null)
-      {
-         const eventGeos: ImpGeofootprintGeo[] = event.geos;
-         this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; this.logger.debug.log('set geo: ' + geo.geocode + ' isActive = ' + geo.isActive); });
-         this.impGeofootprintGeoService.makeDirty();
+  public onSetGeoActive(geocodes: string[], newActiveFlag: boolean) {
+    const usableGeocodes = isEmpty(geocodes) ? Array.from(this.allGeocodes) : Array.from(new Set<string>(geocodes));
+    const hasMustCovers = usableGeocodes.some(g => this.mustCoverGeocodes.has(g));
+    const hasHomeGeo = usableGeocodes.some(g => this.homeGeocodes.has(g));
+    if (!newActiveFlag && (hasMustCovers || hasHomeGeo)) {
+      const geoSpecifiers: string[] = [];
+      if (hasMustCovers) geoSpecifiers.push('Must Cover');
+      if (hasHomeGeo) geoSpecifiers.push('Home');
+      const messageText = `You are about to deselect a ${geoSpecifiers.join(' & ')} geography`;
+      this.messageService.showTwoButtonModal(messageText, 'Geo Deactivation', PrimeIcons.QUESTION_CIRCLE, 'Continue')
+          .subscribe(result => {
+            if (result) {
+              this.processGeoActivations(usableGeocodes, newActiveFlag);
+            } else {
+              this.sendMessage({}); // just to re-render the grid
+            }
+          });
+    } else {
+      this.processGeoActivations(usableGeocodes, newActiveFlag);
+    }
+  }
+
+  private processGeoActivations(usableGeocodes: string[], newActiveFlag: boolean) {
+    const currentProject = this.appStateService.currentProject$.getValue();
+    this.impGeofootprintGeoService.setActive(usableGeocodes, newActiveFlag);
+    for (const geocode of usableGeocodes) {
+      const currentAttribute = this.geoAttributes[geocode];
+      const cpm = getCpmForGeo(currentAttribute, currentProject);
+      const amount: number = currentAttribute.hhc * cpm / 1000;
+      const metricText = `${geocode}~${currentAttribute.hhc}~${cpm}~${amount}~ui=geoGridCheckbox`;
+      this.store$.dispatch(new CreateTradeAreaUsageMetric('geography', newActiveFlag ? 'selected' : 'deselected', metricText));
+    }
+  }
+
+  private setupWorker() : void {
+    this.workerInstance = WorkerFactory.createGeoGridWorker();
+    const workerShare$ = this.workerInstance.start({ }).pipe(
+      map(response => response.value),
+      tap(value => this.logger.debug.log('Web worker returned result', value)),
+      shareReplay()
+    );
+    this.workerDataResult$ = workerShare$.pipe(
+      map(response => response.rows),
+      filter(isNotNil),
+      startWith([]),
+      tap(() => this.geoGrid?.isLazyLoading$.next(false))
+    );
+    this.workerGridStats$ = workerShare$.pipe(
+      map(response => response.stats),
+      filter(isNotNil),
+      startWith({ geoCount: 0, activeGeoCount: 0, locationCount: 0, activeLocationCount: 0, currentGeoCount: 0, currentActiveGeoCount: 0, columnStats: {} }),
+      tap(() => this.geoGrid?.isLazyLoading$.next(false))
+    );
+    this.workerAdditionalAudienceColumns$ = workerShare$.pipe(
+      map(response => response.additionalAudienceColumns),
+      filter(isNotNil),
+      startWith([]),
+      tap(() => this.geoGrid?.isLazyLoading$.next(false))
+    );
+    this.workerSelectOptions$ = workerShare$.pipe(
+      map(response => response.multiSelectOptions),
+      filter(isNotNil),
+      startWith({}),
+      tap(() => this.geoGrid?.isLazyLoading$.next(false))
+    );
+    workerShare$.pipe(
+      map(response => response.metadata),
+      filter(isNotNil),
+      startWith({} as GeoGridMetaData),
+      takeUntil(this.destroyed$)
+    ).subscribe(metadata => {
+      this.allGeocodes = new Set(metadata?.allFilteredGeocodes ?? []);
+      this.homeGeocodes = new Set(metadata?.allHomeGeocodes ?? []);
+      this.mustCoverGeocodes = new Set(metadata?.allMustCoverGeocodes ?? []);
+    });
+  }
+
+  private setupObservables() : void {
+    this.appStateService.currentProject$.pipe(
+      filter(project => project != null),
+      tap(project => {
+        // In the event of a project load, clear the grid filters and set the export filename
+        if (this.lastProjectId !== project.projectId) {
+          this.lastProjectId = project.projectId;
+          this.geoGrid.reset();
+          this.exportFilename = 'geo-grid' + ((project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export.csv';
+        }
+      }),
+      distinctUntilFieldsChanged(['projectId', 'estimatedBlendedCpm', 'smValassisCpm', 'smSoloCpm', 'smAnneCpm']),
+      takeUntil(this.destroyed$)
+    ).subscribe(project => this.sendMessage({ gridData: { project }}));
+
+    combineLatest([this.appStateService.allClientLocations$, this.impTradeAreaService.storeObservable, this.impGeofootprintGeoService.storeObservable]).pipe(
+      tap(([locs, , geos]) => {
+        this.locationCount = locs?.length ?? 0;
+        this.geoCount = geos?.length ?? 0;
+      }),
+      filter(([l, t, g]) => (l.length > 0 && t.length > 0 && g.length > 0) || (l.length === 0 && t.length === 0 && g.length === 0)),
+      takeUntil(this.destroyed$)
+    ).subscribe(([locations, tradeAreas, geos]) => {
+      this.impGeofootprintGeoService.calculateGeoRanks();
+      this.sendMessage({ gridData: { locations, tradeAreas, geos }});
+    });
+
+    this.store$.select(fromAudienceSelectors.getAudiencesInGrid).pipe(
+      distinctUntilChanged(AudienceDistinctComparison),
+      takeUntil(this.destroyed$)
+    ).subscribe(gridAudiences => this.sendMessage({ gridData: { gridAudiences }}));
+    this.impGeofootprintGeoService.allMustCoverBS$.asObservable().pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(mustCovers => this.sendMessage({ gridData: { mustCovers }}));
+    this.store$.pipe(select(selectGeoAttributeEntities)).pipe(
+      takeUntil(this.destroyed$),
+      tap(entities => this.geoAttributes = entities)
+    ).subscribe(geoAttributes => this.sendMessage({ gridData: { geoAttributes }}));
+    this.store$.pipe(select(selectGridGeoVars)).pipe(
+      distinctUntilChanged(GridGeoVarDistinctComparison),
+      map(gridGeoVar => gridGeoVar.geoVars),
+      takeUntil(this.destroyed$),
+    ).subscribe(geoVars => this.sendMessage({ gridData: { geoVars }}));
+    this.loadEvent$.asObservable().pipe(
+      filter(event => isNotNil(event)),
+      debounceTime(300),
+      takeUntil(this.destroyed$),
+    ).subscribe(gridEvent => this.sendMessage({ gridEvent }));
+  }
+
+  private sendMessage(payload: GeoGridPayload) {
+    const timeout = this.geoCount > 100000 ? 250 : 50;
+    if (isNotNil(this.timeoutHandle)) {
+      clearTimeout(this.timeoutHandle);
+      this.timeoutHandle = null;
+    }
+    this.requestAccumulator = {
+      gridData: {
+        ...(this.requestAccumulator?.gridData ?? {}),
+        ...(payload.gridData ?? {})
+      },
+      gridEvent: payload.gridEvent ?? this.requestAccumulator?.gridEvent
+    };
+    this.timeoutHandle = setTimeout(() => {
+      this.geoGrid?.isLazyLoading$.next(true);
+      if (Object.keys(this.requestAccumulator.gridData).length === 0) delete this.requestAccumulator.gridData;
+      this.logger.debug.log('Request sent to web worker:', this.requestAccumulator);
+      this.workerInstance.sendNewMessage(this.requestAccumulator);
+      this.requestAccumulator = null;
+    }, timeout) as unknown as number;
+  }
+
+  private exportFile(format: ExportFormats) {
+    const key = 'Grid_Export';
+    const exportSetup = {
+      activeOnly: false,
+      respectFilters: false
+    };
+    switch (format) {
+      case ExportFormats.Selected:
+        exportSetup.activeOnly = true;
+        break;
+      case ExportFormats.AllFiltered:
+        exportSetup.respectFilters = true;
+        break;
+      case ExportFormats.SelectedFiltered:
+        exportSetup.respectFilters = true;
+        exportSetup.activeOnly = true;
+        break;
+    }
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Exporting Geo Grid' }));
+    this.workerInstance.sendAlternateMessage(exportSetup).subscribe(result => {
+      if (result.rowsProcessed > 0) {
+        FileService.downloadUrl(result.value, this.exportFilename);
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       }
-   }
-
-  public triggerCollapseOnToggle(collapsed: boolean) {
-    this.appStateService.triggerChangeInCollapse(collapsed);
+    });
   }
 }

@@ -33,14 +33,14 @@ export class ImpProject extends BaseModel
    public projectName:               string;         /// Project Name
    public description:               string;         /// Notes/Description
    public methAnalysis:              string;
-   public ihwFrom:                   Date;           /// In Home Week From
-   public ihwTo:                     Date;           /// In Home Week To
-   public ihd:                       Date;           /// In Home Day
+   public ihwFrom:                   number;           /// In Home Week From
+   public ihwTo:                     number;           /// In Home Week To
+   public ihd:                       number;           /// In Home Day
    public totalBudget:               number;         /// Total budget populated into opt_i_trade_areas
    public clientIdentifierId:        number;         /// Client identifier ID
    public clientIdentifierName:      string;         /// Client identifier name
    public customerNumber:            string;         /// Customer number
-   public preferredIhDate:           Date;           /// Preferred In Home Date
+   public preferredIhDate:           number;           /// Preferred In Home Date
    public afterIhdIsPreferred:       number;         /// After In Home Date is preferred, 0=false, 1=true
    public sfdcRfpId:                 string;         /// The Salesforce Request For Proposal id (18 character UID)
    public sfdcRfpName:               string;         /// Sdfc Request for Proposal Name

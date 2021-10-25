@@ -16,12 +16,12 @@
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [title]="col.header" [pSortableColumnDisabled]="!col.sortable">
+      <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [title]="col.header" [pSortableColumnDisabled]="col.unsorted">
         <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
           <div class="p-text-truncate">
             {{col.header}}
           </div>
-          <p-sortIcon *ngIf="col.sortable" field="{{col.field}}"></p-sortIcon>
+          <p-sortIcon *ngIf="!col.unsorted" field="{{col.field}}"></p-sortIcon>
         </div>
       </th>
       <th>

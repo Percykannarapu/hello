@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions } from '@ngrx/effects';
 
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class FormsEffects {
 
 

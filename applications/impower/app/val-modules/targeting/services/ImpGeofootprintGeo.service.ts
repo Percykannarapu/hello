@@ -17,8 +17,8 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
-import { BehaviorSubject, EMPTY, Observable, throwError } from 'rxjs';
-import { map, reduce, tap } from 'rxjs/operators';
+import { asyncScheduler, BehaviorSubject, EMPTY, Observable, of, scheduled, throwError } from 'rxjs';
+import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { WorkerResponse, WorkerResult } from '../../../../worker-shared/common/core-interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import {
@@ -45,7 +45,7 @@ interface CustomMCDefinition {
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
    private tempLocationId = 0;
@@ -103,13 +103,26 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
-   public setActive(setActiveData: ImpGeofootprintGeo | ImpGeofootprintGeo[] | ReadonlyArray<ImpGeofootprintGeo>, newIsActive: boolean)
+   public setActive(geocodes: string[], newIsActive?: boolean)
    {
-      if (Array.isArray(setActiveData))
-         for (const geo of setActiveData)
-            geo.isActive = newIsActive;
-      else
-         setActiveData.isActive = newIsActive;
+     const updates = new Set(geocodes);
+     const geos = this._storeSubject.getValue();
+     for (const currenGeo of geos) {
+       if (updates.has(currenGeo.geocode)) {
+         currenGeo.isActive = newIsActive;
+       }
+     }
+     this.makeDirty();
+   }
+
+   public deleteGeosById(ggIds: number[]) {
+     const idsToDelete = new Set(ggIds);
+     const allGeos = this._storeSubject.getValue();
+     const geosToDelete: ImpGeofootprintGeo[] = [];
+     for (const currenGeo of allGeos) {
+       if (idsToDelete.has(currenGeo.ggId)) geosToDelete.push(currenGeo);
+     }
+     this.remove(geosToDelete);
    }
 
    // Get a count of DB removes from children of these parents
@@ -234,24 +247,25 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     if (this.length() === 0) {
       return throwError('You must add sites and select geographies prior to exporting the geofootprint');
     } else {
-      const geos = this.get();
-      geos.sort(PrettyGeoSort);
-      const payload: GeoFootprintExportWorkerPayload = {
-        rows: geos,
-        format: exportFormat,
-        activeOnly: selectedOnly,
-        outputType: WorkerProcessReturnType.BlobUrl,
-        analysisLevel: project.methAnalysis,
-        audienceData: geoVars,
-        mustCovers: this.mustCovers,
-        allAudiences: this.allAudiencesBS$.getValue(),
-        exportedAudiences: this.exportAudiencesBS$.getValue(),
-        locations: project.getImpGeofootprintLocations().map(loc => ({ ...loc, impGeofootprintTradeAreas: [] })),
-        tradeAreas: project.getImpGeofootprintTradeAreas().map(ta => ({ ...ta, impGeofootprintLocation: null, impGeofootprintGeos: [], impGeofootprintMaster: null, impProject: null }))
-      };
+      const currentGeos = this.get();
       if (isEmpty(filename)) filename = this.getFileName(project.methAnalysis, project.projectId);
       const worker = WorkerFactory.createGeoExportWorker();
-      return worker.start(payload).pipe(
+      return scheduled(of(currentGeos), asyncScheduler).pipe(
+        tap(geos => geos.sort(PrettyGeoSort)),
+        map(geos => ({
+          rows: geos,
+          format: exportFormat,
+          activeOnly: selectedOnly,
+          outputType: WorkerProcessReturnType.BlobUrl,
+          analysisLevel: project.methAnalysis,
+          audienceData: geoVars,
+          mustCovers: this.mustCovers,
+          allAudiences: this.allAudiencesBS$.getValue(),
+          exportedAudiences: this.exportAudiencesBS$.getValue(),
+          locations: project.getImpGeofootprintLocations().map(loc => ({ ...loc, impGeofootprintTradeAreas: [] })),
+          tradeAreas: project.getImpGeofootprintTradeAreas().map(ta => ({ ...ta, impGeofootprintLocation: null, impGeofootprintGeos: [], impGeofootprintMaster: null, impProject: null }))
+        } as GeoFootprintExportWorkerPayload)),
+        switchMap(payload => worker.start(payload)),
         tap((result: WorkerResponse<string>) => {
           this.logger.debug.log('Location Export response received from Web Worker: ', result);
           if (result.rowsProcessed > 0) FileService.downloadUrl(result.value, filename);
@@ -307,7 +321,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
             return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
                map(graphics => graphics.map(g => g.attributes)),
-               reduce((acc,result) => acc.concat(result), []),
+               reduce((acc, result) => acc.concat(result), []),
                map(attrs => {
                  attrs.forEach(r => {
                     queryResultMap.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });

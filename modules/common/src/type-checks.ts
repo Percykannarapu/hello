@@ -55,7 +55,7 @@ export function isObject(value: any) : value is Object {
 }
 
 export function isArray(value: any)  : value is any[] {
-  return Array.isArray(value);
+  return Array.isArray(value); // returns false for null & undefined as well
 }
 
 export function isFunction(value: any) : value is Function {

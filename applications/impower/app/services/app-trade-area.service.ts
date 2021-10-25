@@ -39,7 +39,7 @@ const UsTableMap = {
   'PCR': 'CL_PCR_US'
 };
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppTradeAreaService {
 
   public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean, taNumber: number }[]>();

@@ -28,7 +28,7 @@ import { ClearMapVars, FetchMapVars } from '../impower-datastore/state/transient
 import { CacheGeos, GeoTransactionType } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { geoTransactionId, mapTransactionId } from '../impower-datastore/state/transient/transactions/transactions.reducer';
 import { getFetchableMappedAudiences, getFirstTimeShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
-import { AudienceDataDefinition, OnlineBulkDownloadDataResponse } from '../models/audience-data.model';
+import { AudienceDataDefinition, OnlineBulkDownloadDataResponse } from '../common/models/audience-data.model';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService } from '../val-modules/common/services/file.service';

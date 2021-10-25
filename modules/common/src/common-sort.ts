@@ -6,6 +6,30 @@ function matchingState(a: boolean, b: boolean) : boolean {
 
 export class CommonSort {
 
+  public static FieldNameAsStringParsedToNumber(fieldName: string, a: {}, b: {}, reverse: boolean = false) {
+    if (reverse) {
+      return CommonSort.StringsAsNumbersReverse(a[fieldName], b[fieldName]);
+    } else {
+      return CommonSort.StringsAsNumbers(a[fieldName], b[fieldName]);
+    }
+  }
+
+  public static FieldNameAsNumber(fieldName: string, a: {}, b: {}, reverse: boolean = false) {
+    if (reverse) {
+      return CommonSort.NullableNumberReverse(a[fieldName], b[fieldName]);
+    } else {
+      return CommonSort.NullableNumber(a[fieldName], b[fieldName]);
+    }
+  }
+
+  public static FieldNameAsString(fieldName: string, a: {}, b: {}, reverse: boolean = false) {
+    if (reverse) {
+      return CommonSort.NullableStringReverse(a[fieldName], b[fieldName]);
+    } else {
+      return CommonSort.NullableString(a[fieldName], b[fieldName]);
+    }
+  }
+
   public static StringsAsNumbers(a: string, b: string, nullSortsLast: boolean = true) {
     if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
       return CommonSort.GenericNumber(Number(a), Number(b));

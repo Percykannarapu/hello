@@ -11,7 +11,7 @@ import { AppStateService } from '../services/app-state.service';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { FullAppState } from './app.interfaces';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppEffects {
 
   @Effect({ dispatch: false })

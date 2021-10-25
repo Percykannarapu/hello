@@ -8,7 +8,7 @@ import { ImpowerLoaderService } from '../../services/impower-loader.service';
 import { persistentSlice } from '../impower-datastore.selectors';
 import { EntityCreateSuccessful, EntityLoadFailure, EntityLoadSuccessful, LoadEntitiesFromServer, PersistentActionTypes } from './persistent.actions';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class PersistentEffects {
 
   @Effect()

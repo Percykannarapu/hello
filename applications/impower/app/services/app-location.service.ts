@@ -27,7 +27,7 @@ import { ImpClientLocationTypeCodes } from '../../worker-shared/data-model/impow
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
 import { GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
-import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { ValGeocodingRequest } from '../common/models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { RenderLocations } from '../state/rendering/rendering.actions';

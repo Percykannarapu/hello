@@ -9,10 +9,11 @@ import { TreeviewPayload, TreeViewResponse } from '../../../../worker-shared/tre
 import { isValidChange } from '../../../common/ui-helpers';
 import { DeleteAudience } from '../../../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { AudienceDataDefinition } from '../../../common/models/audience-data.model';
+import { User } from '../../../common/models/User';
 import { AppStateService } from '../../../services/app-state.service';
-import { AuthService } from '../../../services/auth.service';
 import { UnifiedAudienceService } from '../../../services/unified-audience.service';
+import { UserService } from '../../../services/user.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
@@ -42,12 +43,13 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   private destroyed$ = new Subject<void>();
   private nodeMap: Record<string, ValassisTreeNode> = {};
   private brokerResultMap: Record<string, ValassisTreeNode[]> = {};
+  private currentUser: User;
 
   public trackByKey = (index: number, node: ValassisTreeNode) => node.key;
 
   constructor(private appStateService: AppStateService,
               private audienceService: UnifiedAudienceService,
-              private authService: AuthService,
+              private userService: UserService,
               private cd: ChangeDetectorRef,
               private logger: LoggingService,
               private store$: Store<LocalAppState>) {
@@ -61,6 +63,8 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
     if (isNil(this.audienceGenerator)) throw new Error('audienceGenerator is not set in Brokered Treeview component.');
     if (isNil(this.audiencePkGetter)) throw new Error('audiencePkGetter is not set in Brokered Treeview component.');
     if (isEmpty(this.brokers)) throw new Error('No broker is set in Brokered Treeview component.');
+
+    this.currentUser = this.userService.getUser();
 
     const initialPayload = this.createWorkerPayload(null, false, null, false, true);
     this.brokers.forEach(broker => {
@@ -196,7 +200,7 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   private createWorkerPayload(searchTerm: string, includeFolder: boolean, rootId: number, forceRefresh: boolean = false, initPayload: boolean = false) : TreeviewPayload {
     return {
       fetchHeaders: {
-        Authorization: this.authService.getAuthorizationHeaderValue()
+        Authorization: this.currentUser.token
       },
       forceRefresh,
       searchTerm,

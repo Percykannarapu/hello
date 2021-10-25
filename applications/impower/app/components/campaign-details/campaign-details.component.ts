@@ -7,8 +7,8 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
-import { User } from '../../models/User';
-import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
+import { User } from '../../common/models/User';
+import { ValDiscoveryUIModel } from '../../common/models/val-discovery.model';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
 import { AppLoggingService } from '../../services/app-logging.service';
 import { AppStateService } from '../../services/app-state.service';

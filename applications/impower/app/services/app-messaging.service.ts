@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { NotificationProvider } from '@val/messaging';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppMessagingService implements NotificationProvider {
 
   constructor(private toastService: MessageService) { }

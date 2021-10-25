@@ -1,0 +1,19 @@
+@import "../../../../../assets/valassis-variables";
+
+.alertMessage {
+  color: $lightGray03;
+  background-color: $errorColor;
+  outline: 2px solid $brandRed;
+}
+
+.component-root > div {
+  padding-top: 1rem;
+}
+
+.select-column {
+  width: 2.6rem;
+}
+
+.static-column {
+  width: 4rem;
+}

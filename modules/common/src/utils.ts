@@ -181,6 +181,14 @@ export function convertKeys<T>(data: Record<any, T>, processor: (key: keyof type
   return result;
 }
 
+export function convertValues<T, U>(data: Record<any, T>, processor: (value: T) => U) : Record<any, U> {
+  const result = {};
+  Object.entries(data).forEach(([key, value]) => {
+    result[key] = processor(value);
+  });
+  return result;
+}
+
 export function encloseInQuotes(inputValue: any) : string {
   if (isNil(inputValue)) return inputValue;
   if (isString(inputValue)) {

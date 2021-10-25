@@ -1,8 +1,9 @@
 import { HTTP_INTERCEPTORS, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { isEmpty } from '@val/common';
 import { Observable } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { UserService } from '../services/user.service';
 
 @Injectable()
 export class ContentInterceptor implements HttpInterceptor {
@@ -39,25 +40,26 @@ export class ContentInterceptor implements HttpInterceptor {
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor(private appConfig: AppConfig) { }
+  constructor(private appConfig: AppConfig,
+              private userService: UserService) { }
 
   public intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>> {
     let clone: HttpRequest<any> = req.clone();
     if (clone.url.includes(this.appConfig.valServiceBase) || clone.url.includes(this.appConfig.printServiceUrl)) {
-      const tokenConfig = RestDataService.getConfig();
-      if (tokenConfig != null && tokenConfig.oauthToken != null) {
+      const user = this.userService.getUser();
+      if (user?.token != null) {
         clone = clone.clone({
-          headers: clone.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
+          headers: clone.headers.set('Authorization', user.token)
         });
       }
-      if (RestDataService.getAcsUsername() != null && RestDataService.getAcsUsername().length > 0) {
+      if (!isEmpty(user?.acsUsername)) {
         clone = clone.clone({
-          headers: clone.headers.set('ACS_USERNAME', RestDataService.getAcsUsername())
+          headers: clone.headers.set('ACS_USERNAME', user.acsUsername)
         });
       }
-      if (RestDataService.getAcsPassword() != null && RestDataService.getAcsPassword().length > 0) {
+      if (!isEmpty(user?.acsPassword)) {
         clone = clone.clone({
-          headers: clone.headers.set('ACS_PASSWORD', RestDataService.getAcsPassword())
+          headers: clone.headers.set('ACS_PASSWORD', user.acsPassword)
         });
       }
     }

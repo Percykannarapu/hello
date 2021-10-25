@@ -14,8 +14,8 @@ import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ValassisValidators } from '../../../../common/valassis-validators';
 import { DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
-import { VarSpecs } from '../../../../models/audience-data.model';
-import { createCompositeAudienceInstance } from '../../../../models/audience-factories';
+import { VarSpecs } from '../../../../common/models/audience-data.model';
+import { createCompositeAudienceInstance } from '../../../../common/models/audience-factories';
 import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
 
 @Component({

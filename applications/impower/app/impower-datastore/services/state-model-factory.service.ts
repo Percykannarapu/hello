@@ -4,7 +4,7 @@ import { ImpGeofootprintMasterState } from '../../../worker-shared/data-model/st
 import { ImpProjectPrefState } from '../../../worker-shared/data-model/state/imp-project-pref-state';
 import { ImpProjectState } from '../../../worker-shared/data-model/state/imp-project-state';
 import { ImpProjectVarState } from '../../../worker-shared/data-model/state/imp-project-var-state';
-import { AudienceDataDefinition } from '../../models/audience-data.model';
+import { AudienceDataDefinition } from '../../common/models/audience-data.model';
 import { UserService } from '../../services/user.service';
 
 @Injectable({

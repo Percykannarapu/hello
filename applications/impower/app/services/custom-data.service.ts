@@ -10,8 +10,8 @@ import { customAudienceFileParser, CustomDataRow } from '../common/file-parsing-
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { mergeCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.actions';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
-import { AudienceDataDefinition } from '../models/audience-data.model';
-import { createCustomAudienceInstance } from '../models/audience-factories';
+import { AudienceDataDefinition } from '../common/models/audience-data.model';
+import { createCustomAudienceInstance } from '../common/models/audience-factories';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService, ParseResponse } from '../val-modules/common/services/file.service';

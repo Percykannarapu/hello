@@ -37,7 +37,7 @@
 
     <ng-template pTemplate="header">
       <tr>
-        <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [style.width]="col.size" [title]="col.header">
+        <th *ngFor="let col of allColumns" [pSortableColumn]="col.field" [style.width]="col.width" [title]="col.header">
           <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
             <div class="p-text-truncate">
               {{col.header}}

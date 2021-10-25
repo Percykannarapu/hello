@@ -4,14 +4,13 @@ import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
-import { User, UserResponse } from '../models/User';
+import { User, UserResponse } from '../common/models/User';
 import { LoggingService } from '../val-modules/common/services/logging.service';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 export type GrantType = 'ALL' | 'ANY';
 export const DEFAULT_GRANT_TYPE: GrantType = 'ANY';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class UserService {
 
   // Private user, exposed publicly as an observable
@@ -44,41 +43,13 @@ export class UserService {
   }
 
   /**
-   * Store the user object in a cookie that will expire at midnight each day
-   * @param user The User object to store in a cookie
-   */
-  public storeUserCookie(user: User) {
-    const date: Date = new Date();
-    const now: Date = new Date(Date.now());
-    date.setHours(0, 0, 0, 0);
-    date.setDate(now.getDate() + 1);
-    this.cookieService.set('u', btoa(JSON.stringify(user)), date);
-  }
-
-  /**
-   * Load the User object from the cookie that has been stored
-   * @returns a boolean indicating if the load was successful
-   */
-  public loadUserCookie() : boolean {
-    if (this.cookieService.check('u')) {
-      const userJson: string = atob(this.cookieService.get('u'));
-      const user: User = JSON.parse(userJson);
-      if (user == null || user.username == null || user.userId == null) {
-        return false;
-      }
-      this.setUser(user);
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * Look up a user record from AM_USERS using the Fuse service
    * @param username The username to look up from the Fuse service
+   * @param fullToken The full authorization token sent back by the appropriate id/auth service
    * @returns a User with only the ID populated
    */
-  public fetchUserRecord(username: string) : Observable<User> {
-    this._fetchUserRecord(username).subscribe(res => {
+  public fetchUserRecord(username: string, fullToken: string) : Observable<User> {
+    this._fetchUserRecord(username, fullToken).subscribe(res => {
       const user: User = new User();
       user.userId = res.payload.userId;
       user.userRoles = res.payload.accessRights;
@@ -93,15 +64,10 @@ export class UserService {
     return this.userFetch;
   }
 
-  /**
-   * Invoke the Fuse service to fetch user details
-   * @param username The username to look up from the Fuse service
-   * @returns An Observable<RestResponse>
-   */
-  private _fetchUserRecord(username: string) : Observable<RestResponse<UserResponse>> {
-    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
+  private _fetchUserRecord(username: string, fullToken: string) : Observable<RestResponse<UserResponse>> {
+    const headers: HttpHeaders = new HttpHeaders().set('Authorization', fullToken);
     const url: string = this.config.valServiceBase + 'v1/targeting/base/targetingcatalogquery/lookupCrossbowUserByLoginName/' + username;
-    return this.httpClient.get<RestResponse<UserResponse>>(url, {headers: headers});
+    return this.httpClient.get<RestResponse<UserResponse>>(url, { headers });
   }
 
   /**

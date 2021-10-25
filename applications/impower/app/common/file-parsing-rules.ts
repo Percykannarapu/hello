@@ -1,5 +1,5 @@
 import { isConvertibleToNumber, isEmpty, isNil, toNullOrNumber } from '@val/common';
-import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { ValGeocodingRequest } from './models/val-geocoding-request.model';
 import { Parser, ParseRule } from '../val-modules/common/services/file.service';
 import { stateCodes } from './state-names';
 

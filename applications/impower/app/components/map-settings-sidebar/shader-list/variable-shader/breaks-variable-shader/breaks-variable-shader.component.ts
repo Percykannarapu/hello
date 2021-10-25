@@ -16,7 +16,7 @@ import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { FieldContentTypeCodes } from '../../../../../../worker-shared/data-model/impower.data-model.enums';
-import { getDefaultClassBreaks, getDefaultUserBreaks } from '../../../../../models/class-break-defaults.model';
+import { getDefaultClassBreaks, getDefaultUserBreaks } from '../../../../../common/models/class-break-defaults.model';
 import { VariableComponentBase } from '../variable-component.base';
 
 @Component({

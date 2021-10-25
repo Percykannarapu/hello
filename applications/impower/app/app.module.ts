@@ -76,17 +76,15 @@ import { AppComponent } from './app.component';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
 import { allInterceptorProviders } from './common/interceptors';
-import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
-import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
-import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
-import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
-import { BatchMapAdminComponent } from './components/dialogs/batch-map-admin/batch-map-admin.component';
+import { AddLocationsTabComponent } from './components/locations/add-locations-tab/add-locations-tab.component';
+import { ManualEntryComponent } from './components/locations/add-locations-tab/manual-entry/manual-entry.component';
+import { MarketLocationsComponent } from './components/locations/add-locations-tab/market-locations/market-locations.component';
+import { UploadLocationsComponent } from './components/locations/add-locations-tab/upload-locations/upload-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
-import { BatchMapRequestComponent } from './components/dialogs/batch-map-request/batch-map-request.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
-import { ColorBoxComponent } from './components/color-box/color-box.component';
+import { ColorBoxComponent } from './components/main/dashboard/color-box/color-box.component';
 import { AcsGrantDirective } from './components/common/acs-grant.directive';
 import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
 import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
@@ -102,26 +100,30 @@ import { ExtendedPalettePickerComponent } from './components/common/extended-pal
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
-import { AnyToBoolPipe } from './components/common/pipes/boolean-pipes';
+import { AnyToBoolPipe, BoolToStringPipe } from './components/common/pipes/boolean-pipes';
 import { EsriRgb2HexPipe } from './components/common/pipes/esri-rgb-2-hex.pipe';
+import { StatTableTooltipPipe } from './components/common/pipes/stat-table-tooltip.pipe';
 import { SearchInputComponent } from './components/common/search-input/search-input.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { ValidatedTextInputComponent } from './components/common/validated-text-input/validated-text-input.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardComponent } from './components/main/dashboard/dashboard.component';
+import { BatchMapAdminComponent } from './components/dialogs/batch-map-admin/batch-map-admin.component';
+import { BatchMapRequestComponent } from './components/dialogs/batch-map-request/batch-map-request.component';
 import { BatchMapStatusComponent } from './components/dialogs/batch-map-status/batch-map-status.component';
+import { EditLocationsComponent } from './components/dialogs/edit-locations/edit-locations.component';
+import { ExistingProjectComponent } from './components/dialogs/existing-project/existing-project.component';
 import { ExportCrossbowSitesComponent } from './components/dialogs/export-crossbow-sites/export-crossbow-sites.component';
 import { ImpowerHelpComponent } from './components/dialogs/impower-help/impower-help.component';
 import { ManualGeoDialogComponent } from './components/dialogs/manual-geo-dialog/manual-geo-dialog.component';
 import { SendSitesDigitalComponent } from './components/dialogs/send-sites-digital/send-sites-digital.component';
-import { EditLocationsComponent } from './components/dialogs/edit-locations/edit-locations.component';
-import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
-import { AppFooterComponent } from './components/frame/app.footer.component';
-import { AppHeaderComponent } from './components/frame/app.header.component';
-import { AppMenuComponent } from './components/frame/app.menu.component';
-import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
+import { FailedLocationsTabComponent } from './components/locations/failed-locations-tab/failed-locations-tab.component';
+import { AppFooterComponent } from './components/main/footer/app.footer.component';
+import { AppHeaderComponent } from './components/main/header/app.header.component';
+import { AppMenuComponent } from './components/main/menu/app.menu.component';
+import { GeofootprintGeoListComponent } from './components/geofootprint-geo-panel/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
+import { ImpowerMainComponent } from './components/main/impower-main.component';
 import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
 import { LocationListComponent } from './components/map-settings-sidebar/location-list/location-list.component';
@@ -141,10 +143,9 @@ import { RampVariableShaderComponent } from './components/map-settings-sidebar/s
 import { UniqueVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
 import { VariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
-import { MarketGeosComponent } from './components/market-geos/market-geos.component';
-import { ExistingProjectComponent } from './components/dialogs/existing-project/existing-project.component';
-import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
-import { SiteListComponent } from './components/site-list/site-list.component';
+import { MarketGeosComponent } from './components/locations/add-locations-tab/market-locations/market-geos/market-geos.component';
+import { SiteListTabComponent } from './components/locations/site-list-tab/site-list-tab.component';
+import { SiteListComponent } from './components/locations/site-list-tab/site-list/site-list.component';
 import { AudiencesCustomComponent } from './components/target-audience/audiences-custom/audiences-custom.component';
 import { CombinedAudienceComponent } from './components/target-audience/audiences-custom/combined-audience/combined-audience.component';
 import { EditCombinedAudiencesComponent } from './components/target-audience/audiences-custom/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
@@ -159,43 +160,19 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/audie
 import { OnlineAudienceVlhComponent } from './components/target-audience/audiences-online/online-audience-vlh/online-audience-vlh.component';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
-import { DistanceTradeAreaComponent } from './components/trade-area-tab/distance-trade-area/distance-trade-area.component';
-import { RadiusEntryComponent } from './components/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
-import { TradeAreaTabComponent } from './components/trade-area-tab/trade-area-tab.component';
-import { UploadMustCoverComponent } from './components/trade-area-tab/upload-must-cover/upload-must-cover.component';
-import { UploadTradeAreasComponent } from './components/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
+import { DistanceTradeAreaComponent } from './components/locations/trade-area-tab/distance-trade-area/distance-trade-area.component';
+import { RadiusEntryComponent } from './components/locations/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
+import { TradeAreaTabComponent } from './components/locations/trade-area-tab/trade-area-tab.component';
+import { UploadMustCoverComponent } from './components/locations/trade-area-tab/upload-must-cover/upload-must-cover.component';
+import { UploadTradeAreasComponent } from './components/locations/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
-import { AppDiscoveryService } from './services/app-discovery.service';
-import { AppEditSiteService } from './services/app-editsite.service';
-import { AppGeocodingService } from './services/app-geocoding.service';
-import { AppLayerService } from './services/app-layer.service';
-import { AppMapService } from './services/app-map.service';
 import { AppMessagingService } from './services/app-messaging.service';
-import { ValMetricsService } from './services/app-metrics.service';
-import { AppProjectService } from './services/app-project.service';
-import { AppRendererService } from './services/app-renderer.service';
-import { AppTradeAreaService } from './services/app-trade-area.service';
-import { AuthService } from './services/auth.service';
-import { BatchMapAuthService } from './services/batch-map-auth-service';
-import { RadService } from './services/rad.service';
-import { UsageService } from './services/usage.service';
-import { UserService } from './services/user.service';
 import { appMetaReducers, appReducer } from './state/app.reducer';
 import { CustomSerializer } from './state/shared/router.serializer';
 import { StateModule } from './state/state.module';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
-import { MetricService } from './val-modules/common/services/metric.service';
-import { RestDataService } from './val-modules/common/services/restdata.service';
-import { TransactionManager } from './val-modules/common/services/TransactionManager.service';
-import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
-import { ImpGeofootprintGeoService } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from './val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
-import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
-import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
-import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
+import { LocationsComponent } from './components/locations/locations.component';
+import { ExportGeoGridComponent } from './components/dialogs/export-geo-grid/export-geo-grid.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -348,7 +325,7 @@ export function esriSetupFactory() : ForRootOptions {
     CampaignDetailsComponent,
     MapComponent,
     TableFilterLovComponent,
-    SiteListContainerComponent,
+    SiteListTabComponent,
     UploadMustCoverComponent,
     BatchMapComponent,
     ImpowerMainComponent,
@@ -406,30 +383,25 @@ export function esriSetupFactory() : ForRootOptions {
     BrokeredTreeviewComponent,
     EsriRgb2HexPipe,
     AnyToBoolPipe,
+    BoolToStringPipe,
     BooleanColumnFilterComponent,
     ManualGeoDialogComponent,
-    ElapsedTimeComponent
+    ElapsedTimeComponent,
+    StatTableTooltipPipe,
+    LocationsComponent,
+    ExportGeoGridComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
     ...allInterceptorProviders,
     // from val-modules
     { provide: LoggingConfigurationToken, useClass: AppConfig },
-    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService,
-    ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
-    ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
-    MetricService, RestDataService, TransactionManager,
     // from primeng
     MessageService,
     // from ngx-cookie-service
     CookieService,
-    // from main application
-    AppConfig, AppProjectService, AppMessagingService, AppRendererService,
-    AuthService, RadService, UsageService, UserService, ImpRadLookupService,
-    AppLayerService, AppGeocodingService, AppTradeAreaService,
-    AppMapService, ValMetricsService,
-    AppEditSiteService, BatchMapAuthService,
-    EsriRgb2HexPipe
+    // pipes
+    EsriRgb2HexPipe, AnyToBoolPipe, BoolToStringPipe, StatTableTooltipPipe
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

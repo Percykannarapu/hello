@@ -21,7 +21,7 @@ import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.servic
 
 const dataUrl = 'v1/targeting/base/impgeofootprintmaster/load';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaster>
 {
    constructor(transactionManager: TransactionManager,

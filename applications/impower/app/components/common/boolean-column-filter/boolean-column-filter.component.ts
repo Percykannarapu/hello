@@ -10,10 +10,10 @@ export class BooleanColumnFilterComponent {
   field: string;
 
   @Input()
-  trueValue: any = 1;
+  trueValue: any = true;
 
   @Input()
-  falseValue: any = 0;
+  falseValue: any = false;
 
   @Input()
   constraint: string = 'contains';

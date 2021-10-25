@@ -20,6 +20,7 @@ export class ImpGeofootprintGeoState extends BaseModelState {
   // ----------------------------------
   public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
   public rank:          number;         /// Rank used to calculate dupes
+  public ownerSite:     string;
 
   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
   constructor(data?: Partial<ImpGeofootprintGeoPayload>) {

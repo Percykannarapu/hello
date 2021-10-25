@@ -4,7 +4,7 @@ import { LayerIdDefinition } from '@val/esri';
 import { environment, EnvironmentData } from '../environments/environment';
 import { LoggingConfiguration } from './val-modules/common/services/logging.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppConfig implements LoggingConfiguration {
 
   // Debug / logging info

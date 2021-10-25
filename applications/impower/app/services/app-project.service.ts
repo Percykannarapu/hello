@@ -18,7 +18,7 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
 import { AppLoggingService } from './app-logging.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppProjectService {
 
   public currentProject$: Observable<ImpProject>;

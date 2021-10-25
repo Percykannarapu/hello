@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { arrayToSet, filterArray, groupByExtended, isEmpty, mergeArrayMaps, reduceConcat, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { PrimeIcons } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
@@ -15,7 +15,7 @@ import {
   UpsertGeoAttributes
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { ProjectFilterChanged } from '../models/ui-enums';
+import { ProjectFilterChanged } from '../common/models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -65,10 +65,10 @@ export class AppGeoService {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeoService: ImpGeofootprintGeoService,
               private queryService: EsriQueryService,
+              private mapService: EsriMapService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private store$: Store<FullAppState>,
-              private messageService: MessageBoxService,
               private logger: AppLoggingService) {
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
@@ -611,28 +611,6 @@ export class AppGeoService {
     );
   }
 
-  public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean) {
-    const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);
-    let message: string;
-    let header: string;
-    if (isHomeGeo) {
-      message = 'Are you sure you want to unselect a Must Cover & Home Geocode geography?';
-      header = 'Must Cover/Home Geocode selection';
-    } else {
-      message = 'Are you sure you want to unselect a Must Cover geography?';
-      header = 'Must Cover selection';
-    }
-    this.messageService.showDeleteConfirmModal(message, header, PrimeIcons.QUESTION_CIRCLE).subscribe(ready => {
-      if (ready) {
-        commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-        setTimeout(() => this.impGeoService.makeDirty());
-      } else {
-        geo.isActive = true;
-        setTimeout(() => this.impGeoService.makeDirty());
-      }
-    });
-  }
-
   private setupFilterGeosObservable() : void {
     this.appStateService.currentProject$.pipe(
       filter((project) => project != null),
@@ -657,5 +635,14 @@ export class AppGeoService {
       map((project) => project.isExcludePob),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Pob})));
+  }
+
+  public zoomToGeocode(geocode: string) {
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
+    const portalLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    this.queryService.queryAttributeIn(portalLayerId, 'geocode', [geocode], true).pipe(
+      take(1),
+      switchMap(result => this.mapService.zoomToPolys(result))
+    ).subscribe();
   }
 }

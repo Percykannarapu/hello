@@ -12,13 +12,13 @@ export const environment = {
   production: false,
   serverBuild: false,
   logLevel: LogLevels.DEBUG,
-  sanitizeActions: false,
+  sanitizeActions: true,
   sanitizeState: false,
 };
 
 export class EnvironmentData {
   // The name of the environment
-  public static environmentName = 'DEV';
+  public static environmentName = 'LOCAL';
 
   public static fuseBaseUrl = serverEnv.middlewareBase;
   public static impowerBaseUrl = 'http://localhost:4200/';

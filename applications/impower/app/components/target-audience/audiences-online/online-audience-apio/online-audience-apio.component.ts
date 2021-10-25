@@ -11,8 +11,8 @@ import { OnlineAudienceDefinition } from '../../../../../worker-shared/data-mode
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { TreeviewPayload, TreeViewResponse } from '../../../../../worker-shared/treeview-workers/payloads';
 import { WorkerFactory } from '../../../../common/worker-factory';
-import { OnlineSourceTypes } from '../../../../models/audience-enums';
-import { createOnlineAudienceInstance } from '../../../../models/audience-factories';
+import { OnlineSourceTypes } from '../../../../common/models/audience-enums';
+import { createOnlineAudienceInstance } from '../../../../common/models/audience-factories';
 import { UserService } from '../../../../services/user.service';
 
 @Component({

@@ -5,8 +5,8 @@ import { OnlineAudienceDefinition } from '../../../../../worker-shared/data-mode
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { WorkerFactory } from '../../../../common/worker-factory';
 import * as fromAudienceSelectors from '../../../../impower-datastore/state/transient/audience/audience.selectors';
-import { OnlineSourceTypes } from '../../../../models/audience-enums';
-import { createOnlineAudienceInstance } from '../../../../models/audience-factories';
+import { OnlineSourceTypes } from '../../../../common/models/audience-enums';
+import { createOnlineAudienceInstance } from '../../../../common/models/audience-factories';
 import { LocalAppState } from '../../../../state/app.interfaces';
 
 @Component({

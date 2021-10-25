@@ -22,7 +22,7 @@ import { SelectItem } from 'primeng/api';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { filter } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { User } from '../../../models/User';
+import { User } from '../../../common/models/User';
 
 @Component({
   templateUrl: './batch-map-request.component.html',

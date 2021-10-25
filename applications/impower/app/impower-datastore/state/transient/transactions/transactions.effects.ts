@@ -13,7 +13,7 @@ import * as fromActions from './transactions.actions';
 import { GeoTransactionType } from './transactions.actions';
 import { actionedTransactionId, geoTransactionId, mapTransactionId } from './transactions.reducer';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class TransactionsEffects {
 
   private geoCacheWaitKey = 'GEO_CACHE_SPINNER';

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { APP_INITIALIZER, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
+import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EffectsModule } from '@ngrx/effects';
-import { Store, StoreModule } from '@ngrx/store';
+import { StoreModule } from '@ngrx/store';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
@@ -11,7 +11,6 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTableModule } from 'primeng/treetable';
-import { filter, take } from 'rxjs/operators';
 import {
   ForRootOptions,
   forRootOptionsToken,
@@ -36,15 +35,18 @@ import { EsriQueryService } from './src/services/esri-query.service';
 import { EsriShadingService } from './src/services/esri-shading.service';
 import { EsriService } from './src/services/esri.service';
 import { LoggingService } from './src/services/logging.service';
-import { allEffects } from './src/state/esri.effects';
-import { AppState, masterEsriReducer } from './src/state/esri.reducers';
-import { internalSelectors } from './src/state/esri.selectors';
+import { masterEsriReducer } from './src/state/esri.reducers';
+import { EsriInitEffects } from './src/state/init/esri.init.effects';
+import { EsriMapButtonEffects } from './src/state/map/esri.map-button.effects';
+import { EsriMapEffects } from './src/state/map/esri.map.effects';
+import { EsriShadingEffects } from './src/state/shading/esri.shading.effects';
 
-export function initializer(store: Store<AppState>) {
-  return function () {
-    return store.select(internalSelectors.getEsriInitialized).pipe(filter(init => init), take(1)).toPromise();
-  };
-}
+const allEffects = [
+  EsriInitEffects,
+  EsriMapEffects,
+  EsriMapButtonEffects,
+  EsriShadingEffects,
+];
 
 const PUBLIC_COMPONENTS = [
   EsriMapComponent,
@@ -100,8 +102,7 @@ export class EsriModule {
         EsriShadingService,
         EsriPoiService,
         EsriBoundaryService,
-        LoggingService,
-        { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
+        LoggingService
       ]
     };
   }

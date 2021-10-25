@@ -26,7 +26,7 @@ class TransactionItem<T>
  * the transaction is stopped.  Transactions are useful when you wish to notify
  * the application of a group of dataStore activities.
  */
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class TransactionManager
 {
    private _inTransaction: boolean = false; // Simple flag to track if we are in a transaction or not

@@ -18,7 +18,7 @@ import { ImpMetricName } from '../models/ImpMetricName';
 
 const dataUrl = 'v1/metrics/base/impmetricname/search?q=impMetricName';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ImpMetricNameService extends DataStore<ImpMetricName>
 {
    constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }

@@ -4,7 +4,7 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Observable, of, timer } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
+import { ValGeocodingRequest } from '../../../common/models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
 import { UsageService } from '../../../services/usage.service';
 import { ImpMetricName } from '../../../val-modules/metrics/models/ImpMetricName';

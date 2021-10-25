@@ -1,58 +1,51 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { isArray, isNil } from '@val/common';
-import { User } from 'app/models/User';
+import { User } from 'app/common/models/User';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
-import { OauthConfiguration, RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { CookieService } from 'ngx-cookie-service';
 
 import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
-import { from, Observable, of, throwError } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { from, Observable, throwError } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AuthService implements CanActivate{
 
   private manager: UserManager = new UserManager(this.getClientSettings());
   private oidcUser: OIDCUser = null;
 
   constructor(private router: Router,
-    private store$: Store<LocalAppState>,
-    private logger: LoggingService,
-    private userService: UserService,
-    private cookieService: CookieService) {
+              private store$: Store<LocalAppState>,
+              private logger: LoggingService,
+              private userService: UserService,
+              private cookieService: CookieService) {
     this.manager.getUser().then(oidcUser => {
       this.oidcUser = oidcUser;
     });
-    this.manager.events.addAccessTokenExpiring(e => this.logger.debug.log('JWT is expiring soon'));
-    this.manager.events.addAccessTokenExpired(e => this.logger.error.log('JWT has expired'));
+    this.manager.events.addAccessTokenExpiring(() => this.logger.debug.log('JWT is expiring soon'));
+    this.manager.events.addAccessTokenExpired(() => this.logger.error.log('JWT has expired'));
     this.manager.events.addSilentRenewError(e => this.logger.error.log('Failed to renew JWT', e));
-    this.manager.events.addUserLoaded(oidcUser => {
-      RestDataService.bootstrap(this.getRestConfig(oidcUser));
-    });
   }
 
-  canActivate() : Observable<boolean> {
+  public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) : Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     if (!this.isLoggedIn()) {
-      this.startAuthentication();
-      return of(false);
+      return this.startAuthentication();
     } else {
       if (this.oidcUser.expired === true) {
-        this.startAuthentication();
-        return of(false);
+        return this.startAuthentication();
       }
       if (this.userService.getUser() == null) {
-        RestDataService.bootstrap(this.getRestConfig(this.oidcUser));
         return this.setupAppUser(this.oidcUser).pipe(
           tap(() => this.manager.startSilentRenew()),
-          switchMap(() => of(true))
+          map(() => true)
         );
       }
-      return of(true);
+      return true;
     }
   }
 
@@ -64,12 +57,8 @@ export class AuthService implements CanActivate{
     return this.oidcUser.profile;
   }
 
-  getAuthorizationHeaderValue() : string {
-    return `${this.oidcUser?.token_type} ${this.oidcUser?.id_token}`;
-  }
-
-  startAuthentication() : Promise<void> {
-    return this.manager.signinRedirect();
+  startAuthentication() : Promise<boolean> {
+    return this.manager.signinRedirect().then(() => false);
   }
 
   completeAuthentication() : Observable<User> {
@@ -77,7 +66,6 @@ export class AuthService implements CanActivate{
     return callBack$.pipe(
       tap(oidcUser => localStorage.setItem('id', oidcUser.id_token)),
       tap(oidcUser => this.cookieService.set('id', oidcUser.id_token)),
-      tap(oidcUser => RestDataService.bootstrap(this.getRestConfig(oidcUser))),
       tap(oidcUser => this.oidcUser = oidcUser),
       switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
         tap(appUser => {
@@ -94,22 +82,16 @@ export class AuthService implements CanActivate{
     }
     this.logger.debug.log('App User retrieved from onelogin', oidcUser);
     const valUserName = isArray(oidcUser.profile.params) ? oidcUser.profile.params[0].sAmAccountName : oidcUser.profile.params.sAmAccountName;
-    return this.userService.fetchUserRecord(valUserName).pipe(
+    const fullToken = `${oidcUser.token_type} ${oidcUser.id_token}`;
+    return this.userService.fetchUserRecord(valUserName, fullToken).pipe(
       tap(appUser => {
         appUser.username = valUserName;
         appUser.displayName = oidcUser.profile.name;
         appUser.email = oidcUser.profile.email;
+        appUser.token = fullToken;
         this.userService.setUser(appUser);
       })
     );
-  }
-
-  private getRestConfig(oidcUser: OIDCUser) : OauthConfiguration {
-    const config: OauthConfiguration = new OauthConfiguration();
-    config.oauthToken = oidcUser.id_token;
-    config.tokenExpiration = null;
-    config.tokenRefreshFunction = () => { };
-    return config;
   }
 
   getClientSettings() : UserManagerSettings {

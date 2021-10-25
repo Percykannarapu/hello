@@ -12,7 +12,7 @@ import { AudienceFetchService } from '../../../services/audience-fetch.service';
 import { fetchableAudiences } from '../audience/audience.selectors';
 import { FetchGeoVarsComplete, FetchGeoVarsFailed, GeoVarActions, GeoVarActionTypes } from './geo-vars.actions';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class GeoVarsEffects {
 
   fetch$ = createEffect(() => this.actions$.pipe(

@@ -2,7 +2,7 @@ import { ModuleWithProviders } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
-import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
+import { ImpowerMainComponent } from './components/main/impower-main.component';
 import { AuthService } from './services/auth.service';
 import { BatchMapAuthService } from './services/batch-map-auth-service';
 

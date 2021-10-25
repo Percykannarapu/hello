@@ -23,7 +23,7 @@ import {
 import { RenderingService } from './rendering.service';
 import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area.transform';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class RenderingEffects {
 
   renderingKey = 'TRADE_AREA_RENDERING';
