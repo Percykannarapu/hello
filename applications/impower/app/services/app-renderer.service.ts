@@ -294,6 +294,7 @@ export class AppRendererService {
       [GfpShaderKeys.Selection]: ConfigurationTypes.Simple,
       [GfpShaderKeys.OwnerSite]: ConfigurationTypes.Unique,
       [GfpShaderKeys.OwnerTA]: ConfigurationTypes.Unique,
+      [GfpShaderKeys.PcrIndicator]: ConfigurationTypes.Unique,
     };
     const newForm: Partial<ShadingDefinition> = {
       id: getUuid(),
@@ -623,5 +624,50 @@ export class AppRendererService {
         }
         break;
     }
+  }
+
+  updateForPcrIndicator(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], visibleGeos: Set<string>){
+    const allUniqueValues = new Set<string>();
+
+    geos.forEach(geo => {
+      if (geo.geocode.length == 5){
+        allUniqueValues.add('ZIP');
+      }else{
+        const val =  geo.geocode.substr(6, 3);
+        if (Number(val) < 10){
+          allUniqueValues.add(`${geo.geocode.substr(5, 3)}X`);
+        }else if (Number(val) < 100){
+          allUniqueValues.add(`${geo.geocode.substr(5, 2)}XX`);
+        }
+        else {
+          allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
+        }
+      }
+    });
+    let uniqueValues: string[] = [];
+    uniqueValues = Array.from(allUniqueValues);
+    uniqueValues.push('ZIP');
+    uniqueValues.sort();
+
+    const valueIndexMap: Record<string, string> = {};
+    uniqueValues.forEach((sv, i) => {
+      valueIndexMap[sv] = `${i}`;
+    });
+    const geocodes = Array.from(visibleGeos); 
+    const stringifiedData = JSON.stringify(valueIndexMap);
+    const expression = `var uniqueVal = ${stringifiedData}; var subStr = when(count($feature.geocode) > 5, Right($feature.geocode, 3), $feature.geocode); 
+    var key = when(Number(subStr) <=9, Mid($feature.geocode,5,1)+'00X', Number(subStr) <100, Mid($feature.geocode,5,1)+'0XX',Number(subStr) >= 100,Mid($feature.geocode,5,1)+'XXX', $feature.geocode);
+    return when(haskey(uniqueVal, key), uniqueVal[key], uniqueVal['ZIP'])`; 
+    let colorPalette: RgbTuple[] = [];
+    let fillPalette: FillPattern[] = [];
+    if (isComplexShadingDefinition(definition)) {
+      colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
+      fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+    }
+    if (isArcadeCapableShadingDefinition(definition)) {
+      definition.arcadeExpression = expression;
+    }
+    if (definition.shadingType == ConfigurationTypes.Unique)
+      definition.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, new Set(uniqueValues));
   }
 }

@@ -102,11 +102,15 @@ export class ShaderListComponent implements OnInit, OnDestroy {
       case GfpShaderKeys.OwnerTA:
         this.appRenderService.updateForOwnerTA(newDef, dedupedGeos, this.tradeAreas, new Set<string>(dedupedGeos.map(g => g.geocode)));
         break;
+      case GfpShaderKeys.PcrIndicator:
+        // create pcr-indicator arcadeExpression
+        this.appRenderService.updateForPcrIndicator(newDef, dedupedGeos, new Set<string>(dedupedGeos.map(g => g.geocode)));       
+        break;
       default:
         // a variable shader has been selected
         newDef.shaderNeedsDataFetched = true;
     }
-    if (isArcadeCapableShadingDefinition(newDef)) {
+    if (isArcadeCapableShadingDefinition(newDef) && newDef.dataKey != GfpShaderKeys.PcrIndicator) {
       newDef.arcadeExpression = null;
     }
     this.logger.debug.log('Applying Definition changes. New values:', newDef);

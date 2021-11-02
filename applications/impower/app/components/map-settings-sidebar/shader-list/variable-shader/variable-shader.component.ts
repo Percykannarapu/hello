@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { ConfigurationTypes, shaderConfigTypeFriendlyNames, ShadingDefinition } from '@val/esri';
+import { GfpShaderKeys } from 'app/common/models/ui-enums';
 import { SelectItem } from 'primeng/api';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
@@ -77,6 +78,10 @@ export class VariableShaderComponent extends ShaderComponentBase<ShadingDefiniti
       } else {
         this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
       }
+    }
+
+    if (this.definition.dataKey == GfpShaderKeys.PcrIndicator){
+      this.setShaderTypes(ConfigurationTypes.Unique);
     }
   }
 

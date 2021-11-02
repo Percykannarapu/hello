@@ -17,7 +17,8 @@
   <div class="shader-form-container" *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
       <dropdown-input formControlName="dataKey" labelText="Audience" [options]="allAudiences" [allowTruncation]="true"
-                      (selectionChanged)="variableSelectionChanged($event)" [includeUnselected]="true"></dropdown-input>
+                      (selectionChanged)="variableSelectionChanged($event)" [includeUnselected]="true"
+                      *ngIf="allAudiences.length > 0"></dropdown-input>
       <dropdown-input formControlName="shadingType" labelText="Shading Style" [options]="allShaders" [includeUnselected]="allShaders.length > 1"
                       *ngIf="shaderForm.get('dataKey')?.value !== ''"></dropdown-input>
 
