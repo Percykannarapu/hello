@@ -476,7 +476,7 @@ export class AppTradeAreaService {
     const customTAGeoSet = new Set<string>();
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
-      if (loc != null && !customTAGeoSet.has(record.geocode)) {
+      if (loc != null) {
         const layerData = { x: toNullOrNumber(record.x), y: toNullOrNumber(record.y) };
         const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
         let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
