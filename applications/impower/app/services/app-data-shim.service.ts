@@ -287,7 +287,7 @@ export class AppDataShimService {
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const allSelectedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
+    const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const geosByGeocode: Map<string, ImpGeofootprintGeo[]> = groupBy(geos, 'geocode');
 
     geosByGeocode.forEach((currentGeos, geocode) => {
@@ -322,8 +322,8 @@ export class AppDataShimService {
         }
         if (!ignore) {
           currentGeos.forEach(g => {
-            g.isActive = state && allSelectedGeos.has(g.geocode);
-            g['filterReasons'] = state ? '' :`Filtered because: ${filterReasons.join(', ')}`;
+            g.isActive = state && (filterType != null || allSelectedGeos.has(g.geocode));
+            g['filterReasons'] = state ? '' : `Filtered because: ${filterReasons.join(', ')}`;
           });
         }
       }
