@@ -38,7 +38,7 @@ export class EnvironmentData {
     },
     zip: {
       // boundary: '3e2a4a9836864cfca10d87d0160d2697',
-      boundary: 'ecde553e764e452c8dedda24236fa8d8',
+      boundary: 'afa4c711129a4538a9d5c5adc40ac69c',
       simplifiedBoundary: 'da6a828d6bef47958e80e23522ff3727',
       centroid: '89cac0a2c866482b9d4e934105f445a2'
     },
@@ -90,6 +90,7 @@ export class EnvironmentData {
     'b1d2b37add4d470ca32bfd9f40d91b9f': EnvironmentData.layerIds.zip.boundary,
     'f0dd4c98bd3843c2b7ed16f04040ff13': EnvironmentData.layerIds.zip.centroid,
     '5432ed92099648b18e3b28d244492324': EnvironmentData.layerIds.zip.simplifiedBoundary,
+    'ecde553e764e452c8dedda24236fa8d8': EnvironmentData.layerIds.zip.boundary,
     // atz
     'dac5cea6976a42ceb3f0498d2c901447': EnvironmentData.layerIds.atz.boundary,
     '7bde296c08254ed78460accd00c8af49': EnvironmentData.layerIds.atz.centroid,
