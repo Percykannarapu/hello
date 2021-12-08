@@ -563,7 +563,7 @@ export class BatchMapRequestComponent implements OnInit {
   }
 
   getTitlesByGroup(siteIds: string[]) : any {
-    const locations = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
+    const locations = this.stateService.currentProject$.getValue().getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site);
     const siteAttribute = this.batchMapForm.get('sitesByGroup').value;
     const locationArray = [];
     const divisionArr = [];
