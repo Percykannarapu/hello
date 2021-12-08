@@ -9,22 +9,22 @@ import { LazyLoadEvent, PrimeIcons } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, shareReplay, startWith, take, takeUntil, tap } from 'rxjs/operators';
-import { DualObservableWorker } from '../../../worker-shared/common/core-interfaces';
-import { GeoGridMetaData, GeoGridResponse, GeoGridRow, GeoGridStats, TypedGridColumn } from '../../../worker-shared/data-model/custom/grid';
-import { GeoGridExportRequest, GeoGridPayload } from '../../../worker-shared/grid-workers/payloads';
-import { getCpmForGeo } from '../../common/complex-rules';
-import { WorkerFactory } from '../../common/worker-factory';
-import { GridGeoVar, selectGridGeoVars } from '../../impower-datastore/state/transient/transient.selectors';
-import { AppGeoService } from '../../services/app-geo.service';
-import { AppStateService } from '../../services/app-state.service';
-import { FullAppState } from '../../state/app.interfaces';
-import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { FileService } from '../../val-modules/common/services/file.service';
-import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ExportFormats, ExportGeoGridComponent } from '../dialogs/export-geo-grid/export-geo-grid.component';
-import { GeofootprintGeoListComponent } from './geofootprint-geo-list/geofootprint-geo-list.component';
+import { DualObservableWorker } from '../../../../worker-shared/common/core-interfaces';
+import { GeoGridMetaData, GeoGridResponse, GeoGridRow, GeoGridStats, TypedGridColumn } from '../../../../worker-shared/data-model/custom/grid';
+import { GeoGridExportRequest, GeoGridPayload } from '../../../../worker-shared/grid-workers/payloads';
+import { getCpmForGeo } from '../../../common/complex-rules';
+import { WorkerFactory } from '../../../common/worker-factory';
+import { selectGridGeoVars } from '../../../impower-datastore/state/transient/transient.selectors';
+import { AppGeoService } from '../../../services/app-geo.service';
+import { AppStateService } from '../../../services/app-state.service';
+import { FullAppState } from '../../../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../../../state/usage/targeting-usage.actions';
+import { FileService } from '../../../val-modules/common/services/file.service';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
+import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ExportFormats, ExportGeoGridComponent } from '../../dialogs/export-geo-grid/export-geo-grid.component';
+import { GeoListComponent } from './geo-list/geo-list.component';
 
 function AudienceDistinctComparison(a: Audience[], b: Audience[]) : boolean {
   const aPks = new Set(a.map(x => `${x.audienceIdentifier}-${x.sortOrder}`));
@@ -32,44 +32,19 @@ function AudienceDistinctComparison(a: Audience[], b: Audience[]) : boolean {
   return disjointSets(aPks, bPks).size === 0;
 }
 
-function GridGeoVarDistinctComparison(a: GridGeoVar, b: GridGeoVar) : boolean {
-  const aGeocodeSize = Object.keys(a?.geoVars ?? {}).length;
-  const bGeocodeSize = Object.keys(b?.geoVars ?? {}).length;
-  if (aGeocodeSize === bGeocodeSize && aGeocodeSize > 0) {
-    let usableGeocode;
-    for (const currentGeocode of Object.keys(a.geoVars)) {
-      if (Object.keys(a.geoVars[currentGeocode]).length > 1) {
-        usableGeocode = currentGeocode;
-        break;
-      }
-    }
-    if (isNotNil(usableGeocode)) {
-      return Object.keys(a.geoVars[usableGeocode]).length === Object.keys(b.geoVars[usableGeocode] ?? {}).length;
-    } else {
-      return false; // if I couldn't find a geocode to detect changes with, I'll just let it pass through to createComposite
-    }
-  } else {
-    return aGeocodeSize === bGeocodeSize;
-  }
-}
-
 @Component({
-  selector   : 'val-geofootprint-geo-panel',
-  templateUrl: './geofootprint-geo-panel.component.html',
-  styleUrls: ['./geofootprint-geo-panel.component.css'],
+  selector   : 'val-geo-list-container',
+  templateUrl: './geo-list-container.component.html',
   providers: [DialogService]
 })
-export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnDestroy {
+export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild(GeofootprintGeoListComponent) geoGrid: GeofootprintGeoListComponent;
+  @ViewChild(GeoListComponent) geoGrid: GeoListComponent;
 
   public workerDataResult$: Observable<GeoGridRow[]>;
   public workerGridStats$: Observable<GeoGridStats>;
   public workerAdditionalAudienceColumns$: Observable<TypedGridColumn<GeoGridRow>[]>;
   public workerSelectOptions$: Observable<Record<string, string[]>>;
-
-  public locationCount: number = 0;
-  public geoCount: number = 0;
 
   private allGeocodes = new Set<string>();
   private homeGeocodes = new Set<string>();
@@ -82,6 +57,7 @@ export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnD
   private workerInstance: DualObservableWorker<GeoGridPayload, GeoGridResponse, GeoGridExportRequest, string>;
 
   private destroyed$ = new Subject();
+  private geoCount: number = 0;
   private requestAccumulator: GeoGridPayload;
   private timeoutHandle: number;
 
@@ -236,10 +212,6 @@ export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnD
     ).subscribe(project => this.sendMessage({ gridData: { project }}));
 
     combineLatest([this.appStateService.allClientLocations$, this.impTradeAreaService.storeObservable, this.impGeofootprintGeoService.storeObservable]).pipe(
-      tap(([locs, , geos]) => {
-        this.locationCount = locs?.length ?? 0;
-        this.geoCount = geos?.length ?? 0;
-      }),
       filter(([l, t, g]) => (l.length > 0 && t.length > 0 && g.length > 0) || (l.length === 0 && t.length === 0 && g.length === 0)),
       takeUntil(this.destroyed$)
     ).subscribe(([locations, tradeAreas, geos]) => {
@@ -259,7 +231,6 @@ export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnD
       tap(entities => this.geoAttributes = entities)
     ).subscribe(geoAttributes => this.sendMessage({ gridData: { geoAttributes }}));
     this.store$.pipe(select(selectGridGeoVars)).pipe(
-      distinctUntilChanged(GridGeoVarDistinctComparison),
       map(gridGeoVar => gridGeoVar.geoVars),
       takeUntil(this.destroyed$),
     ).subscribe(geoVars => this.sendMessage({ gridData: { geoVars }}));
@@ -268,6 +239,9 @@ export class GeofootprintGeoPanelComponent implements OnInit, AfterViewInit, OnD
       debounceTime(300),
       takeUntil(this.destroyed$),
     ).subscribe(gridEvent => this.sendMessage({ gridEvent }));
+    this.appStateService.totalGeoCount$.pipe(
+      takeUntil(this.destroyed$),
+    ).subscribe(count => this.geoCount = count);
   }
 
   private sendMessage(payload: GeoGridPayload) {

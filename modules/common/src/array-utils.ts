@@ -1,3 +1,4 @@
+import { KeyedSet } from './keyed-set';
 import { isEmpty } from './type-checks';
 
 type AnyArray<T> = T[] | ReadonlyArray<T>;
@@ -386,6 +387,15 @@ export function arrayToSet<T, R>(items: AnyArray<T>, filter?: (item: T) => boole
 }
 
 export function arrayDedupe<T, R>(items: AnyArray<T>, keySelector: (item: T) => R) : T[] {
-  const result = mapByExtended(items, keySelector);
-  return Array.from(result.values());
+  const result = new KeyedSet(keySelector, items);
+  return Array.from(result);
+}
+
+export function first<T>(items: AnyArray<T>, filter: (item: T) => boolean) : T | null {
+  for (const item of items) {
+    if (filter(item)) {
+      return item;
+    }
+  }
+  return null;
 }

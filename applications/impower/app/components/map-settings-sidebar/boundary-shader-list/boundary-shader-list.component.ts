@@ -5,12 +5,12 @@ import { AppLoggingService } from '../../../services/app-logging.service';
 import { BoundaryRenderingService } from '../../../services/boundary-rendering.service';
 
 @Component({
-  selector: 'val-boundary-list',
-  templateUrl: './boundary-list.component.html',
-  styleUrls: ['./boundary-list.component.scss'],
+  selector: 'val-boundary-shader-list',
+  templateUrl: './boundary-shader-list.component.html',
+  styleUrls: ['./boundary-shader-list.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class BoundaryListComponent implements OnDestroy {
+export class BoundaryShaderListComponent implements OnDestroy {
 
   @Input() boundaryConfigurations: BoundaryConfiguration[];
 

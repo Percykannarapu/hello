@@ -1,0 +1,11 @@
+<val-geo-list
+  [currentLazyRows]="workerDataResult$ | async"
+  [gridStats]="workerGridStats$ | async"
+  [additionalColumns]="workerAdditionalAudienceColumns$ | async"
+  [multiSelectFilterValues]="workerSelectOptions$ | async"
+  (onGridLoad)="onGridLoad($event)"
+  (onExportCsv)="onExportGrid($event)"
+  (onZoomGeo)="onZoomGeo($event)"
+  (onDeleteGeo)="onDeleteGeo($event)"
+  (onGeoSelection)="onSetGeoActive($event.geocodes, $event.newActiveFlag)">
+</val-geo-list>

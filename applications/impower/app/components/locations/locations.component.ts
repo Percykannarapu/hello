@@ -30,7 +30,7 @@ export class LocationsComponent implements OnInit {
     });
   }
 
-  handleChange(e) {
+  handleChange(e: { originalEvent: Event, index: number }) {
     this.index = e.index;
   }
 

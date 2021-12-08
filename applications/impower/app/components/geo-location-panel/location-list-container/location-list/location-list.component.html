@@ -1,18 +1,6 @@
 <div #listRoot class="component-root">
-  <div class="p-d-flex p-jc-between p-col-6">
-    <label>Manage:</label>
-    <p-radioButton value="Site" label="Sites" [ngModel]="selectedListType$ | async"
-                   (ngModelChange)="onSiteTypeChanged($event)"></p-radioButton>
-    <p-radioButton value="Competitor" label="Competitors" [ngModel]="selectedListType$ | async"
-                   (ngModelChange)="onSiteTypeChanged($event)"></p-radioButton>
-  </div>
-  <div class="p-d-flex p-jc-between p-col-6">
-    <button pButton class="p-button-outlined" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
-    <button pButton class="p-button-outlined" label="HGC Issues Log" (click)="onHGCIssuesLog()"></button>
-    <button pButton class="p-button-outlined" label="Delete All" (click)="onDelete()"></button>
-  </div>
   <p-message *ngIf="(siteCountDifference$ | async) != 0" class="p-mb-2" severity="warn"
-             text="Only visible sites will appear in the map below, Geo grid and created Site Map PDFs. Site allocation for created site maps, site lists, and GeoFootPrint All will honor all uploaded sites for geographic allocation">
+             text="Only visible sites will appear in the map above, Geo grid and created Site Map PDFs. Site allocation for created site maps, site lists, and GeoFootPrint All will honor all uploaded sites for geographic allocation">
   </p-message>
   <div id="locGrid">
     <p-table #locGrid
@@ -32,17 +20,26 @@
              (onFilter)="onFilter($event)">
 
       <ng-template pTemplate="caption">
-        <div class="val-flex-layout p-ai-end">
-          <div class="p-jc-between p-ai-end">
+        <div class="p-d-flex p-jc-center">
+          <dropdown-input labelText="List View" [ngModel]="selectedListType$ | async" (ngModelChange)="onSiteTypeChanged($event)"
+                          [includeUnselected]="false" [options]="listTypeChoices"></dropdown-input>
+        </div>
+        <div class="p-d-flex p-ai-end">
+          <div class="p-d-flex p-jc-start p-ai-end" [ngClass]="{ 'val-flex-1': !isClientListSelected }">
             <val-search-input #globalSearch (resultChanged)="locGrid.filterGlobal($event, 'contains')"></val-search-input>
-            <button pButton type="button" icon="pi pi-filter-slash" pTooltip="Clear All Filters" class="p-button-rounded p-button-outlined p-button-inverse"
+            <button pButton type="button" icon="pi pi-filter-slash" pTooltip="Clear All Filters" class="p-button-rounded p-button-outlined p-button-inverse p-ml-2"
                     (click)="clearFilters(locGrid, globalSearch)">
             </button>
+            <div class="p-d-flex p-jc-start p-ai-center">
+              <button pButton class="p-button-outlined p-button-inverse p-ml-2" label="Calc Home Geocodes" (click)="calcHomeGeocode()" *ngIf="isClientListSelected"></button>
+              <button pButton class="p-button-outlined p-button-inverse p-ml-2" label="HGC Issues Log" (click)="onHGCIssuesLog()" *ngIf="isClientListSelected"></button>
+              <button pButton class="p-button-outlined p-button-inverse p-ml-2" label="Delete All" (click)="onDelete()"></button>
+            </div>
           </div>
-          <div class="p-jc-center">
+          <div class="p-d-flex p-jc-center val-flex-1">
             <label>{{allSiteCount$ | async}} sites ({{activeSiteCount$ | async}} active)</label>
           </div>
-          <div class="p-jc-end">
+          <div class="p-d-flex p-jc-end val-flex-1">
             <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
           </div>
         </div>
@@ -135,9 +132,12 @@
 
       <ng-template pTemplate="emptymessage" let-columns>
         <tr>
-          <td colspan="4" style="border-right-width: 0">&nbsp;</td>
-          <td [attr.colspan]="columns.length" class="p-pt-3" style="border-left-width: 0">
-            <h5>No locations added.  Use the "Add Locations" tab above.</h5>
+          <td [attr.colspan]="columns.length + 4" class="p-pt-3">
+            <div [style.width]="'95vw'">
+              <div class="p-col-12 p-d-flex p-jc-center p-ai-center">
+                <h5>No locations added.  Use the "Add Locations" tab in the Locations panel above.</h5>
+              </div>
+            </div>
           </td>
         </tr>
       </ng-template>

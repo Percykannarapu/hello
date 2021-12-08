@@ -5,17 +5,17 @@ import { LazyLoadEvent, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
-import { BooleanDisplayTypes, GeoGridRow, GeoGridStats, SubTotalTypes, TypedGridColumn } from '../../../../worker-shared/data-model/custom/grid';
-import { LoggingService } from '../../../val-modules/common/services/logging.service';
-import { SearchInputComponent } from '../../common/search-input/search-input.component';
+import { BooleanDisplayTypes, GeoGridRow, GeoGridStats, SubTotalTypes, TypedGridColumn } from '../../../../../worker-shared/data-model/custom/grid';
+import { LoggingService } from '../../../../val-modules/common/services/logging.service';
+import { SearchInputComponent } from '../../../common/search-input/search-input.component';
 
 @Component({
-  selector: 'val-geofootprint-geo-list',
-  templateUrl: './geofootprint-geo-list.component.html',
-  styleUrls: ['./geofootprint-geo-list.component.scss'],
+  selector: 'val-geo-list',
+  templateUrl: './geo-list.component.html',
+  styleUrls: ['./geo-list.component.scss'],
   providers: [CurrencyPipe, DecimalPipe]
 })
-export class GeofootprintGeoListComponent implements OnInit {
+export class GeoListComponent implements OnInit {
 
   @ViewChild(SearchInputComponent) globalSearchWidget: SearchInputComponent;
   @ViewChild(Table) grid: Table;

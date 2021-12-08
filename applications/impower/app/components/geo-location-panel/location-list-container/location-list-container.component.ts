@@ -3,7 +3,6 @@ import { Store } from '@ngrx/store';
 import { isEmpty, toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
 import { ErrorNotification, MessageBoxService, StopBusyIndicator } from '@val/messaging';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
@@ -18,26 +17,27 @@ import { LoggingService } from '../../../val-modules/common/services/logging.ser
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpDomainFactoryService } from '../../../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
-  selector: 'val-site-list-tab',
-  templateUrl: './site-list-tab.component.html',
+  selector: 'val-location-list-container',
+  templateUrl: './location-list-container.component.html',
 })
-export class SiteListTabComponent implements OnInit {
-   // Data store observables
-   public  allLocations$: Observable<ImpGeofootprintLocation[]>;
-   public  allGeos$: Observable<ImpGeofootprintGeo[]>;
+export class LocationListContainerComponent implements OnInit {
+// Data store observables
+  public  allLocations$: Observable<ImpGeofootprintLocation[]>;
+  public  allGeos$: Observable<ImpGeofootprintGeo[]>;
 
-   private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
-   public oldData: any;
+  private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
+  public oldData: any;
 
-   // -----------------------------------------------------------
-   // LIFECYCLE METHODS
-   // -----------------------------------------------------------
+  // -----------------------------------------------------------
+  // LIFECYCLE METHODS
+  // -----------------------------------------------------------
   constructor(private siteListService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
@@ -53,20 +53,20 @@ export class SiteListTabComponent implements OnInit {
               private messageService: MessageBoxService,
               private logger: LoggingService) {}
 
-   ngOnInit() {
-      this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
-      this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
-   }
+  ngOnInit() {
+    this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+    this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+  }
 
-   // -----------------------------------------------------------
-   // GRID OUTPUT EVENTS
-   // -----------------------------------------------------------
+  // -----------------------------------------------------------
+  // GRID OUTPUT EVENTS
+  // -----------------------------------------------------------
 
-   public onEditLocations(data) {
-     const siteType = data.siteType;
-     const site = data.site;
-     const oldData = data.oldData;
-     this.oldData = oldData;
+  public onEditLocations(data) {
+    const siteType = data.siteType;
+    const site = data.site;
+    const oldData = data.oldData;
+    this.oldData = oldData;
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
     if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && oldData.locationNumber != site.number && siteType !== ImpClientLocationTypeCodes.Competitor){
       this.store$.dispatch(ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
@@ -77,27 +77,27 @@ export class SiteListTabComponent implements OnInit {
       this.store$.dispatch(new CreateLocationUsageMetric('single-site', 'add', metricsText));
       this.processEditRequests(site,  siteType, oldData);
       if (siteType !== ImpClientLocationTypeCodes.Competitor)
-      this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
+        this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
-   }
+  }
 
-   private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData) {
+  private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData) {
     const newLocation: ValGeocodingRequest = oldData;
     const attrbs: ImpGeofootprintLocAttrib[] = oldData.impGeofootprintLocAttribs;
     const ifAddressChanged: boolean = (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street']);
     const ifLatLongChanged: boolean = newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude'];
     const homeZipFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0
-      ? attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']
-      : !isEmpty(siteOrSites['Home Zip Code']);
+                                 ? attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']
+                                 : !isEmpty(siteOrSites['Home Zip Code']);
     const homeAtzFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0
-      ? attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']
-      : !isEmpty(siteOrSites['Home ATZ']);
+                                 ? attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']
+                                 : !isEmpty(siteOrSites['Home ATZ']);
     const homeDigitalAtzFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0
-      ? attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']
-      : !isEmpty(siteOrSites['Home Digital ATZ']);
+                                        ? attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']
+                                        : !isEmpty(siteOrSites['Home Digital ATZ']);
     const homeCarrierRouteFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0
-      ? attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']
-      : !isEmpty(siteOrSites['Home Carrier Route']);
+                                          ? attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']
+                                          : !isEmpty(siteOrSites['Home Carrier Route']);
     const anyChangeInHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
     const editedLocation: ImpGeofootprintLocation = oldData;
     editedLocation.locationNumber = siteOrSites['number'];
@@ -167,57 +167,57 @@ export class SiteListTabComponent implements OnInit {
         'dtz': 'homeDigitalAtz'
       };
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code').length > 0) {
-         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip
-            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
-            editedTags.push('zip');
-         }
+        if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip
+          || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
+          editedTags.push('zip');
+        }
       } else if (attributeList[0].homeZip !== '' && homeZipFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation, 'Home Zip Code', attributeList[0].homeZip);
+        this.domainFactory.createLocationAttribute(editedLocation, 'Home Zip Code', attributeList[0].homeZip);
       }
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ').length > 0) {
-         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
-            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
-            editedTags.push('atz');
-         }
+        if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
+          || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
+          editedTags.push('atz');
+        }
       } else if (attributeList[0].homeAtz !== '' && homeAtzFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation, 'Home ATZ', attributeList[0].homeAtz);
+        this.domainFactory.createLocationAttribute(editedLocation, 'Home ATZ', attributeList[0].homeAtz);
       }
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0) {
-         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
-            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
-            editedTags.push('pcr');
-         }
+        if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
+          || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
+          editedTags.push('pcr');
+        }
       } else if (attributeList[0].homePcr !== '' && homeCarrierRouteFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation, 'Home Carrier Route', attributeList[0].homePcr);
+        this.domainFactory.createLocationAttribute(editedLocation, 'Home Carrier Route', attributeList[0].homePcr);
       }
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0) {
-         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDigitalAtz
-            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
-            editedTags.push('dtz');
-         }
+        if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDigitalAtz
+          || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
+          editedTags.push('dtz');
+        }
       } else if (attributeList[0].homeDigitalAtz !== '' && homeDigitalAtzFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation, 'Home Digital ATZ', attributeList[0].homeDigitalAtz);
+        this.domainFactory.createLocationAttribute(editedLocation, 'Home Digital ATZ', attributeList[0].homeDigitalAtz);
       }
       editedTags.forEach(tag => {
         editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
       });
       if (analysisLevel != null) {
-         //  const attrValue = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
-         const attr = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()]);
-          editedLocation.homeGeocode = attr.length > 0 ? attr[0].attributeValue : '';
+        //  const attrValue = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
+        const attr = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()]);
+        editedLocation.homeGeocode = attr.length > 0 ? attr[0].attributeValue : '';
       }
       this.impGeofootprintLocationService.update(oldData, editedLocation);
       this.appLocationService.processHomeGeoAttributes(attributeList, this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber));
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     } else {
       if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
-          siteOrSites['latitude'] = null;
-          siteOrSites['longitude'] = null;
-          this.logger.info.log('geocodeAndHomeGeocode will fire');
-          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+        siteOrSites['latitude'] = null;
+        siteOrSites['longitude'] = null;
+        this.logger.info.log('geocodeAndHomeGeocode will fire');
+        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       } else if (ifLatLongChanged) {
-          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
-          this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       } /*else {
         const editedLocation: ImpGeofootprintLocation = oldData;
         editedLocation.locationNumber = siteOrSites['number'];
@@ -230,14 +230,14 @@ export class SiteListTabComponent implements OnInit {
   }
 
   private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {
-        delete siteOrSites['Home Zip Code'];
-        delete siteOrSites['Home ATZ'];
-        delete siteOrSites['Home Carrier Route'];
-        delete siteOrSites['Home Digital ATZ'];
-        if (oldData != null){
-          this.handleCustomTradeAreaIfExistAndEdit(oldData);
-          this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
-        }
+    delete siteOrSites['Home Zip Code'];
+    delete siteOrSites['Home ATZ'];
+    delete siteOrSites['Home Carrier Route'];
+    delete siteOrSites['Home Digital ATZ'];
+    if (oldData != null){
+      this.handleCustomTradeAreaIfExistAndEdit(oldData);
+      this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
+    }
   }
 
   private handleCustomTradeAreaIfExistAndEdit(oldData: ImpGeofootprintLocation) : void {
@@ -245,59 +245,59 @@ export class SiteListTabComponent implements OnInit {
     const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM');
     let dataBuffer: string = '';
     if (customTradeAreaCheck != null && customTradeAreaCheck.length > 0) {
-         const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
-         const locationNumber = matchingLocation[0].locationNumber;
-         this.logger.info.log(customTradeAreaGeos);
-         dataBuffer = 'Store,Geo';
-         for (let i = 0; i < customTradeAreaGeos.length; i++) {
-           dataBuffer = dataBuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
-         }
-         this.appEditSiteService.sendCustomData({'data': dataBuffer});
-     }
-     this.siteListService.deleteLocations(matchingLocation);
+      const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
+      const locationNumber = matchingLocation[0].locationNumber;
+      this.logger.info.log(customTradeAreaGeos);
+      dataBuffer = 'Store,Geo';
+      for (let i = 0; i < customTradeAreaGeos.length; i++) {
+        dataBuffer = dataBuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
+      }
+      this.appEditSiteService.sendCustomData({'data': dataBuffer});
+    }
+    this.siteListService.deleteLocations(matchingLocation);
   }
 
   public onToggleLocations(event: any) {
-     //this.logger.info.log('### site-list-container.onToggleLocations - event:', event);
-     this.siteListService.setLocationsActive(event.sites, event.isActive);
+    //this.logger.info.log('### site-list-container.onToggleLocations - event:', event);
+    this.siteListService.setLocationsActive(event.sites, event.isActive);
   }
 
-   public onDeleteLocations(event: any) {
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);
-      // this.logger.debug.log("event:", event);
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      this.siteListService.deleteLocations(event.locations);
-      const target = 'single-' + event.selectedListType.toLowerCase();
-      this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', event.metricText));
-   }
+  public onDeleteLocations(event: any) {
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);
+    // this.logger.debug.log("event:", event);
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    this.siteListService.deleteLocations(event.locations);
+    const target = 'single-' + event.selectedListType.toLowerCase();
+    this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', event.metricText));
+  }
 
-   public onDeleteAllLocations(selectedListType: string) {
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - selectedListType: ", selectedListType);
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      const allLocations = this.impGeofootprintLocationService.get().filter(a => a.clientLocationTypeCode === selectedListType || a.clientLocationTypeCode === `Failed ${selectedListType}`);
-      this.siteListService.deleteLocations(allLocations);
-      const target = selectedListType.toLowerCase() + '-list';
-      this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', null, allLocations.length));
-      this.appStateService.clearUserInterface();
-      const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(selectedListType));
-      this.appStateService.setProvidedTradeAreas(false, siteCode );
-      this.impGeofootprintGeoService.makeDirty();
-   }
+  public onDeleteAllLocations(selectedListType: string) {
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - selectedListType: ", selectedListType);
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    const allLocations = this.impGeofootprintLocationService.get().filter(a => a.clientLocationTypeCode === selectedListType || a.clientLocationTypeCode === `Failed ${selectedListType}`);
+    this.siteListService.deleteLocations(allLocations);
+    const target = selectedListType.toLowerCase() + '-list';
+    this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', null, allLocations.length));
+    this.appStateService.clearUserInterface();
+    const siteCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(selectedListType));
+    this.appStateService.setProvidedTradeAreas(false, siteCode );
+    this.impGeofootprintGeoService.makeDirty();
+  }
 
-   public onMakeDirty() {
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      // this.logger.debug.log("SITE LIST CONTAINER - onMakeDirty");
-      // this.logger.debug.log("-".padEnd(80, "-"));
-      this.impGeofootprintGeoService.makeDirty();
-      this.tradeAreaService.makeDirty();
-      this.impGeofootprintLocAttribService.makeDirty();
-      this.impGeofootprintLocationService.makeDirty();
-   }
+  public onMakeDirty() {
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    // this.logger.debug.log("SITE LIST CONTAINER - onMakeDirty");
+    // this.logger.debug.log("-".padEnd(80, "-"));
+    this.impGeofootprintGeoService.makeDirty();
+    this.tradeAreaService.makeDirty();
+    this.impGeofootprintLocAttribService.makeDirty();
+    this.impGeofootprintLocationService.makeDirty();
+  }
 
-   public onZoomToLocation(loc: ImpGeofootprintLocation) {
-      this.esriMapService.zoomToPoints(toUniversalCoordinates([loc])).pipe(take(1)).subscribe();
-      this.appStateService.closeOverlays();
-   }
+  public onZoomToLocation(loc: ImpGeofootprintLocation) {
+    this.esriMapService.zoomToPoints(toUniversalCoordinates([loc])).pipe(take(1)).subscribe();
+    this.appStateService.closeOverlays();
+  }
 }

@@ -11,12 +11,12 @@ import { LoggingService } from '../../../val-modules/common/services/logging.ser
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
-  selector: 'val-location-list',
-  templateUrl: './location-list.component.html',
-  styleUrls: ['./location-list.component.scss'],
+  selector: 'val-location-shader-list',
+  templateUrl: './location-shader-list.component.html',
+  styleUrls: ['./location-shader-list.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class LocationListComponent implements OnInit, OnDestroy {
+export class LocationShaderListComponent implements OnInit, OnDestroy {
 
   @Input() poiConfigurations: PoiConfiguration[];
 

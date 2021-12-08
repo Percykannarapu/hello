@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 
 /* tslint:disable:directive-class-suffix */
 @Directive()
-export abstract class ShaderComponentBase<T extends ShadingDefinitionBase> implements OnInit, OnDestroy {
+export abstract class AudienceShaderComponentBase<T extends ShadingDefinitionBase> implements OnInit, OnDestroy {
 
   @Input() definition: T;
   @Output() applyShader: EventEmitter<T> = new EventEmitter<T>();

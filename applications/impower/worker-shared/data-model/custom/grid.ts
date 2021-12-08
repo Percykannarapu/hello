@@ -39,7 +39,7 @@ export interface TypedGridColumn<T> extends BaseGridColumn {
   field: (keyof T) | string;
 }
 
-export interface LocationGridColumn extends SimpleGridColumn {
+export interface LocationGridColumn<T> extends TypedGridColumn<T> {
   allowAsSymbolAttribute?: boolean;
 }
 

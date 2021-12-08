@@ -1,0 +1,18 @@
+<p-panel styleClass="val-no-content-padding" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up"
+         transitionOptions="0ms" [toggleable]="true" [collapsed]="true">
+  <ng-template pTemplate="header">
+    <span class="p-panel-title" pTooltip="Sites: {{locationCount$ | async | number:'1.0-0'}}, Geos: {{geoCount$ | async | number:'1.0-0'}}">
+      Geographies & Sites
+    </span>
+  </ng-template>
+
+  <p-tabView [activeIndex]="index" (onChange)="handleTabChange($event)">
+    <p-tabPanel header="Geographies">
+      <val-geo-list-container></val-geo-list-container>
+    </p-tabPanel>
+    <p-tabPanel header="Sites">
+      <val-location-list-container></val-location-list-container>
+    </p-tabPanel>
+  </p-tabView>
+
+</p-panel>

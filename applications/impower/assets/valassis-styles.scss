@@ -1,3 +1,4 @@
+@import "~assets/sass/variables/theme/theme_light";
 @import "~assets/valassis-variables";
 @import "~assets/sass/theme/extensions/mixins";
 @import "~assets/sass/theme/designer/mixins";
@@ -214,9 +215,43 @@ form.ng-touched {
         color: $tableHeaderTextColor;
       }
     }
+    .p-dropdown:not(:hover) {
+      .p-dropdown-trigger {
+        color: $tableHeaderTextColor;
+      }
+    }
     .p-multiselect:hover {
       .p-multiselect-label {
-        color: $textColor;
+        color: $inputListTextColor;
+      }
+    }
+    .p-dropdown:hover {
+      .p-dropdown-label {
+        color: $inputListTextColor;
+      }
+    }
+    .p-float-label {
+      > .p-inputtext:not(:hover) {
+        ~ label {
+          color: $tableHeaderTextColor;
+        }
+      }
+      > .p-inputtext.p-filled:hover {
+        ~ label {
+          color : $tableHeaderTextColor;
+        }
+      }
+      > p-dropdown {
+        ~ label {
+          color : $tableHeaderTextColor;
+        }
+      }
+    }
+    .p-inputtext {
+      color: $tableHeaderTextColor;
+      &.p-filled:focus,
+      &.p-filled:hover {
+        color: $inputTextColor;
       }
     }
   }

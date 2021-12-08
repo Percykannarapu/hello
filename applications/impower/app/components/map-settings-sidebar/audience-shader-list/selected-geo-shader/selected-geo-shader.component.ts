@@ -4,14 +4,14 @@ import { FormConfig } from '@val/common';
 import { FillSymbolDefinition, fillTypeFriendlyNames, SimpleShadingDefinition } from '@val/esri';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GfpSelectionForm } from '../../../../state/forms/forms.interfaces';
-import { ShaderComponentBase } from '../shader-component.base';
+import { AudienceShaderComponentBase } from '../audience-shader-component-base.directive';
 
 @Component({
   selector: 'val-selected-geo-shader',
   templateUrl: './selected-geo-shader.component.html',
   styleUrls: ['./selected-geo-shader.component.scss']
 })
-export class SelectedGeoShaderComponent extends ShaderComponentBase<SimpleShadingDefinition> {
+export class SelectedGeoShaderComponent extends AudienceShaderComponentBase<SimpleShadingDefinition> {
 
   fillTypes = fillTypeFriendlyNames;
 

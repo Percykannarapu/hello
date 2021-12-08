@@ -15,20 +15,20 @@
     <div class="sidebar-content-main">
       <p-tabView>
         <p-tabPanel header="Shading">
-          <val-shader-list
+          <val-audience-shader-list
             [shadingDefinitions]="shadingDefinitions$ | async"
             [audiences]="audiences$ | async"
             [geos]="geos$ | async"
             [tradeAreas]="tradeAreas$ | async"
             [locationCount]="locationCount$ | async"
             [tradeAreaCount]="tradeAreaCount$ | async"
-            [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
+            [currentAnalysisLevel]="analysisLevel$ | async"></val-audience-shader-list>
         </p-tabPanel>
         <p-tabPanel header="Locations">
-          <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
+          <val-location-shader-list [poiConfigurations]="poiConfigurations$ | async"></val-location-shader-list>
         </p-tabPanel>
         <p-tabPanel header="Boundaries">
-          <val-boundary-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-list>
+          <val-boundary-shader-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-shader-list>
         </p-tabPanel>
       </p-tabView>
     </div>

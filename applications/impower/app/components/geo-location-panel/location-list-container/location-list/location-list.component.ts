@@ -9,8 +9,8 @@ import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { LocationGridColumn } from '../../../../../worker-shared/data-model/custom/grid';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
-import { LocationBySiteNum } from '../../../../common/valassis-sorters';
 import { ValGeocodingRequest } from '../../../../common/models/val-geocoding-request.model';
+import { LocationBySiteNum } from '../../../../common/valassis-sorters';
 import { AppLocationService } from '../../../../services/app-location.service';
 import { AppStateService } from '../../../../services/app-state.service';
 import { FullAppState } from '../../../../state/app.interfaces';
@@ -31,12 +31,12 @@ export class FlatSite {
 }
 
 @Component({
-  selector: 'val-site-list',
-  templateUrl: './site-list.component.html',
-  styleUrls: ['./site-list.component.scss'],
+  selector: 'val-location-list',
+  templateUrl: './location-list.component.html',
+  styleUrls: ['./location-list.component.scss'],
   providers: [DialogService]
 })
-export class SiteListComponent implements OnInit, OnDestroy {
+export class LocationListComponent implements OnInit, OnDestroy {
 
   @ViewChild('locGrid', { static: true }) public grid: Table;
   @ViewChild('globalSearch', { static: true }) public searchWidget: SearchInputComponent;
@@ -53,6 +53,11 @@ export class SiteListComponent implements OnInit, OnDestroy {
   @Output() resubmitFailedGrid = new EventEmitter();
 
   public selectedListType$ = new BehaviorSubject<SuccessfulLocationTypeCodes>(ImpClientLocationTypeCodes.Site);
+  public listTypeChoices: SelectItem[] = [
+    { label: 'Site', value: ImpClientLocationTypeCodes.Site },
+    { label: 'Competitor', value: ImpClientLocationTypeCodes.Competitor }
+  ];
+  public isClientListSelected: boolean = true;
 
   public allSiteCount$: Observable<number>;
   public activeSiteCount$: Observable<number>;
@@ -70,7 +75,7 @@ export class SiteListComponent implements OnInit, OnDestroy {
   private selectedLocationsForDelete = new Set();
   private siteCache: ImpGeofootprintLocation[] = [];
 
-  public flatSiteGridColumns: LocationGridColumn[] =
+  public flatSiteGridColumns: LocationGridColumn<ImpGeofootprintLocation>[] =
     // @formatter:off
     [{field: 'locationNumber',       header: 'Number',              width: '7em',   filterType: null, sortType: 'locNum', allowAsSymbolAttribute: true },
      {field: 'locationName',         header: 'Name',                width: '20em',  filterType: null, allowAsSymbolAttribute: true },
@@ -107,7 +112,7 @@ export class SiteListComponent implements OnInit, OnDestroy {
       // @formatter:on
     ];
   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
-  public selectedColumns: LocationGridColumn[] = [];
+  public selectedColumns: LocationGridColumn<ImpGeofootprintLocation>[] = [];
 
   // Selection variables
   public  hasSelectedSites: boolean = false;
@@ -144,6 +149,7 @@ export class SiteListComponent implements OnInit, OnDestroy {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
+
   }
 
   ngOnInit() {
@@ -191,6 +197,7 @@ export class SiteListComponent implements OnInit, OnDestroy {
     try {
       const siteTypeSelected = ImpClientLocationTypeCodes.parseAsSuccessful(value);
       this.selectedListType$.next(siteTypeSelected);
+      this.isClientListSelected = siteTypeSelected === ImpClientLocationTypeCodes.Site;
     } catch {
       this.selectedListType$.next(ImpClientLocationTypeCodes.Site);
     } finally {
@@ -306,9 +313,6 @@ export class SiteListComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * To force recalculate all homegeocodes
-   */
   public calcHomeGeocode() {
     if (this.impLocationService.get().length > 0) {
       const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
@@ -316,17 +320,14 @@ export class SiteListComponent implements OnInit, OnDestroy {
       const reCalculateHomeGeos = true;
       const isLocationEdit =  false;
       this.store$.dispatch(new ReCalcHomeGeos({locations: locations,
-                                              siteType: siteType,
-                                              reCalculateHomeGeos: reCalculateHomeGeos,
-                                              isLocationEdit: isLocationEdit}));
+        siteType: siteType,
+        reCalculateHomeGeos: reCalculateHomeGeos,
+        isLocationEdit: isLocationEdit}));
     }
   }
 
-  /**
-   * When the user clicks the "HGC Issues Log" button,
-   */
   public onHGCIssuesLog() {
-    this.store$.dispatch(new ExportHGCIssuesLog({locationType: this.selectedListType$.getValue()}));
+    this.store$.dispatch(new ExportHGCIssuesLog({ locationType: ImpClientLocationTypeCodes.Site }));
   }
 
   /**
@@ -345,7 +346,7 @@ export class SiteListComponent implements OnInit, OnDestroy {
     }
 
     location.loc.getImpGeofootprintGeos().forEach(geo => {
-        geo.isActive = isActive;
+      geo.isActive = isActive;
     });
 
     location.loc.impGeofootprintTradeAreas.forEach(ta => ta.isActive = isActive);
@@ -408,17 +409,17 @@ export class SiteListComponent implements OnInit, OnDestroy {
 
       // Populate Radius fields in Manage Locations Grid
       if (loc.impGeofootprintTradeAreas.length != 0) {
-          for (let i = 0; i < loc.impGeofootprintTradeAreas.length; i++) {
-            if (loc.impGeofootprintTradeAreas[i].taNumber == 1) {
-              gridSite['radius1'] = loc.impGeofootprintTradeAreas[i].taRadius;
-            }
-            if (loc.impGeofootprintTradeAreas[i].taNumber == 2) {
-              gridSite['radius2'] = loc.impGeofootprintTradeAreas[i].taRadius;
-            }
-            if (loc.impGeofootprintTradeAreas[i].taNumber == 3) {
-              gridSite['radius3'] = loc.impGeofootprintTradeAreas[i].taRadius;
-            }
+        for (let i = 0; i < loc.impGeofootprintTradeAreas.length; i++) {
+          if (loc.impGeofootprintTradeAreas[i].taNumber == 1) {
+            gridSite['radius1'] = loc.impGeofootprintTradeAreas[i].taRadius;
           }
+          if (loc.impGeofootprintTradeAreas[i].taNumber == 2) {
+            gridSite['radius2'] = loc.impGeofootprintTradeAreas[i].taRadius;
+          }
+          if (loc.impGeofootprintTradeAreas[i].taNumber == 3) {
+            gridSite['radius3'] = loc.impGeofootprintTradeAreas[i].taRadius;
+          }
+        }
       }
       siteGridData.push(gridSite);
     });
@@ -585,4 +586,5 @@ export class SiteListComponent implements OnInit, OnDestroy {
     }
     return result;
   }
+
 }

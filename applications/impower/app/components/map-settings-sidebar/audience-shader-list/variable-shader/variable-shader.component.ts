@@ -5,7 +5,7 @@ import { GfpShaderKeys } from 'app/common/models/ui-enums';
 import { SelectItem } from 'primeng/api';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
-import { ShaderComponentBase } from '../shader-component.base';
+import { AudienceShaderComponentBase } from '../audience-shader-component-base.directive';
 
 @Component({
   selector: 'val-variable-shader',
@@ -13,7 +13,7 @@ import { ShaderComponentBase } from '../shader-component.base';
   styleUrls: ['./variable-shader.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class VariableShaderComponent extends ShaderComponentBase<ShadingDefinition> {
+export class VariableShaderComponent extends AudienceShaderComponentBase<ShadingDefinition> {
   private _audiences: Audience[];
   public get audiences() : Audience[] {
     return this._audiences;

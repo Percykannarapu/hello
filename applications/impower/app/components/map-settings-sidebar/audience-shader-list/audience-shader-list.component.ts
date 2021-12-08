@@ -17,10 +17,10 @@ import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 
 @Component({
-  selector: 'val-shader-list',
-  templateUrl: './shader-list.component.html'
+  selector: 'val-audience-shader-list',
+  templateUrl: './audience-shader-list.component.html'
 })
-export class ShaderListComponent implements OnInit, OnDestroy {
+export class AudienceShaderListComponent implements OnInit, OnDestroy {
 
   @Input() currentAnalysisLevel: string;
   @Input() tradeAreaCount: number;
@@ -104,7 +104,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
         break;
       case GfpShaderKeys.PcrIndicator:
         // create pcr-indicator arcadeExpression
-        this.appRenderService.updateForPcrIndicator(newDef, dedupedGeos, new Set<string>(dedupedGeos.map(g => g.geocode)));       
+        this.appRenderService.updateForPcrIndicator(newDef, dedupedGeos, new Set<string>(dedupedGeos.map(g => g.geocode)));
         break;
       default:
         // a variable shader has been selected

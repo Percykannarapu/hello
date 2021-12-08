@@ -71,7 +71,7 @@ export class UserService {
   }
 
   /**
-   * Retreive the User object for the currently logged in user
+   * Retrieve the User object for the currently logged in user
    * @returns A User object
    */
   public getUser() : User {
