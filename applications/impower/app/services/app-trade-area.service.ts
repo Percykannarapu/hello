@@ -39,7 +39,7 @@ const UsTableMap = {
   'PCR': 'CL_PCR_US'
 };
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AppTradeAreaService {
 
   public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean, taNumber: number }[]>();
@@ -473,23 +473,25 @@ export class AppTradeAreaService {
     const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get().filter(site => site.clientLocationTypeCode === siteType);
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
-    const customTAGeoSet = new Set<string>();
+    const geosToDelete = Array.from(this.impGeoService.get());
+    const customTAGeoMap = new Map<string, Set<string>>();
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
-      if (loc != null && !customTAGeoSet.has(record.geocode)) {
+      if (!customTAGeoMap.has(record.locNumber)) customTAGeoMap.set(record.locNumber, new Set<string>());
+      const locGeoSet = customTAGeoMap.get(record.locNumber);
+      if (loc != null && !locGeoSet.has(record.geocode)) {
         const layerData = { x: toNullOrNumber(record.x), y: toNullOrNumber(record.y) };
         const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
         let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
-          if (currentTradeArea == null) {
-            currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
-            tradeAreasToAdd.push(currentTradeArea);
-          }
+        if (currentTradeArea == null) {
+          currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+          tradeAreasToAdd.push(currentTradeArea);
+        }
         const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance, true, false);
         geosToAdd.push(newGeo);
-        customTAGeoSet.add(newGeo.geocode);
+        locGeoSet.add(newGeo.geocode);
       }
     });
-    const geosToDelete = this.impGeoService.get().filter(geo => customTAGeoSet.has(geo.geocode));
     this.appGeoService.deleteGeos(geosToDelete);
     this.uploadFailures = this.uploadFailures.concat(failedGeos);
     // stuff all the results into appropriate data stores
