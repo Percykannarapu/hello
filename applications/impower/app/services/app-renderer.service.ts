@@ -125,12 +125,16 @@ export class AppRendererService {
     ).subscribe(([al, project]) => {
       const shadingDefinitions = this.getShadingDefinitions(project);
       shadingDefinitions.forEach(sd => {
-        this.updateForAnalysisLevel(sd, al, true);
+        if (al === 'ATZ' && sd.dataKey === GfpShaderKeys.PcrIndicator){
+          this.esriShaderService.deleteShader(sd);
+        }else
+          this.updateForAnalysisLevel(sd, al, true);
+      
       });
       if (shadingDefinitions.length === 0) {
         shadingDefinitions.push(this.createSelectionShadingDefinition(al, false));
       }
-      this.esriShaderService.loadShaders(shadingDefinitions);
+      this.esriShaderService.loadShaders(shadingDefinitions.filter(sd => !sd.dataKey.toLowerCase().includes('indicator') ));
     });
   }
 
