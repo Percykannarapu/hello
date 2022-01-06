@@ -125,7 +125,7 @@ export class AppRendererService {
     ).subscribe(([al, project]) => {
       const shadingDefinitions = this.getShadingDefinitions(project);
       shadingDefinitions.forEach(sd => {
-        if (al === 'ATZ' && sd.dataKey === GfpShaderKeys.PcrIndicator){
+        if (al !== 'PCR' && sd.dataKey === GfpShaderKeys.PcrIndicator){
           this.esriShaderService.deleteShader(sd);
         }else
           this.updateForAnalysisLevel(sd, al, true);
