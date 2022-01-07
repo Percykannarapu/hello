@@ -179,10 +179,11 @@ export class GeoGridState {
       };
     });
 
-    const geos = this.currentDataState.geos ?? [];
+    const activeLocationIds = new Set((this.currentDataState.locations ?? []).filter(l => l.isActive).map(l => l.glId));
+    const usableGeos = (this.currentDataState.geos ?? []).filter(g => activeLocationIds.has(g.glId));
     this.stats = {
       currentGeoCount: 0,
-      geoCount: geos.length,
+      geoCount: usableGeos.length,
       currentActiveGeoCount: 0,
       activeGeoCount: 0,
       locationCount: (this.currentDataState.locations ?? []).length,
@@ -194,8 +195,8 @@ export class GeoGridState {
       allMustCoverGeocodes: [],
       allFilteredGeocodes: []
     };
-    this.allGeoRows = geos.reduce((allRows, geo) => {
-      if (this.locations.get(geo.glId)?.isActive && this.tradeAreas.get(geo.gtaId)?.isActive) {
+    this.allGeoRows = usableGeos.reduce((allRows, geo) => {
+      if (this.tradeAreas.get(geo.gtaId)?.isActive) {
         if (geo.isActive) this.stats.activeGeoCount++;
         const currentGridRow = this.createRow(geo);
         if (currentGridRow.isHomeGeo) this.metaData.allHomeGeocodes.push(currentGridRow.geocode);
