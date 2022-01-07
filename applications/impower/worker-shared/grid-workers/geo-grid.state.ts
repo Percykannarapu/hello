@@ -4,6 +4,7 @@ import { getCpmForGeo } from '../../app/common/complex-rules';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { createCsvString, prepareRowData } from '../common/papa-export';
 import {
+  ActiveTypedGridColumn,
   GeoGridColumnsStats,
   GeoGridMetaData,
   GeoGridResponse,
@@ -53,7 +54,7 @@ export class GeoGridState {
   private geoSites = new Map<string, Set<string>>();
 
   private allGeoRows: GeoGridRow[];
-  private additionalAudienceColumns: TypedGridColumn<GeoGridRow>[];
+  private additionalAudienceColumns: ActiveTypedGridColumn<GeoGridRow>[];
   private stats: GeoGridStats;
   private multiSelectOptions: Record<string, Set<string>>;
   private metaData: GeoGridMetaData;
@@ -94,7 +95,7 @@ export class GeoGridState {
     if ((this.currentTableState.multiSortMeta ?? []).length > 0) {
       this.tableSort(this.currentTableState.multiSortMeta, finalData);
     }
-    const columns = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => isNotNil(c.header));
+    const columns = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => isNotNil(c.header) && c.isActive);
     const exportData = prepareRowData(finalData, columns, 'audienceData');
     const csvString = createCsvString(exportData, columns.map(c => c.field));
     const blob = new Blob(['\ufeff', csvString]);
@@ -168,6 +169,7 @@ export class GeoGridState {
         header: audienceHeader,
         width: '4rem',
         isDynamic: true,
+        isActive: true,
         digitsInfo: ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? '1.2-2' : '1.0-0',
         filterType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : null,
         sortType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'number' : null,

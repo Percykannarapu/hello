@@ -7,5 +7,6 @@
   (onExportCsv)="onExportGrid($event)"
   (onZoomGeo)="onZoomGeo($event)"
   (onDeleteGeo)="onDeleteGeo($event)"
-  (onGeoSelection)="onSetGeoActive($event.geocodes, $event.newActiveFlag)">
+  (onGeoSelection)="onSetGeoActive($event.geocodes, $event.newActiveFlag)"
+  (onColumnSelection)="onColumnSelection($event.columns)">
 </val-geo-list>

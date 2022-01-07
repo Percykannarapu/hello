@@ -1,4 +1,4 @@
-import { GeoGridRow, TypedGridColumn } from '../data-model/custom/grid';
+import { ActiveTypedGridColumn, GeoGridRow, TypedGridColumn } from '../data-model/custom/grid';
 import { WorkerAudience } from '../data-model/custom/worker-audience';
 import { ImpGeofootprintGeoPayload } from '../data-model/payloads/imp-geofootprint-geo-payload';
 import { ImpGeofootprintLocationPayload } from '../data-model/payloads/imp-geofootprint-location-payload';
@@ -40,7 +40,7 @@ export interface WorkerGridData {
   mustCovers?: string[];
   geoAttributes?: Record<string, GeoAttribute>;
   geoVars?: Record<string, GeoVar>;
-  primaryColumnDefs?: TypedGridColumn<GeoGridRow>[];
+  primaryColumnDefs?: ActiveTypedGridColumn<GeoGridRow>[];
 }
 
 export interface GeoGridPayload {
