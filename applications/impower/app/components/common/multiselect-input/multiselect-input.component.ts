@@ -11,6 +11,7 @@ import { MultiSelect } from 'primeng/multiselect';
 })
 export class MultiselectInputComponent implements ControlValueAccessor  {
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
+  @Output() itemToggled: EventEmitter<any> = new EventEmitter<any>();
   @Output() onPanelShow: EventEmitter<any> = new EventEmitter<any>();
   @Output() onPanelHide: EventEmitter<any> = new EventEmitter<any>();
 
@@ -92,5 +93,10 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
       return control.touched && !control.valid && (this.validationMessage != null);
     }
     return false;
+  }
+
+  onMultiSelectChange(event: { value: any, itemValue: any }) {
+    this.selectionChanged.emit(event.value);
+    this.itemToggled.emit(event.itemValue);
   }
 }

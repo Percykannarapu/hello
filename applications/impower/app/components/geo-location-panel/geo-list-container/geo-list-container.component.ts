@@ -10,7 +10,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, shareReplay, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { DualObservableWorker } from '../../../../worker-shared/common/core-interfaces';
-import { GeoGridMetaData, GeoGridResponse, GeoGridRow, GeoGridStats, TypedGridColumn } from '../../../../worker-shared/data-model/custom/grid';
+import { ActiveTypedGridColumn, GeoGridMetaData, GeoGridResponse, GeoGridRow, GeoGridStats } from '../../../../worker-shared/data-model/custom/grid';
 import { GeoGridExportRequest, GeoGridPayload } from '../../../../worker-shared/grid-workers/payloads';
 import { getCpmForGeo } from '../../../common/complex-rules';
 import { WorkerFactory } from '../../../common/worker-factory';
@@ -43,7 +43,7 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
 
   public workerDataResult$: Observable<GeoGridRow[]>;
   public workerGridStats$: Observable<GeoGridStats>;
-  public workerAdditionalAudienceColumns$: Observable<TypedGridColumn<GeoGridRow>[]>;
+  public workerAdditionalAudienceColumns$: Observable<ActiveTypedGridColumn<GeoGridRow>[]>;
   public workerSelectOptions$: Observable<Record<string, string[]>>;
 
   private allGeocodes = new Set<string>();
@@ -78,7 +78,7 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngAfterViewInit() {
-    this.workerInstance.sendNewMessage({ gridData: { primaryColumnDefs: this.geoGrid.gridColumns }});
+    this.workerInstance.sendNewMessage({ gridData: { primaryColumnDefs: this.geoGrid.defaultColumns }});
   }
 
   ngOnDestroy() {
@@ -139,6 +139,10 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
     } else {
       this.processGeoActivations(usableGeocodes, newActiveFlag);
     }
+  }
+
+  public onColumnSelection(columns: ActiveTypedGridColumn<GeoGridRow>[]) {
+    this.workerInstance.sendNewMessage({ gridData: { primaryColumnDefs: columns }});
   }
 
   private processGeoActivations(usableGeocodes: string[], newActiveFlag: boolean) {

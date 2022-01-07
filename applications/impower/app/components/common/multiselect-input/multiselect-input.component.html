@@ -2,7 +2,7 @@
   <div class="p-float-label">
     <p-multiSelect id="multiselect-input-{{controlId}}" [(ngModel)]="value" [options]="options" [placeholder]="defaultLabel"
                    [styleClass]="inputClass" [filter]="true" filterBy="label,value.name"
-                   (onChange)="selectionChanged.emit($event.value)" (onPanelShow)="onPanelShow.emit($event)"
+                   (onChange)="onMultiSelectChange($event)" (onPanelShow)="onPanelShow.emit($event)"
                    (onPanelHide)="onPanelHide.emit($event)" [disabled]="isDisabled || readOnly" [tabindex]="tabIndex"
                    selectedItemsLabel="{0} items selected" [class]="includeUnselected ? '' : 'p-inputwrapper-filled'">
     </p-multiSelect>
