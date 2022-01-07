@@ -241,7 +241,7 @@ export class GeoGridState {
       locationAddress: currentLocation?.locAddress,
       locationCity: currentLocation?.locCity,
       locationState: currentLocation?.locState,
-      locationZip: currentLocation?.locZip.substring(0, 5),
+      locationZip: currentLocation?.locZip?.substring(0, 5),
       isHomeGeo: currentGeo.geocode === currentLocation?.homeGeocode,
       isMustCover: this.mustCovers.has(currentGeo.geocode),
       distance: currentGeo.distance,
