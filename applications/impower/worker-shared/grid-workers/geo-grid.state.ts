@@ -1,4 +1,15 @@
-import { CommonSort, convertValues, isArray, isEmpty, isNil, isNotNil, isString, mapByExtended, toNullOrNumber } from '@val/common';
+import {
+  CommonSort,
+  convertValues,
+  isArray,
+  isEmpty,
+  isNil,
+  isNotNil,
+  isString,
+  mapByExtended,
+  toNullOrNumber,
+  toNullOrString
+} from '@val/common';
 import { FilterService } from 'primeng/api';
 import { getCpmForGeo } from '../../app/common/complex-rules';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
@@ -97,8 +108,8 @@ export class GeoGridState {
     }
     const columns = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => isNotNil(c.header) && c.isActive);
     const exportData = prepareRowData(finalData, columns, 'audienceData');
-    const csvString = createCsvString(exportData, columns.map(c => c.field));
-    const blob = new Blob(['\ufeff', csvString]);
+    const csvString = createCsvString(exportData, columns.map(c => c.field), columns.map(c => !c.isCurrency && c.digitsInfo == null && c.boolInfo == null));
+    const blob = new Blob([csvString], { type: 'text/csv' });
     return {
       status: WorkerStatus.Complete,
       value: URL.createObjectURL(blob),
@@ -170,7 +181,7 @@ export class GeoGridState {
         width: '4rem',
         isDynamic: true,
         isActive: true,
-        digitsInfo: ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? '1.2-2' : '1.0-0',
+        digitsInfo: ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? '1.2-2' : ['COUNT', 'MEDIAN', 'INDEX'].includes(audience.fieldconte) ? '1.0-0' : null,
         filterType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : null,
         sortType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'number' : null,
         subTotalType: audience.fieldconte === FieldContentTypeCodes.Count
@@ -224,7 +235,7 @@ export class GeoGridState {
       const pk = curr.field;
       if (this.audiences.has(pk)) {
         const audienceInstance = this.audiences.get(pk);
-        acc[pk] = audienceInstance.fieldconte === FieldContentTypeCodes.Char ? `${currentVar[pk]}` : toNullOrNumber(currentVar[pk]);
+        acc[pk] = audienceInstance.fieldconte === FieldContentTypeCodes.Char ? toNullOrString(currentVar[pk]) : toNullOrNumber(currentVar[pk]);
       }
       return acc;
     }, {});

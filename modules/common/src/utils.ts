@@ -156,6 +156,10 @@ export function toNullOrNumber(value: any) : number | null {
   return isConvertibleToNumber(value) ? Number(value) : null;
 }
 
+export function toNullOrString(value: any) : string | null {
+  return isNil(value) ? null : `${ value }`;
+}
+
 export function unionSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
   if (isNil(setA) || setA.size === 0) return setB;
   if (isNil(setB) || setB.size === 0) return setA;

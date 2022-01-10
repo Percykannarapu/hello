@@ -106,7 +106,7 @@
               <button pButton type="button" class="p-button-text p-button-rounded" icon="pi pi-search" (click)="onZoomToGeo(row)"></button>
             </div>
             <ng-container *ngSwitchDefault>
-              <div *ngIf="col.boolInfo == null && col.digitsInfo == null && !col.isCurrency" [title]="row[col.field]">
+              <div *ngIf="col.boolInfo == null && col.digitsInfo == null && !col.isCurrency" [title]="(col.isDynamic ? row.audienceData[col.field] : row[col.field])">
                 {{ (col.isDynamic ? row.audienceData[col.field] : row[col.field]) }}
               </div>
               <div *ngIf="col.boolInfo != null" class="p-d-flex p-jc-center">
