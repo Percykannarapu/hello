@@ -52,7 +52,7 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
 
   private lastProjectId: number;
 
-  private exportFilename: string;
+  private exportFilename: string = 'geo-grid-export.csv';
   private loadEvent$ = new BehaviorSubject<LazyLoadEvent>(null);
   private workerInstance: DualObservableWorker<GeoGridPayload, GeoGridResponse, GeoGridExportRequest, string>;
 
