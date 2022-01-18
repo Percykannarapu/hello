@@ -24,6 +24,8 @@ export class VariableShaderComponent extends AudienceShaderComponentBase<Shading
     this.allAudiences = this._audiences.map(aud => ({label: `${aud.audienceName} (${aud.audienceSourceName})`, value: aud.audienceIdentifier}));
   }
 
+  shadingTypes = GfpShaderKeys;
+
   @Output() customAudienceSelected: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   public get currentAudience() : Audience {
