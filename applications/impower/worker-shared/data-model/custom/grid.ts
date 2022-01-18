@@ -43,6 +43,10 @@ export interface LocationGridColumn<T> extends TypedGridColumn<T> {
   allowAsSymbolAttribute?: boolean;
 }
 
+export interface ActiveTypedGridColumn<T> extends TypedGridColumn<T> {
+  isActive: boolean;
+}
+
 export interface GeoGridColumnsStats {
   Total?: number;
   Average: number;
@@ -102,7 +106,7 @@ export interface GeoGridRow {
 }
 
 export interface GeoGridResponse {
-  additionalAudienceColumns: TypedGridColumn<GeoGridRow>[];
+  additionalAudienceColumns: ActiveTypedGridColumn<GeoGridRow>[];
   rows: GeoGridRow[];
   stats: GeoGridStats;
   metadata: GeoGridMetaData;

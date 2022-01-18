@@ -1,9 +1,21 @@
-import { CommonSort, convertValues, isArray, isEmpty, isNil, isNotNil, isString, mapByExtended, toNullOrNumber } from '@val/common';
+import {
+  CommonSort,
+  convertValues,
+  isArray,
+  isEmpty,
+  isNil,
+  isNotNil,
+  isString,
+  mapByExtended,
+  toNullOrNumber,
+  toNullOrString
+} from '@val/common';
 import { FilterService } from 'primeng/api';
 import { getCpmForGeo } from '../../app/common/complex-rules';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { createCsvString, prepareRowData } from '../common/papa-export';
 import {
+  ActiveTypedGridColumn,
   GeoGridColumnsStats,
   GeoGridMetaData,
   GeoGridResponse,
@@ -53,7 +65,7 @@ export class GeoGridState {
   private geoSites = new Map<string, Set<string>>();
 
   private allGeoRows: GeoGridRow[];
-  private additionalAudienceColumns: TypedGridColumn<GeoGridRow>[];
+  private additionalAudienceColumns: ActiveTypedGridColumn<GeoGridRow>[];
   private stats: GeoGridStats;
   private multiSelectOptions: Record<string, Set<string>>;
   private metaData: GeoGridMetaData;
@@ -94,10 +106,10 @@ export class GeoGridState {
     if ((this.currentTableState.multiSortMeta ?? []).length > 0) {
       this.tableSort(this.currentTableState.multiSortMeta, finalData);
     }
-    const columns = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => isNotNil(c.header));
+    const columns = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => isNotNil(c.header) && c.isActive);
     const exportData = prepareRowData(finalData, columns, 'audienceData');
-    const csvString = createCsvString(exportData, columns.map(c => c.field));
-    const blob = new Blob(['\ufeff', csvString]);
+    const csvString = createCsvString(exportData, columns.map(c => c.field), columns.map(c => !c.isCurrency && c.digitsInfo == null && c.boolInfo == null));
+    const blob = new Blob([csvString], { type: 'text/csv' });
     return {
       status: WorkerStatus.Complete,
       value: URL.createObjectURL(blob),
@@ -168,7 +180,8 @@ export class GeoGridState {
         header: audienceHeader,
         width: '4rem',
         isDynamic: true,
-        digitsInfo: ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? '1.2-2' : '1.0-0',
+        isActive: true,
+        digitsInfo: ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? '1.2-2' : ['COUNT', 'MEDIAN', 'INDEX'].includes(audience.fieldconte) ? '1.0-0' : null,
         filterType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : null,
         sortType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'number' : null,
         subTotalType: audience.fieldconte === FieldContentTypeCodes.Count
@@ -179,10 +192,11 @@ export class GeoGridState {
       };
     });
 
-    const geos = this.currentDataState.geos ?? [];
+    const activeLocationIds = new Set((this.currentDataState.locations ?? []).filter(l => l.isActive).map(l => l.glId));
+    const usableGeos = (this.currentDataState.geos ?? []).filter(g => activeLocationIds.has(g.glId));
     this.stats = {
       currentGeoCount: 0,
-      geoCount: geos.length,
+      geoCount: usableGeos.length,
       currentActiveGeoCount: 0,
       activeGeoCount: 0,
       locationCount: (this.currentDataState.locations ?? []).length,
@@ -194,8 +208,8 @@ export class GeoGridState {
       allMustCoverGeocodes: [],
       allFilteredGeocodes: []
     };
-    this.allGeoRows = geos.reduce((allRows, geo) => {
-      if (this.locations.get(geo.glId)?.isActive && this.tradeAreas.get(geo.gtaId)?.isActive) {
+    this.allGeoRows = usableGeos.reduce((allRows, geo) => {
+      if (this.tradeAreas.get(geo.gtaId)?.isActive) {
         if (geo.isActive) this.stats.activeGeoCount++;
         const currentGridRow = this.createRow(geo);
         if (currentGridRow.isHomeGeo) this.metaData.allHomeGeocodes.push(currentGridRow.geocode);
@@ -221,7 +235,7 @@ export class GeoGridState {
       const pk = curr.field;
       if (this.audiences.has(pk)) {
         const audienceInstance = this.audiences.get(pk);
-        acc[pk] = audienceInstance.fieldconte === FieldContentTypeCodes.Char ? `${currentVar[pk]}` : toNullOrNumber(currentVar[pk]);
+        acc[pk] = audienceInstance.fieldconte === FieldContentTypeCodes.Char ? toNullOrString(currentVar[pk]) : toNullOrNumber(currentVar[pk]);
       }
       return acc;
     }, {});
@@ -241,7 +255,7 @@ export class GeoGridState {
       locationAddress: currentLocation?.locAddress,
       locationCity: currentLocation?.locCity,
       locationState: currentLocation?.locState,
-      locationZip: currentLocation?.locZip.substring(0, 5),
+      locationZip: currentLocation?.locZip?.substring(0, 5),
       isHomeGeo: currentGeo.geocode === currentLocation?.homeGeocode,
       isMustCover: this.mustCovers.has(currentGeo.geocode),
       distance: currentGeo.distance,

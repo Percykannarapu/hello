@@ -24,11 +24,12 @@ export function prepareRowData<T extends Record<string, any>>(rows: T[], columns
   return result;
 }
 
-export function createCsvString(rawData: Record<string, string>[], columnOrder: string[]) : string {
+export function createCsvString(rawData: Record<string, string>[], columnOrder: string[], columnsShouldBeQuoted: boolean[]) : string {
   return Papa.unparse(rawData, {
     columns: columnOrder,
     skipEmptyLines: 'greedy',
-    header: false
+    header: false,
+    quotes: columnsShouldBeQuoted
   });
 }
 
