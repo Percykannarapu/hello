@@ -58,6 +58,7 @@ export class BatchMapRequestComponent implements OnInit {
   enableLabels: boolean;
   enableSymbols: boolean;
   private user: User;
+  nationalMapOptions: SelectItem[];
 
   constructor(private store$: Store<LocalAppState>,
               private ddConfig: DynamicDialogConfig,
@@ -88,6 +89,10 @@ export class BatchMapRequestComponent implements OnInit {
       { label: '40%', value: 40 },
       { label: '45%', value: 45 },
       { label: '50%', value: 50 }
+    ];
+    this.nationalMapOptions = [
+      {label: 'Continental US', value: 'continentalUS'},
+      {label: 'Continental US + Alaska and Hawaii', value: 'usAlaskaHawaii'},
     ];
   }
 
@@ -125,7 +130,8 @@ export class BatchMapRequestComponent implements OnInit {
       sitesToInclude: 'allActiveSites',
       enableLabels: true,
       enableSymbols: true,
-      enableTradeAreaBoundaries: true
+      enableTradeAreaBoundaries: true,
+      nationalMapControl: 'Continental US'
     });
     this.batchMapForm.get('sitesByGroup').disable();
   }
@@ -207,7 +213,8 @@ export class BatchMapRequestComponent implements OnInit {
         taTitle: '',
         enableLabels: true,
         enableSymbols: true,
-        enableTradeAreaBoundaries: false
+        enableTradeAreaBoundaries: false,
+        nationalMapControl: 'Continental US'
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
@@ -301,7 +308,7 @@ export class BatchMapRequestComponent implements OnInit {
       }
     });
     this.batchMapForm.get('sitesToInclude').valueChanges.subscribe(val => {
-      if (val === 'currentMap')
+      if (val === 'currentMap' || val == 'nationalMap')
         this.currentViewSetting();
       else
         this.activeSitesSetting();

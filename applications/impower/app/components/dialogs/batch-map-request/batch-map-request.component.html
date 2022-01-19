@@ -12,8 +12,27 @@
                        formControlName="sitesToInclude"></p-radioButton>
         <p-radioButton name="sitesToInclude" value="currentMap" label="Current Map (visible sites only)"
                        formControlName="sitesToInclude"></p-radioButton>
+        <div>              
+                <p-radioButton name="sitesToInclude" value="nationalMap" label="National Map: &nbsp;"
+                              formControlName="sitesToInclude"></p-radioButton>  
+                <p-dropdown formControlName="nationalMapControl" labelText="National Map" [options]="nationalMapOptions"
+                              styleClass="p-col-4 p-col-nogutter"></p-dropdown>    
+          </div>  
+
+          <!--div class="nested-list padded-children">
+            <p-radioButton name="sitesPerPage" value="oneSitePerPage" label="One site per page" formControlName="sitesPerPage"></p-radioButton>
+            <p-radioButton name="sitesPerPage" value="allSitesOnOnePage" label="All sites on one page" formControlName="sitesPerPage"></p-radioButton>
+            <div>
+              <p-radioButton name="sitesPerPage" value="sitesGroupedBy" label="Sites grouped by:&nbsp;"
+                             formControlName="sitesPerPage"></p-radioButton>
+              <p-dropdown formControlName="sitesByGroup" [options]="siteByGroupList" styleClass="p-col-4 p-col-nogutter"></p-dropdown>
+            </div>
+          </div-->
+         
         <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
+ 
       </div>
+        
     </div>
 
     <div class="p-col-8 p-d-flex p-flex-column">
