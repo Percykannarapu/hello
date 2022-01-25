@@ -639,19 +639,13 @@ export class AppRendererService {
     const allUniqueValues = new Set<string>();
 
     geos.forEach(geo => {
-      if (geo.geocode.length == 5){
-        allUniqueValues.add('ZIP');
-      }else if (geo.geocode.substr(5, 1) != 'B'){
-        //const val =  geo.geocode.substr(6, 3);
-        /*if (Number(val) < 10){
-          allUniqueValues.add(`${geo.geocode.substr(5, 3)}X`);
-        }else if (Number(val) < 100){
-          allUniqueValues.add(`${geo.geocode.substr(5, 2)}XX`);
+      if (visibleGeos.has(geo.geocode)){
+        if (geo.geocode.length == 5){
+          allUniqueValues.add('ZIP');
+        }else if (geo.geocode.substr(5, 1) != 'B'){
+            allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
         }
-        else*/
-          allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
-       
-      }
+      }   
     });
     let uniqueValues: string[] = [];
     uniqueValues = Array.from(allUniqueValues);
