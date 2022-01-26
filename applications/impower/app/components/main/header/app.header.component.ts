@@ -18,7 +18,7 @@ import { ImpowerHelpComponent } from '../../dialogs/impower-help/impower-help.co
 export class AppHeaderComponent implements OnInit {
 
   username: string;
-  helpLinkAddress = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
+  helpLinkAddress = 'https://hcholdings.sharepoint.com/:f:/s/imPower/Em6CTrzdUlBFo5m26Dc-efgB3BWQgTRcDo9M5K2id-1m6Q?e=cGB1S6';
   marketLinkAddress = 'http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2020%20Direct%20Mail%20Optimization/Forms/AllItems.aspx';
   marketLinkName = '2021 Market Optimizations';
 
