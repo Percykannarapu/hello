@@ -289,6 +289,9 @@ export class AppRendererService {
             this.updateForOwnerTA(shaderCopy, geos, tradeAreas, visibleGeoSet);
             shadersForUpsert.push(shaderCopy);
             break;
+          case GfpShaderKeys.PcrIndicator:
+            this.updateForPcrIndicator(shaderCopy, geos, visibleGeoSet);
+            shadersForUpsert.push(shaderCopy);
         }
       });
     }
@@ -639,19 +642,13 @@ export class AppRendererService {
     const allUniqueValues = new Set<string>();
 
     geos.forEach(geo => {
-      if (geo.geocode.length == 5){
-        allUniqueValues.add('ZIP');
-      }else if (geo.geocode.substr(5, 1) != 'B'){
-        //const val =  geo.geocode.substr(6, 3);
-        /*if (Number(val) < 10){
-          allUniqueValues.add(`${geo.geocode.substr(5, 3)}X`);
-        }else if (Number(val) < 100){
-          allUniqueValues.add(`${geo.geocode.substr(5, 2)}XX`);
+      if (visibleGeos.has(geo.geocode)){
+        if (geo.geocode.length == 5){
+          allUniqueValues.add('ZIP');
+        }else if (geo.geocode.substr(5, 1) != 'B'){
+            allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
         }
-        else*/
-          allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
-       
-      }
+      }   
     });
     let uniqueValues: string[] = [];
     uniqueValues = Array.from(allUniqueValues);
@@ -664,9 +661,15 @@ export class AppRendererService {
     });
     valueIndexMap['ZIP'] = `${uniqueValues.length + 1}`;
     const stringifiedData = JSON.stringify(valueIndexMap);
-    const expression = `var uniqueVal = ${stringifiedData}; var subStr = when(count($feature.geocode) > 5, Right($feature.geocode, 3), $feature.geocode); 
-    var key = when(Number(subStr) > 0, Mid($feature.geocode,5,1)+'XXX', $feature.geocode);
-    return when(haskey(uniqueVal, key), uniqueVal[key], uniqueVal['ZIP'])`; 
+    //subStr = when(count(subStr) == 5, subStr, Left(subStr, 1) != 'B', subStr, '');
+    //var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', $feature.geocode); 
+    const expression = `var uniqueVal = ${stringifiedData}; 
+    var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', 'ZIP');
+    if(haskey(uniqueVal, subStr)){
+      return uniqueVal[subStr];
+    }
+    return null;
+    `; 
     let colorPalette: RgbTuple[] = [];
     let fillPalette: FillPattern[] = [];
     if (isComplexShadingDefinition(definition)) {
