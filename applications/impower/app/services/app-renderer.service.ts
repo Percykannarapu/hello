@@ -662,9 +662,14 @@ export class AppRendererService {
     valueIndexMap['ZIP'] = `${uniqueValues.length + 1}`;
     const stringifiedData = JSON.stringify(valueIndexMap);
     //subStr = when(count(subStr) == 5, subStr, Left(subStr, 1) != 'B', subStr, '');
-    const expression = `var uniqueVal = ${stringifiedData}; var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', $feature.geocode); 
-    var key = when(count(subStr) > 0, subStr, $feature.geocode);
-    return when(haskey(uniqueVal, key), uniqueVal[key], uniqueVal['ZIP'])`; 
+    //var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', $feature.geocode); 
+    const expression = `var uniqueVal = ${stringifiedData}; 
+    var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', 'ZIP');
+    if(haskey(uniqueVal, subStr)){
+      return uniqueVal[subStr];
+    }
+    return null;
+    `; 
     let colorPalette: RgbTuple[] = [];
     let fillPalette: FillPattern[] = [];
     if (isComplexShadingDefinition(definition)) {
