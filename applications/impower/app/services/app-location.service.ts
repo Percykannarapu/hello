@@ -45,6 +45,7 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { AppGeocodingService } from './app-geocoding.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { getBatchMode } from 'app/state/batch-map/batch-map.selectors';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -195,8 +196,8 @@ export class AppLocationService {
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Site));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Competitor));
     this.appStateService.analysisLevel$.pipe(
-      withLatestFrom(projectReady$),
-      filter(([level, isReady]) => !isEmpty(level) && isReady)
+      withLatestFrom(projectReady$, this.store$.select(getBatchMode)),
+      filter(([level, isReady, isBatchMode]) => !isEmpty(level) && isReady && !isBatchMode)
     ).subscribe(([analysisLevel]) => {
       this.store$.dispatch(RemoveGeoCache({ geoType: GeoTransactionType.Geofootprint }));
       this.setPrimaryHomeGeocode(analysisLevel);
