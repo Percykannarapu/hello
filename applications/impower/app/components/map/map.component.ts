@@ -39,6 +39,8 @@ export class MapComponent implements OnInit {
     SelectedButtonTypeCodes.MeasureDistance
   ];
 
+  showLayerProgress$ = this.appMapService.showLayerProgress$;
+
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,

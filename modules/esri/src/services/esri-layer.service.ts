@@ -12,7 +12,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNotNil, UniversalCoordinates } from '@val/common';
-import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, of, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriUtils } from '../core/esri-utils';
@@ -49,6 +49,7 @@ export class EsriLayerService {
   private legendElementWatchHandles = new Map<string, IHandle>();
 
   public layersAreReady$: Observable<boolean> = this.layersAreReady.asObservable();
+  public longLayerLoadInProgress$ = new BehaviorSubject<boolean>(false);
 
   constructor(private mapService: EsriMapService,
               private store$: Store<AppState>,
@@ -271,6 +272,36 @@ export class EsriLayerService {
         });
       }
     );
+  }
+
+  public createLocalPolygonLayer(graphics: __esri.Graphic[], additionalLayerAttributes?: __esri.FeatureLayerProperties) : __esri.FeatureLayer {
+    const props = {
+      source: graphics,
+      objectIdField: 'esri_oid',
+      fields: [],
+      geometryType: 'polygon',
+      spatialReference: { wkid: 4326 },
+      outFields: ['*'],
+      globalIdField: 'esri_oid',
+      ...additionalLayerAttributes
+    } as __esri.FeatureLayerProperties;
+    return new FeatureLayer(props);
+  }
+
+  public updateLocalLayerData(layerUniqueId: string, data: { [geocode: string] : any }) {
+    const layer = this.getLayerByUniqueId(layerUniqueId);
+    if (isFeatureLayer(layer)) {
+      layer.queryFeatures().then(fs => {
+        fs.features.forEach(feature => {
+          const currentGeocode = feature.attributes['geocode'];
+          feature.attributes = {
+            ...feature.attributes,
+            ...data[currentGeocode]
+          };
+        });
+        layer.applyEdits({ updateFeatures: fs.features });
+      });
+    }
   }
 
   public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {

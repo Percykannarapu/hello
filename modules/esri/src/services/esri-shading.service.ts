@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
+import Query from '@arcgis/core/tasks/support/Query';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
+import { reduceConcat } from '@val/common';
 import { Observable } from 'rxjs';
-import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, last, map, mergeMap, pairwise, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { isComplexRenderer, isFeatureLayer } from '../core/type-checks';
 import { FillSymbolDefinition } from '../models/common-configuration';
@@ -22,6 +24,7 @@ import {
 } from '../state/shading/esri.shading.actions';
 import { shadingSelectors } from '../state/shading/esri.shading.selectors';
 import { EsriLayerService } from './esri-layer.service';
+import { EsriQueryService } from './esri-query.service';
 
 const hideLegendHeaderTypes = new Set<ConfigurationTypes>([ConfigurationTypes.Simple, ConfigurationTypes.DotDensity]);
 
@@ -31,6 +34,7 @@ export class EsriShadingService {
   private layersInFlight = new Set<string>();
 
   constructor(private layerService: EsriLayerService,
+              private queryService: EsriQueryService,
               private store$: Store<AppState>) {}
 
   initializeShadingWatchers() : void {
@@ -171,7 +175,7 @@ export class EsriShadingService {
       labelingInfo: [],
       labelsVisible: false,
       legendEnabled: true,
-      outFields: [config.filterField || 'geocode'],
+      outFields: ['*'],
       renderer: this.createGeneralizedRenderer(config),
       opacity: config.opacity
     };
@@ -182,8 +186,26 @@ export class EsriShadingService {
         layerProps.definitionExpression = '1 = 0';
       }
     }
-    return this.layerService.createPortalLayer(config.sourcePortalId, config.layerName, config.minScale, true, layerProps).pipe(
+    return this.createFeatureLayerForShading(config, layerProps, groupName);
+  }
+
+  private createFeatureLayerForShading(config: ShadingDefinition, layerProps: __esri.FeatureLayerProperties, groupName: string) : Observable<string> {
+    let layerFactory$: Observable<__esri.FeatureLayer>;
+    if (config.useLocalGeometry) {
+      this.layerService.longLayerLoadInProgress$.next(true);
+      const query = new Query({ where: `1 = 1 AND COALESCE(pob, \'\') <> \'B\'`, returnGeometry: true, outFields: ['geocode'] });
+      layerFactory$ = this.queryService.executeParallelQuery(config.sourcePortalId, query, 5000, 3).pipe(
+        map(fs => fs.features),
+        reduceConcat(),
+        map(features => this.layerService.createLocalPolygonLayer(features, layerProps)),
+        tap(() => this.layerService.longLayerLoadInProgress$.next(false))
+      );
+    } else {
+      layerFactory$ = this.layerService.createPortalLayer(config.sourcePortalId, config.layerName, config.minScale, true, layerProps);
+    }
+    return layerFactory$.pipe(
       tap(layer => {
+        console.log('Shading Layer Created', layer);
         const group = this.layerService.createClientGroup(groupName, true, true);
         if (group) {
           group.layers.unshift(layer);

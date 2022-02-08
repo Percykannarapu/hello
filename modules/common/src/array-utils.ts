@@ -8,6 +8,7 @@ type AnyArray<T> = T[] | ReadonlyArray<T>;
  * @param {T[] | U[]} arr: The original array to split
  * @param {number} chunkSize: The maximum size of each chunk in the output
  * @returns {(T[] | U[])[]}
+ * @template T, U
  */
 export function chunkArray<T, U>(arr: T[] | U[], chunkSize: number) : (T[] | U[])[] {
   const groups: (T[] | U[])[] = [];

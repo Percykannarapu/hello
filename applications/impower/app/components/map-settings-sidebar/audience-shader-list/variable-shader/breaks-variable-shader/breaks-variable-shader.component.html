@@ -81,44 +81,47 @@
 </ng-container>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
-  <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-  <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
-  <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
-  <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
   <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
-                    [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
-  <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
-    <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
-    <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
-    <div class="class-break-list" formArrayName="userBreakDefaults" *ngIf="!parentForm.get('dynamicLegend').value">
-      <div *ngFor="let x of userBreakDefaults; first as isFirst; last as isLast; index as i">
-        <div class="break-container">
-          <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme"
-                                  [reversePalette]="reverseTheme" [usesCalculatedValues]="true"
-                                  [calculatedValueMessage]="getAllocationName(i, isFirst, isLast)"
-                                  [showCalculatedValue]="isFirst || isLast"></esri-class-break-input>
+                  [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
+  <ng-container *ngIf="selectedBreakType != null">
+    <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
+<!--    <boolean-input labelText="Local Rendering?" formControlName="useLocalGeometry"></boolean-input>-->
+    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+    <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
+    <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
+    <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
+      <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
+      <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
+      <div class="class-break-list" formArrayName="userBreakDefaults" *ngIf="!parentForm.get('dynamicLegend').value">
+        <div *ngFor="let x of userBreakDefaults; first as isFirst; last as isLast; index as i">
+          <div class="break-container">
+            <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme"
+                                    [reversePalette]="reverseTheme" [usesCalculatedValues]="true"
+                                    [calculatedValueMessage]="getAllocationName(i, isFirst, isLast)"
+                                    [showCalculatedValue]="isFirst || isLast"></esri-class-break-input>
+          </div>
         </div>
       </div>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
-    <div class="p-d-flex p-jc-end">
-      <button pButton type="button" class="p-button-text p-button-sm" (click)="addBreak()" label="add Class Break" *ngIf="classBreakCount < 10"></button>
-    </div>
-    <div formArrayName="breakDefinitions">
-      <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i" class="p-d-flex p-pl-3 p-ai-center">
-        <div class="p-col p-col-nogutter">
-          <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
-                                  [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>
-        </div>
-        <button type="button" pButton icon="pi pi-trash" class="p-button-outlined p-button-rounded p-button-danger p-button-xs p-ml-2"
-                (click)="deleteBreak(i)" [ngClass]="{ 'hide-button': (isLast || isFirst) }"></button>
+    </ng-container>
+    <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
+      <div class="p-d-flex p-jc-end">
+        <button pButton type="button" class="p-button-text p-button-sm" (click)="addBreak()" label="add Class Break" *ngIf="classBreakCount < 10"></button>
       </div>
+      <div formArrayName="breakDefinitions">
+        <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i" class="p-d-flex p-pl-3 p-ai-center">
+          <div class="p-col p-col-nogutter">
+            <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
+                                    [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>
+          </div>
+          <button type="button" pButton icon="pi pi-trash" class="p-button-outlined p-button-rounded p-button-danger p-button-xs p-ml-2"
+                  (click)="deleteBreak(i)" [ngClass]="{ 'hide-button': (isLast || isFirst) }"></button>
+        </div>
+      </div>
+    </ng-container>
+    <div class="p-pt-2">
+      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
     </div>
+    <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': parentForm.pristine }" [disabled]="!parentForm.valid" (click)="formSubmit()"></button>
+    <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancelForm.emit()"></button>
   </ng-container>
-  <div class="p-pt-2">
-    <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  </div>
-  <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': parentForm.pristine }" [disabled]="!parentForm.valid" (click)="formSubmit()"></button>
-  <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancelForm.emit()"></button>
 </div>

@@ -43,6 +43,10 @@ export class AppConfig implements LoggingConfiguration {
     unifiedAudienceUrl: 'v1/targeting/base/geoinfo/varlookup',
   };
 
+  private nationalTransactionIds = {
+    atz: 2
+  };
+
   public analysisLevelToLayerKey(analysisLevel: string) : string {
     switch ((analysisLevel || '').toLowerCase()) {
       case 'digital atz':
@@ -70,5 +74,10 @@ export class AppConfig implements LoggingConfiguration {
     if (existingId == null) return existingId;
     const result = EnvironmentData.portalIdUpdates[existingId];
     return result || existingId;
+  }
+
+  public getNationalTxId(analysisLevel: string) : number {
+    const analysisKey = this.analysisLevelToLayerKey(analysisLevel);
+    return this.nationalTransactionIds[analysisKey];
   }
 }

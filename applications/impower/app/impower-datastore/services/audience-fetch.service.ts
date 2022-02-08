@@ -1,12 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { convertKeys, isEmpty, isNotNil, isStringArray, mapByExtended, toNullOrNumber } from '@val/common';
+import {
+  collectStatistics,
+  convertKeys,
+  getCollectedStatistics, getEmptyStatistic,
+  isConvertibleToNumber,
+  isEmpty,
+  isNotNil,
+  isStringArray,
+  mapByExtended,
+  Statistics,
+  toNullOrNumber
+} from '@val/common';
 import { WarningNotification } from '@val/messaging';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { FullState } from '../../../../cpq-maps/src/app/cpq-map/state/index';
 import { AppConfig } from '../../app.config';
-import { AudienceDataDefinition, UnifiedPayload, UnifiedResponse, VarListItem } from '../../common/models/audience-data.model';
+import { AudienceDataDefinition, NationalAudienceModel, UnifiedPayload, UnifiedResponse, VarListItem } from '../../common/models/audience-data.model';
 import { createAudienceVarListItem, createCombinedVarListItem, createCompositeVarListItem } from '../../common/models/audience-factories';
 import { AppLoggingService } from '../../services/app-logging.service';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
@@ -25,43 +36,65 @@ export class AudienceFetchService {
               private restService: RestDataService,
               private store$: Store<FullState>) { }
 
+  public getNationalAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, silent: boolean) : Observable<NationalAudienceModel> {
+    const txId = this.config.getNationalTxId(analysisLevel);
+    if (isNotNil(txId) && !isEmpty(audiences)) {
+      return this.getUnifiedAudienceDataResponse(audiences, allAudiences, analysisLevel, txId, silent).pipe(
+        map(response => this.createNationalAudienceModel(response))
+      );
+    } else {
+      return of({ data: {}, stats: {} });
+    }
+  }
+
   public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number, silent: boolean) : Observable<DynamicVariable[]>;
   public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, geocodes: string[], silent: boolean) : Observable<DynamicVariable[]>;
   public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txIdOrGeos: number | string[], silent: boolean) : Observable<DynamicVariable[]> {
     if (isNotNil(txIdOrGeos) && !isEmpty(txIdOrGeos) && !isEmpty(audiences)) {
-      const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txIdOrGeos);
-      return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
-        map(response => response.payload),
-        tap(payload => {
-          let notify = false;
-          if (!isEmpty(payload?.issues?.ERROR)) {
-            this.logger.error.groupCollapsed('Additional Audience Fetch Error Info');
-            this.logger.error.log(payload.issues.ERROR);
-            this.logger.error.groupEnd();
-            notify = true;
-          }
-          if (!isEmpty(payload?.issues?.WARN)) {
-            notify = true;
-            if (payload.issues.WARN[0] === 'No variable values were found') {
-              const notificationTitle = payload.issues.WARN.shift();
-              const message = payload.issues.WARN.join('\n');
-              this.store$.dispatch(WarningNotification({ notificationTitle, message }));
-            } else {
-              this.logger.warn.toggleLevelIgnore(); // ensures warnings get logged in production
-              this.logger.warn.groupCollapsed('Additional Audience Fetch Warning Info');
-              this.logger.warn.log(payload.issues.WARN);
-              this.logger.warn.groupCollapsed();
-              this.logger.warn.toggleLevelIgnore();
-            }
-          }
-          if (notify && !silent) {
-            this.store$.dispatch(WarningNotification({ message: 'There was an issue pulling audience data, please check to ensure you have all the data you need.' }));
-          }
-        }),
+      return this.getUnifiedAudienceDataResponse(audiences, allAudiences, analysisLevel, txIdOrGeos, silent).pipe(
         map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))
       );
     } else {
       return of([]);
+    }
+  }
+
+  private getUnifiedAudienceDataResponse(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txIdOrGeos: number | string[], silent: boolean) : Observable<UnifiedResponse> {
+    if (isNotNil(txIdOrGeos) && !isEmpty(txIdOrGeos) && !isEmpty(audiences)) {
+      const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txIdOrGeos);
+      return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
+        map(response => response.payload),
+        tap(payload => this.handleResponseError(payload, silent))
+    );
+    } else {
+      return of({} as UnifiedResponse);
+    }
+  }
+
+  private handleResponseError(payload: UnifiedResponse, silent: boolean) : void {
+    let notify = false;
+    if (!isEmpty(payload?.issues?.ERROR)) {
+      this.logger.error.groupCollapsed('Additional Audience Fetch Error Info');
+      this.logger.error.log(payload.issues.ERROR);
+      this.logger.error.groupEnd();
+      notify = true;
+    }
+    if (!isEmpty(payload?.issues?.WARN)) {
+      notify = true;
+      if (payload.issues.WARN[0] === 'No variable values were found') {
+        const notificationTitle = payload.issues.WARN.shift();
+        const message = payload.issues.WARN.join('\n');
+        this.store$.dispatch(WarningNotification({ notificationTitle, message }));
+      } else {
+        this.logger.warn.toggleLevelIgnore(); // ensures warnings get logged in production
+        this.logger.warn.groupCollapsed('Additional Audience Fetch Warning Info');
+        this.logger.warn.log(payload.issues.WARN);
+        this.logger.warn.groupEnd();
+        this.logger.warn.toggleLevelIgnore();
+      }
+    }
+    if (notify && !silent) {
+      this.store$.dispatch(WarningNotification({ message: 'There was an issue pulling audience data, please check to ensure you have all the data you need.' }));
     }
   }
 
@@ -117,5 +150,38 @@ export class AudienceFetchService {
     } else {
       return result;
     }
+  }
+
+  private createNationalAudienceModel(payload: UnifiedResponse) : NationalAudienceModel {
+    const data: Record<string, Record<number, string | number>> = {};
+    let stats: Record<number, Statistics> = { ...(payload.stats ?? {})};
+    const uniqueValues = new Map<number, Set<string>>();
+    payload.rows.forEach(row => {
+      data[row.geocode] = { ...convertKeys(row.variables, k => isConvertibleToNumber(k.split('_')[0]) ? Number(k.split('_')[0]) : -1) };
+      Object.keys(data[row.geocode]).forEach(key => {
+        const keyNum = Number(key);
+        const value = data[row.geocode][keyNum];
+        if (isConvertibleToNumber(value)) {
+          collectStatistics(keyNum, Number(value));
+        } else {
+          if (!uniqueValues.has(keyNum)) uniqueValues.set(keyNum, new Set<string>());
+          uniqueValues.get(keyNum).add(value);
+        }
+      });
+    });
+    const collectedStats = getCollectedStatistics(true);
+    stats = {
+      ...stats,
+      ...collectedStats,
+    };
+    if (uniqueValues.size > 0) {
+      uniqueValues.forEach((value, key) => {
+        stats[key] = {
+          ...getEmptyStatistic(),
+          uniqueValues: Array.from(value)
+        };
+      });
+    }
+    return { data, stats };
   }
 }
