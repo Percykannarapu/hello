@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { DeepPartial } from '@val/common';
-import { applyBoundaryChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple } from '@val/esri';
+import { applyBoundaryChanges, applyFillChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple, SymbolDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { ValassisValidators } from '../../../../common/valassis-validators';
@@ -23,6 +23,8 @@ export class BoundaryShaderComponent implements OnDestroy {
   configForm: FormGroup;
   isEditing: boolean = false;
   fontFaces: SelectItem[];
+
+  thickness: number = 2;
 
   protected destroyed$ = new Subject<void>();
 
@@ -60,6 +62,9 @@ export class BoundaryShaderComponent implements OnDestroy {
     if (this.configuration.pobLabelDefinition != null) {
       currentValues.pobLabelDefinition = applyLabelChanges(this.configuration.pobLabelDefinition, currentValues.labelDefinition);
     }
+    if (this.configuration.symbolDefinition.outlineWidth != currentValues.symbolDefinition.outlineWidth){
+      currentValues.symbolDefinition = applyFillChanges(this.configuration.symbolDefinition, currentValues.symbolDefinition);
+    }
     return currentValues;
   }
 
@@ -72,6 +77,10 @@ export class BoundaryShaderComponent implements OnDestroy {
       showPOBs: new FormControl(this.configuration.showPOBs),
       showPopups: new FormControl(this.configuration.showPopups),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
+      
+      symbolDefinition: this.fb.group({
+        outlineWidth: new FormControl(this.configuration.symbolDefinition.outlineWidth),
+      }),
       labelDefinition: this.fb.group({
         isBold: new FormControl(defaultLabelDefinition.isBold || false, { updateOn: 'change' }),
         isItalic: new FormControl(defaultLabelDefinition.isItalic || false, { updateOn: 'change' }),
@@ -82,5 +91,10 @@ export class BoundaryShaderComponent implements OnDestroy {
       })
     };
     this.configForm = this.fb.group(formSetup);
+    this.thickness = this.configuration.symbolDefinition.outlineWidth;
+  }
+
+  onSlide(event: any){
+    this.thickness =  event.value;
   }
 }
