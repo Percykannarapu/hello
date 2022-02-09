@@ -1,3 +1,4 @@
+import { CollectedStatistics, Statistics } from '@val/common';
 import { FieldContentTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 
 export interface AudienceDataDefinition {
@@ -64,11 +65,23 @@ export interface UnifiedResponse {
   };
   records: string;
   rows: UnifiedRow[];
+  stats: { [key: number] : Statistics };
 }
 
 export interface UnifiedRow {
   geocode: string;
   variables: {
     [key: string] : number
+  };
+}
+
+export interface NationalAudienceModel {
+  data: {
+    [geocode: string] : {
+      [varPk: number] : string | number
+    }
+  };
+  stats: {
+    [varPk: number] : Statistics
   };
 }

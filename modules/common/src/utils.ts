@@ -1,6 +1,6 @@
 // noinspection CommaExpressionJS
 
-import { isConvertibleToNumber, isFunction, isNil, isString } from './type-checks';
+import { isConvertibleToNumber, isFunction, isNil, isNumber, isString, isSymbol } from './type-checks';
 
 export function transformEntity(entity: Record<any, any>, valueSelector: (field: string, item: any) => any, keySelector?: (key: string) => string) : Record<any, any> {
   const newEntity: any = {};
@@ -32,6 +32,15 @@ export function entityToMap<T, R>(entity: Record<string, T>,
     const newValue = usableVx(key, value, entity);
     if (usableFilter(key, value, entity)) result.set(newKey, newValue);
   }
+  return result;
+}
+
+export function mapToEntity<K extends string | number | symbol, T, R>(map: Map<K, T>, valueTransform?: (value: T, key: K, map: Map<K, T>) => R) : Record<K, R> {
+  const result: any = {};
+  const usableVx = valueTransform ?? ((v) => v as unknown as R);
+  map.forEach((value, key) => {
+    result[key] = usableVx(value, key, map);
+  });
   return result;
 }
 
@@ -226,4 +235,81 @@ export function removeNullProperties(obj) {
     }
   });
   return obj;
+}
+
+// shamelessly stolen from lodash
+// tslint:disable:no-bitwise
+
+const MAX_ARRAY_LENGTH = 4294967295;
+const MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1;
+const HALF_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH >>> 1;
+
+/**
+ * Performs a binary search to return the index at which a value needs to be inserted into an array to maintain the array's sort order
+ * @param array The array to search
+ * @param value The value to search for
+ * @param retHighest In case of ties, return the highest qualified index
+ */
+export function sortedIndex(array: number[], value: number, retHighest: boolean) : number {
+  let low = 0;
+  let high = array == null ? low : array.length;
+  if (isNumber(value) && high <= HALF_MAX_ARRAY_LENGTH) {
+    while (low < high) {
+      const mid = (low + high) >>> 1;
+      const computed = array[mid];
+      if (computed !== null && !isSymbol(computed) &&
+        (retHighest ? (computed <= value) : (computed < value))) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return high;
+  }
+  return baseSortedIndexBy(array, value, (v) => v, retHighest);
+}
+
+function baseSortedIndexBy(array: number[], value: number, iteratee: (v: number) => number, retHighest: boolean) : number {
+  let low = 0;
+  let high = array == null ? 0 : array.length;
+  if (high == 0) {
+    return 0;
+  }
+
+  value = iteratee(value);
+
+  const valIsNaN = value !== value;
+  const valIsNull = value === null;
+  const valIsSymbol = isSymbol(value);
+  const valIsUndefined = value === undefined;
+
+  while (low < high) {
+    let setLow;
+    const mid = Math.floor((low + high) / 2);
+    const computed = iteratee(array[mid]);
+    const othIsDefined = computed !== undefined;
+    const othIsNull = computed === null;
+    const othIsReflexive = computed === computed;
+    const othIsSymbol = isSymbol(computed);
+
+    if (valIsNaN) {
+      setLow = retHighest || othIsReflexive;
+    } else if (valIsUndefined) {
+      setLow = othIsReflexive && (retHighest || othIsDefined);
+    } else if (valIsNull) {
+      setLow = othIsReflexive && othIsDefined && (retHighest || !othIsNull);
+    } else if (valIsSymbol) {
+      setLow = othIsReflexive && othIsDefined && !othIsNull && (retHighest || !othIsSymbol);
+    } else if (othIsNull || othIsSymbol) {
+      setLow = false;
+    } else {
+      setLow = retHighest ? (computed <= value) : (computed < value);
+    }
+    if (setLow) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return Math.min(high, MAX_ARRAY_INDEX);
 }

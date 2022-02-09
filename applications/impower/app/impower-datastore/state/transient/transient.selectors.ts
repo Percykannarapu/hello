@@ -70,3 +70,12 @@ export const getFirstTimeCustomShadedAudiences = createSelector(
     return allAudiences.filter(a => idSet.has(a.audienceIdentifier));
   }
 );
+
+export const getNationalShadingAudiences = createSelector(
+  fromAudienceSel.fetchableAudiences,
+  shadingSelectors.layerDefsForNationalFetch,
+  (allAudiences, mappedIds) => {
+    const idSet = new Set(mappedIds);
+    return allAudiences.filter(a => idSet.has(a.audienceIdentifier));
+  }
+);

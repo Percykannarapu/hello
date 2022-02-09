@@ -73,3 +73,8 @@ export function isNumberArray(value: any) : value is number[] {
 export function isStringArray(value: any) : value is string[] {
   return !isNil(value) && isArray(value) && isString(value[0]);
 }
+
+export function isSymbol(value: any) : value is symbol {
+  const type = typeof value;
+  return type == 'symbol' || (type === 'object' && value != null && value.toString() === '[object Symbol]');
+}

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, CommonSort, getUuid, isEmpty, isNotNil } from '@val/common';
+import { calculateStatistics, CommonSort, getUuid, isConvertibleToNumber, isEmpty, isNil, isNotNil } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
@@ -28,13 +28,20 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { NationalAudienceModel } from '../common/models/audience-data.model';
+import { GfpShaderKeys } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
+import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
+import { fetchableAudiences } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { allCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
-import { getAllMappedAudiences, getFirstTimeCustomShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
-import { GfpShaderKeys } from '../common/models/ui-enums';
+import {
+  getAllMappedAudiences,
+  getFirstTimeCustomShadedAudiences,
+  getNationalShadingAudiences
+} from '../impower-datastore/state/transient/transient.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -64,6 +71,7 @@ export class AppRendererService {
               private esriService: EsriService,
               private esriShaderService: EsriShadingService,
               private esriLayerService: EsriLayerService,
+              private audienceFetch: AudienceFetchService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
@@ -77,6 +85,7 @@ export class AppRendererService {
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapWatcher(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapVarWatcher(this.impGeoService.storeObservable);
+      this.setupLocalLayerWatcher();
     });
   }
 
@@ -129,7 +138,7 @@ export class AppRendererService {
           this.esriShaderService.deleteShader(sd);
         }else
           this.updateForAnalysisLevel(sd, al, true);
-      
+
       });
       if (shadingDefinitions.length === 0) {
         shadingDefinitions.push(this.createSelectionShadingDefinition(al, false));
@@ -138,24 +147,35 @@ export class AppRendererService {
     });
   }
 
+  private setupLocalLayerWatcher() : void {
+    this.store$.select(shadingSelectors.readyLocalLayerDefs).subscribe(defs => {
+
+    });
+    combineLatest([this.store$.select(shadingSelectors.visibleLocalLayerDefs), this.store$.select(getNationalShadingAudiences)]).pipe(
+      withLatestFrom(this.appStateService.analysisLevel$, this.store$.select(fetchableAudiences))
+    ).subscribe(([[defs, nationalAudiences], analysisLevel, audiences]) => {
+      this.logger.debug.log('Calling National Map Update', { defs, nationalAudiences, analysisLevel, audiences });
+      this.updateNationalMap(defs, nationalAudiences, analysisLevel, audiences);
+    });
+  }
+
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>, tradeAreaDataStore: Observable<ImpGeofootprintTradeArea[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
 
     this.selectedWatcher = combineLatest([geoDataStore, this.store$.select(projectIsReady)]).pipe(
       filter(([geos, ready]) => ready && geos != null),
-      map(([geos]) => geos as ImpGeofootprintGeo[]),
+      map(([geos]) => geos),
       debounceTime(500),
       withLatestFrom(
         tradeAreaDataStore,
         this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueSelectedGeocodeSet$
       ),
-      map(([geos, tas, layerDefs, visibleGeos]) => ([ geos, tas, layerDefs, visibleGeos ] as const))
     ).subscribe(([geos, tas, currentLayerDefs, visibleGeos]) => {
       const newDefs: ShadingDefinition[] = [];
       currentLayerDefs.forEach(definition => {
         const newDef = duplicateShadingDefinition(definition);
-        if (newDef != null && isComplexShadingDefinition(newDef)) {
+        if (newDef != null && isComplexShadingDefinition(newDef) && !newDef.useLocalGeometry) {
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
               newDef.arcadeExpression = null;
@@ -171,7 +191,7 @@ export class AppRendererService {
                 newDef.arcadeExpression = null;
                 this.updateForPcrIndicator(newDef, geos, visibleGeos);
                 newDefs.push(newDef);
-                break;  
+                break;
             case GfpShaderKeys.Selection:
               // noop
               break;
@@ -569,6 +589,7 @@ export class AppRendererService {
     const allUniqueValues = new Set<string>();
     const uniquesToKeep = new Set<string>();
     const allValuesForStats: number[] = [];
+    if (definition.useLocalGeometry) return;
     const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
       switch (definition.shadingType) {
         case ConfigurationTypes.Unique:
@@ -638,6 +659,37 @@ export class AppRendererService {
     }
   }
 
+  updateLocalLayerDefinitionData(definition: ShadingDefinition, varPk: number, response: NationalAudienceModel) {
+    let colorPalette: RgbTuple[] = [];
+    let fillPalette: FillPattern[] = [];
+    if (isComplexShadingDefinition(definition)) {
+      colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
+      fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+    }
+
+    if (isArcadeCapableShadingDefinition(definition)) {
+      definition.arcadeExpression = `if (haskey($feature, '${varPk}')) { return $feature['${varPk}']; } else return null;`;
+    }
+
+    switch (definition.shadingType) {
+      case ConfigurationTypes.Unique:
+        definition.breakDefinitions = generateUniqueValues(response.stats[varPk].uniqueValues, colorPalette, fillPalette, false);
+        break;
+      case ConfigurationTypes.Ramp:
+        definition.breakDefinitions = generateContinuousValues(response.stats[varPk], colorPalette);
+        break;
+      case ConfigurationTypes.ClassBreak:
+        if (definition.dynamicallyAllocate) {
+          let symbology = [ ...(definition.userBreakDefaults || []) ];
+          if (definition.dynamicLegend) {
+            symbology = generateDynamicSymbology(response.stats[varPk], colorPalette, fillPalette);
+          }
+          definition.breakDefinitions = generateDynamicClassBreaks(response.stats[varPk], definition.dynamicAllocationType, symbology);
+        }
+        break;
+    }
+  }
+
   updateForPcrIndicator(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], visibleGeos: Set<string>){
     const allUniqueValues = new Set<string>();
 
@@ -648,7 +700,7 @@ export class AppRendererService {
         }else if (geo.geocode.substr(5, 1) != 'B'){
             allUniqueValues.add(`${geo.geocode.substr(5, 1)}XXX`);
         }
-      }   
+      }
     });
     let uniqueValues: string[] = [];
     uniqueValues = Array.from(allUniqueValues);
@@ -662,14 +714,14 @@ export class AppRendererService {
     valueIndexMap['ZIP'] = `${uniqueValues.length + 1}`;
     const stringifiedData = JSON.stringify(valueIndexMap);
     //subStr = when(count(subStr) == 5, subStr, Left(subStr, 1) != 'B', subStr, '');
-    //var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', $feature.geocode); 
-    const expression = `var uniqueVal = ${stringifiedData}; 
+    //var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', $feature.geocode);
+    const expression = `var uniqueVal = ${stringifiedData};
     var subStr = when(count($feature.geocode) > 5, Mid($feature.geocode,5,1)+'XXX', 'ZIP');
     if(haskey(uniqueVal, subStr)){
       return uniqueVal[subStr];
     }
     return null;
-    `; 
+    `;
     let colorPalette: RgbTuple[] = [];
     let fillPalette: FillPattern[] = [];
     if (isComplexShadingDefinition(definition)) {
@@ -681,5 +733,19 @@ export class AppRendererService {
     }
     if (definition.shadingType == ConfigurationTypes.Unique)
       definition.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, new Set(uniqueValues));
+  }
+
+  private updateNationalMap(defs: ShadingDefinition[], nationalAudiences: Audience[], analysisLevel: string, audiences: Audience[]) : void {
+    if (!isNil(analysisLevel) && !isEmpty(nationalAudiences)) {
+      this.audienceFetch.getNationalAudienceData(nationalAudiences, audiences, analysisLevel, false).subscribe(response => {
+        defs.forEach(def => {
+          const currentVarPk = isConvertibleToNumber(def.dataKey) ? Number(def.dataKey) : null;
+          if (!isNil(currentVarPk)) {
+            this.esriLayerService.updateLocalLayerData(def.destinationLayerUniqueId, response.data);
+            this.updateLocalLayerDefinitionData(def, currentVarPk, response);
+          }
+        });
+      });
+    }
   }
 }

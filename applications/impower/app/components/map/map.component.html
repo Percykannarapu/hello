@@ -9,6 +9,9 @@
         <button type="button" pButton label="Zoom to TA" class="p-button-outlined p-ml-2" (click)="onZoom()"  title="Zoom to TA"></button>
       </additional-toolbar-buttons>
       <additional-toolbar-group>
+        <div *ngIf="showLayerProgress$ | async">
+          <p-progressBar mode="indeterminate"></p-progressBar>
+        </div>
         <div class="p-col-12 analysis-wrapper">
           <div *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
             <strong>Analysis Level = {{currentAnalysisLevel}}</strong>

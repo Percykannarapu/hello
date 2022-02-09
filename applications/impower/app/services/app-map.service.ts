@@ -5,8 +5,8 @@ import Home from '@arcgis/core/widgets/Home';
 import Legend from '@arcgis/core/widgets/Legend';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import Search from '@arcgis/core/widgets/Search';
-import { EsriDomainFactory, EsriMapService, EsriUtils } from '@val/esri';
-import { Subject } from 'rxjs';
+import { EsriDomainFactory, EsriLayerService, EsriMapService, EsriUtils } from '@val/esri';
+import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AppComponentGeneratorService } from './app-component-generator.service';
@@ -17,10 +17,12 @@ import { AppProjectPrefService } from './app-project-pref.service';
 export class AppMapService {
 
   public popupSelection$ = new Subject<__esri.Graphic[]>();
+  public showLayerProgress$: Observable<boolean> = this.layerService.longLayerLoadInProgress$.asObservable();
 
   constructor(private componentGenerator: AppComponentGeneratorService,
               private appProjectPrefService: AppProjectPrefService,
               private mapService: EsriMapService,
+              private layerService: EsriLayerService,
               private logger: AppLoggingService,
               private config: AppConfig,
               private zone: NgZone) {}

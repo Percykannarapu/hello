@@ -40,6 +40,7 @@ export interface ShadingDefinitionBase {
   defaultSymbolDefinition: FillSymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
+  useLocalGeometry?: boolean;
   isCustomAudienceShader: boolean;
   refreshLegendOnRedraw?: boolean;
   shaderNeedsDataFetched?: boolean;

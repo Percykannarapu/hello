@@ -4,7 +4,7 @@ import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/tasks/support/Query';
 import { chunkArray, getUuid, isNumberArray, isStringArray } from '@val/common';
 import { EMPTY, from, merge, Observable } from 'rxjs';
-import { expand, filter, finalize, map, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
+import { expand, filter, finalize, map, mergeAll, mergeMap, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
@@ -67,15 +67,16 @@ export class EsriQueryService {
     return result;
   }
 
-  private static getNextQuery(featureSet: __esri.FeatureSet, query: __esri.Query) : { result: __esri.FeatureSet, next: __esri.Query } {
+  private static getNextQuery(featureSet: __esri.FeatureSet, query: __esri.Query, maxStreams: number) : { result: __esri.FeatureSet, next: __esri.Query } {
     const result = {
       result: featureSet,
       next: null
     };
+    const nextStartRecord = (query.start ?? 0) + (query.num * maxStreams);
     if (featureSet.exceededTransferLimit) {
       const nextQuery = query.clone();
-      nextQuery.num = featureSet.features.length;
-      nextQuery.start = (query.start || 0) + featureSet.features.length;
+      nextQuery.num = query.num;
+      nextQuery.start = nextStartRecord;
       result.next = nextQuery;
     }
     return result;
@@ -170,6 +171,32 @@ export class EsriQueryService {
     );
   }
 
+  public executeParallelQuery(layerId, baseQuery: __esri.Query, pageSize: number = 5000, streams: number = 5) : Observable<__esri.FeatureSet> {
+    const txId = getUuid();
+    const count$ = from(this.mapService.mapView.when()).pipe(
+      map(() => this.layerService.getQueryLayer(layerId, txId, true)),
+      switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
+      map(layer => layer.sourceJSON['maxRecordCount'] as number),
+    );
+    return count$.pipe(
+      tap(() => console.log('Starting parallel queries')),
+      map(count => this.createParallelQueries(baseQuery, pageSize, count)),
+      switchMap(queries => merge(...(queries.map(q => this.executeFeatureQuery(layerId, q, txId, true))), streams)),
+      finalize(() => this.finalizeQuery(txId))
+    );
+  }
+
+  private createParallelQueries(baseQuery: __esri.Query, pageSize: number, maxLayerCount: number) : __esri.Query[] {
+    const streamCount = Math.ceil(maxLayerCount / pageSize);
+    const streamMap: number[] = [...Array(streamCount)].map((_, i) => i);
+    return streamMap.map(stream => {
+      const currentQuery = baseQuery.clone();
+      currentQuery.num = pageSize;
+      currentQuery.start = stream * pageSize;
+      return currentQuery;
+    });
+  }
+
   private query(layerId: string, queries: __esri.Query[], transactionId: string, isLongLivedQueryLayer: boolean = false) : Observable<__esri.Graphic[]> {
     const observables: Observable<__esri.FeatureSet>[] = [];
     for (const query of queries) {
@@ -182,9 +209,9 @@ export class EsriQueryService {
     );
   }
 
-  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
+  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean,  maxStreams: number = 1) : Observable<__esri.FeatureSet> {
     const recursiveQuery$ = (id: string, q: __esri.Query) =>
-      this.executeFeatureQuery(id, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
+      this.executeFeatureQuery(id, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q, maxStreams)));
 
     return recursiveQuery$(layerId, query).pipe(
       expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
