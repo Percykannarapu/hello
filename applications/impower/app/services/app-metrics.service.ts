@@ -22,12 +22,9 @@ import { geoTransactionId } from 'app/impower-datastore/state/transient/transact
 import { AudienceFetchService} from '../impower-datastore/services/audience-fetch.service';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 
-//const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
-
 const varPkMap = new Map<number, string>([
-  [5020, 'cl2i00'],
-  [1001, 'cl0c00'],
-  [1086, 'cl2prh']
+  [5020, 'cl2i00'], [1001, 'cl0c00'], [1086, 'cl2prh'], [33013, 'city_name'], [14001, 'cov_desc'], [40690, 'dma_name'], [30534, 'cov_frequency'], [33024, 'owner_group_primary'],
+  [14029, 'pob'], [9103, 'num_ip_addrs'], [14031, 'hhld_s'], [14032, 'hhld_w'], [40912, 'tap049']
 ]);
 
 export interface MetricDefinition<T> {
