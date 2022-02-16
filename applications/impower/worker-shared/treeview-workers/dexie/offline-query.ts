@@ -103,4 +103,8 @@ export class OfflineQuery {
     this.ready$.next(true);
     await this.refresh.add({ timestamp: now });
   }
+
+  retrieveAudiences(varPks: number[]) : Promise<OfflineAudienceResponse[]> {
+    return this.audiences.where('pk').anyOf(varPks).toArray();
+  }
 }

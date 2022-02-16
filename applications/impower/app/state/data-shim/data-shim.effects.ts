@@ -3,7 +3,8 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
-import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { LoggingService } from '../../../../../modules/esri/src/services/logging.service';
 import {
   GeoAttributeActionTypes,
   GetLayerAttributesComplete,
@@ -140,7 +141,13 @@ export class DataShimEffects {
   calculateMetrics$ = this.actions$.pipe(
     ofType(DataShimActionTypes.CalculateMetrics),
     withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project))
+    tap(([, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project)),
+    switchMap(([, , , project]) => this.appDataShimService.getAudience()),
+    switchMap(audiences => this.appDataShimService.getAudienceVariables(audiences)),
+    map(variables => {
+      this.logger.debug.log('TODO: convert variables to geoAttributes: ', variables);
+    })
+
   );
 
   @Effect()
@@ -185,5 +192,6 @@ export class DataShimEffects {
   constructor(private actions$: Actions,
               private store$: Store<FullAppState>,
               private appDataShimService: AppDataShimService,
-              private appTradeService: AppTradeAreaService) {}
+              private appTradeService: AppTradeAreaService,
+              private logger: LoggingService) {}
 }

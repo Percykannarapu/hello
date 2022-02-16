@@ -273,6 +273,14 @@ export class AppDataShimService {
     this.metricService.onMetricsChanged(result);
   }
 
+   getAudience(){
+    return  this.metricService.getColorBoxAudience();
+  }
+
+  getAudienceVariables(audiences: Audience[]){
+    return this.metricService.getAudienceVariaables(audiences);
+  }
+
   prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
     const hhcField = project.impGeofootprintMasters[0].methSeason === 'S' ? 'hhld_s' : 'hhld_w';
     geos.forEach(geo => {

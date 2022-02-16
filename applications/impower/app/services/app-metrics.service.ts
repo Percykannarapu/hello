@@ -1,9 +1,9 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { isConvertibleToNumber } from '@val/common';
+import { isConvertibleToNumber, mapBy, mapByExtended } from '@val/common';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { combineLatest, Observable, Subscription } from 'rxjs';
-import { filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
+import { filter, map, switchMap, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { FullAppState } from '../state/app.interfaces';
@@ -11,6 +11,24 @@ import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppStateService } from './app-state.service';
+import { WorkerFactory } from '../common/worker-factory';
+import { UserService } from './user.service';
+import { TreeviewPayload } from '../../worker-shared/treeview-workers/payloads';
+import { OfflineQuery } from '../../worker-shared/treeview-workers/dexie/offline-query';
+import { AudienceDataDefinition} from '../common/models/audience-data.model';
+import { createOfflineAudienceInstance } from '../common/models/audience-factories';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
+import { AudienceFetchService} from '../impower-datastore/services/audience-fetch.service';
+import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
+
+//const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
+
+const varPkMap = new Map<number, string>([
+  [5020, 'cl2i00'],
+  [1001, 'cl0c00'],
+  [1086, 'cl2prh']
+]);
 
 export interface MetricDefinition<T> {
   metricValue: T;
@@ -32,10 +50,15 @@ export class ValMetricsService implements OnDestroy {
   private isWinter: boolean;
   private geoCpmMismatch: boolean;
   private mismatch$: Observable<boolean>;
+  private queryEngine: OfflineQuery;
+  private geoTxId$ = new BehaviorSubject<number | null>(null);
+  private destroyed$ = new Subject<void>();
 
   constructor(private config: AppConfig,
               private metricService: MetricService,
               private stateService: AppStateService,
+              private userService: UserService,
+              private fetchService: AudienceFetchService,
               private store$: Store<FullAppState>) {
     this.registerMetrics();
     this.stateService.applicationIsReady$.pipe(
@@ -47,6 +70,8 @@ export class ValMetricsService implements OnDestroy {
       this.mismatch$ = this.getMismatchObservable();
       this.mismatch$.subscribe(mismatch => this.geoCpmMismatch = mismatch);
     });
+    this.queryEngine = new OfflineQuery();
+    this.store$.select(geoTransactionId).pipe(takeUntil(this.destroyed$)).subscribe(this.geoTxId$);
   }
 
   public ngOnDestroy() : void {
@@ -343,4 +368,30 @@ export class ValMetricsService implements OnDestroy {
       }
     }
   }
+
+  public async getColorBoxAudience(){
+    
+    const audienceResponse = await this.queryEngine.retrieveAudiences(Array.from(varPkMap.keys()));
+    const audiences: Audience[] = [];
+    audienceResponse.forEach(aud => {
+        audiences.push(createOfflineAudienceInstance(aud.fielddescr, `${aud.pk}`, aud.fieldconte) as Audience);
+    });
+    return audiences;
+  }
+
+  public getAudienceVariaables(audiences: Audience[]){
+
+    return this.store$.pipe(
+      select(geoTransactionId),
+      switchMap(txId => this.fetchService.getCachedAudienceData(audiences, audiences, this.stateService.analysisLevel$.getValue(), txId, false))
+    );
+  }
+
+  public convertVariablesToGeoAttributes(variables: DynamicVariable[]){
+
+    const geoAttributes = mapBy(variables, 'geocode');
+
+  }
+
+  
 }
