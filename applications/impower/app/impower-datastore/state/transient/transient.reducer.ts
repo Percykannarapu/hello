@@ -5,6 +5,7 @@ import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
 import * as fromGeoVars from './geo-vars/geo-vars.reducer';
 import * as fromMapVars from './map-vars/map-vars.reducer';
 import * as fromTransactions from './transactions/transactions.reducer';
+import * as fromMetricVars from './metric-vars/metric-vars.reducer';
 
 export interface ImpowerTransientState {
   audiences: fromAudience.State;
@@ -13,6 +14,7 @@ export interface ImpowerTransientState {
   mapVars: fromMapVars.State;
   geoAttributes: fromGeoAttribute.State;
   transactions: fromTransactions.State;
+  metricVars: fromMetricVars.State;
 }
 
 const transientReducers: ActionReducerMap<ImpowerTransientState> = {
@@ -22,6 +24,7 @@ const transientReducers: ActionReducerMap<ImpowerTransientState> = {
   mapVars: fromMapVars.reducer,
   geoAttributes: fromGeoAttribute.reducer,
   transactions: fromTransactions.reducer,
+  metricVars: fromMetricVars.reducer,
 };
 
 const metaReducer: ActionReducer<ImpowerTransientState> = combineReducers(transientReducers);

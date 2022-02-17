@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
+import { FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { LoggingService } from '../../../../../modules/esri/src/services/logging.service';
@@ -144,11 +145,7 @@ export class DataShimEffects {
     tap(([, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project)),
     switchMap(([, , , project]) => this.appDataShimService.getAudience()),
     switchMap(audiences => this.appDataShimService.getAudienceVariables(audiences)),
-    map(variables => {
-      this.logger.debug.log('TODO: convert variables to geoAttributes: ', variables);
-    })
-
-  );
+    map(metricVars => new FetchMetricVarsComplete({metricVars})));
 
   @Effect()
   tradeAreaRollDownGeos$ = this.actions$.pipe(

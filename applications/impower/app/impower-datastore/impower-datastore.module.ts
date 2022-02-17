@@ -7,6 +7,7 @@ import { PersistentEffects } from './state/persistent/persistent.effects';
 import { GeoAttributesEffects } from './state/transient/geo-attributes/geo-attributes.effects';
 import { GeoVarsEffects } from './state/transient/geo-vars/geo-vars.effects';
 import { MapVarsEffects } from './state/transient/map-vars/map-vars.effects';
+import { MetricVarsEffects } from './state/transient/metric-vars/metric-vars.effects';
 import { TransactionsEffects } from './state/transient/transactions/transactions.effects';
 
 const allEffects = [
@@ -14,7 +15,8 @@ const allEffects = [
   GeoAttributesEffects,
   GeoVarsEffects,
   MapVarsEffects,
-  TransactionsEffects
+  TransactionsEffects,
+  MetricVarsEffects
 ];
 
 @NgModule({
