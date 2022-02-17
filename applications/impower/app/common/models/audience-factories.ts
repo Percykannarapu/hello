@@ -37,7 +37,7 @@ export function createExistingAudienceInstance(projectVar: ImpProjectVar) : Audi
 }
 
 export function createOfflineAudienceInstance(name: string, id: string, fieldConte: FieldContentTypeCodes,
-                                              isInGfp: boolean = true, isInGrid: boolean = false, sortOrder?: number) : AudienceDataDefinition {
+                                              isInGfp: boolean = true, isInGrid: boolean = false, sortOrder: number = 0) : AudienceDataDefinition {
   return {
     audienceName: name,
     audienceIdentifier: id,

@@ -2,18 +2,27 @@
   <ng-template pTemplate="header">
   </ng-template>
   <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-    <tr>
-      <td class="val-popup-cell-title" pTooltip="{{rowData.name}}" tooltipPosition="left"
-          [ngClass]="{ 'val-popup-toggle-cell': rowData.isToggle, 'val-popup-child-cell': rowData.isChild, 'val-message-cell': rowData.isMessageNode }"
-          [escape]="false" [tooltipDisabled]="!rowData.isChild">
-        <p-treeTableToggler [rowNode]="rowNode" *ngIf="rowData.isToggle"></p-treeTableToggler>
-        <span [innerHTML]="rowData.name"></span>
+    <tr *ngIf="loadingAudienceData || loadingPrimaryData">
+      <td>
+        <p-progressSpinner></p-progressSpinner>
       </td>
-      <td *ngIf="!rowData.isNumber" class="val-popup-cell-value" pTooltip="{{rowData.value}}" tooltipPosition="left">
-        {{rowData.value}}
+    </tr>
+    <tr *ngIf="!loadingPrimaryData && !loadingAudienceData">
+      <td class="esri-truncate-all">
+        <div [title]="rowData.name" [ngClass]="{ 'esri-popup-root-node': rowNode.parent == null }">
+          <p-treeTableToggler [rowNode]="rowNode" ></p-treeTableToggler>
+          {{ rowData.name }}
+        </div>
       </td>
-      <td *ngIf="rowData.isNumber" class="val-popup-cell-value">
-        {{rowData.value | number: rowData.digitsInfo}}
+      <td *ngIf="!rowData.isNumber" class="esri-truncate-all esri-popup-value">
+        <div [title]="rowData.value">{{rowData.value}}</div>
+      </td>
+      <td *ngIf="rowData.isNumber" [ngSwitch]="rowData.numberFormat" class="esri-popup-value">
+        <div>
+          <ng-container *ngSwitchCase="'percent'">{{ rowData.value | percent:rowData.digitsInfo }}</ng-container>
+          <ng-container *ngSwitchCase="'currency'">{{ rowData.value | currency }}</ng-container>
+          <ng-container *ngSwitchDefault>{{ rowData.value | number:rowData.digitsInfo }}</ng-container>
+        </div>
       </td>
     </tr>
   </ng-template>

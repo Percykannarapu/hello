@@ -44,11 +44,14 @@ export class AppConfig implements LoggingConfiguration {
   };
 
   private nationalTransactionIds = {
-    atz: 2
+    zip: 1,
+    atz: 2,
+    dtz: 3,
+    pcr: 4
   };
 
   public analysisLevelToLayerKey(analysisLevel: string) : string {
-    switch ((analysisLevel || '').toLowerCase()) {
+    switch ((analysisLevel ?? '').toLowerCase()) {
       case 'digital atz':
         return 'dtz';
       case '':
@@ -79,5 +82,15 @@ export class AppConfig implements LoggingConfiguration {
   public getNationalTxId(analysisLevel: string) : number {
     const analysisKey = this.analysisLevelToLayerKey(analysisLevel);
     return this.nationalTransactionIds[analysisKey];
+  }
+
+  public layerIdToAnalysisLevel(boundaryLayerId: string) : string {
+    let result = null;
+    Object.keys(EnvironmentData.layerIds).forEach(k => {
+      if (EnvironmentData.layerIds[k].boundary === boundaryLayerId || EnvironmentData.layerIds[k].simplifiedBoundary === boundaryLayerId) {
+        result = k;
+      }
+    });
+    return result;
   }
 }

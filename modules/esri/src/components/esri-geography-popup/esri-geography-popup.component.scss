@@ -1,31 +1,11 @@
-body .p-treetable .p-treetable-tbody > tr > td {
-  &.val-popup-cell-value {
-    border-left: 1px solid #cacaca;
-    border-right: 1px solid #cacaca;
-    padding: 0 0 0 0.25rem;
+.esri-truncate-all {
+  min-width: 0;
+  div {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  &.val-popup-cell-title {
-    border-left: 1px solid #cacaca;
-    border-right: 1px solid #cacaca;
-    padding: 0.25rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  &.val-popup-toggle-cell {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  &.val-message-cell {
-    border-right: 0;
-    + td {
-      border-left: 0;
-    }
-  }
-  &.val-popup-child-cell {
-    padding-left: 2.75rem !important;
-  }
+}
+.esri-popup-value {
+  text-align: right !important;
 }

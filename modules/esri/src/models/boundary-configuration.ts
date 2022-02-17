@@ -4,21 +4,24 @@ import { applyFillChanges, applyLabelChanges, duplicateFill, duplicateLabel, Fil
 export interface PopupDefinition {
   titleExpression: string;
   useCustomPopup: boolean;
-  popupFields: string[];
-  secondaryPopupFields?: string[];
-  hiddenPopupFields?: string[];
+  includeInvestment: boolean;
+  popupFields?: string[];
+  customPopupPks?: number[];
+  customSecondaryPopupPks?: number[];
 }
 
 export function duplicatePopupDefinition(def: PopupDefinition) : PopupDefinition {
   const result = {
     ...def,
-    popupFields: [ ...def.popupFields ],
   };
-  if (def.secondaryPopupFields != null) {
-    result.secondaryPopupFields = [ ...def.secondaryPopupFields ];
+  if (def.popupFields != null) {
+    result.popupFields = [ ...def.popupFields ];
   }
-  if (def.hiddenPopupFields != null) {
-    result.hiddenPopupFields = [ ...def.hiddenPopupFields ];
+  if (def.customPopupPks != null) {
+    result.customPopupPks = [ ...def.customPopupPks ];
+  }
+  if (def.customSecondaryPopupPks != null) {
+    result.customSecondaryPopupPks = [ ...def.customSecondaryPopupPks ];
   }
   return result;
 }
@@ -26,16 +29,18 @@ export function duplicatePopupDefinition(def: PopupDefinition) : PopupDefinition
 export function applyPopupChanges(original: PopupDefinition, newValues: DeepPartial<PopupDefinition>) : PopupDefinition {
   if (original == null && newValues == null) return null;
   const usableNewValues = newValues || {};
-  const result = {
+  const result: PopupDefinition = {
     ...original,
     ...usableNewValues,
-    popupFields: Array.from(usableNewValues.popupFields || original.popupFields),
   };
-  if (original.secondaryPopupFields != null || usableNewValues.secondaryPopupFields != null) {
-    result.secondaryPopupFields = Array.from(usableNewValues.secondaryPopupFields || original.secondaryPopupFields);
+  if (original.popupFields != null || usableNewValues.popupFields != null) {
+    result.popupFields = Array.from(usableNewValues.popupFields || original.popupFields);
   }
-  if (original.hiddenPopupFields != null || usableNewValues.hiddenPopupFields != null) {
-    result.hiddenPopupFields = Array.from(usableNewValues.hiddenPopupFields || original.hiddenPopupFields);
+  if (original.customPopupPks != null || usableNewValues.customPopupPks != null) {
+    result.customPopupPks = Array.from(usableNewValues.customPopupPks || original.customPopupPks);
+  }
+  if (original.customSecondaryPopupPks != null || usableNewValues.customSecondaryPopupPks != null) {
+    result.customSecondaryPopupPks = Array.from(usableNewValues.customSecondaryPopupPks || original.customSecondaryPopupPks);
   }
   return result;
 }

@@ -6,7 +6,6 @@ export interface Audience {
   audienceName: string;
   showOnGrid: boolean;
   exportInGeoFootprint: boolean;
-  disableUISplit?: boolean;
   exportNationally: boolean;
   allowNationalExport: boolean;
   selectedDataSet?: string;

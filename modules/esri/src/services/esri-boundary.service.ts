@@ -4,6 +4,7 @@ import PopupTemplate from '@arcgis/core/PopupTemplate';
 import ActionButton from '@arcgis/core/support/actions/ActionButton';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
+import { isNil } from '@val/common';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -25,7 +26,7 @@ export class EsriBoundaryService {
   allVisibleBoundaryConfigs$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
   allLoadedBoundaryConfigs$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
 
-  private _popupFactory: (feature: __esri.Feature, fields: __esri.FieldInfo[], layerId: string, popupDefinition: PopupDefinition) => HTMLElement = null;
+  private _popupFactory: (feature: __esri.Feature, layerId: string, popupDefinition: PopupDefinition) => HTMLElement = null;
   private _popupThisContext: any = null;
 
   constructor(private layerService: EsriLayerService,
@@ -84,7 +85,7 @@ export class EsriBoundaryService {
     }
   }
 
-  setDynamicPopupFactory(factory: (feature: __esri.Feature, fields: __esri.FieldInfo[], layerId: string, popupDefinition: PopupDefinition) => HTMLElement, thisContext: any) {
+  setDynamicPopupFactory(factory: (feature: __esri.Feature, layerId: string, popupDefinition: PopupDefinition) => HTMLElement, thisContext: any) {
     this._popupFactory = factory;
     this._popupThisContext = thisContext;
   }
@@ -248,8 +249,8 @@ export class EsriBoundaryService {
       id: 'select-this',
       className: 'esri-icon-plus-circled'
     });
-    const definedFields = [...config.popupDefinition.popupFields, ...(config.popupDefinition.secondaryPopupFields || []), ...(config.popupDefinition.hiddenPopupFields || ['latitude', 'longitude'])];
-    const hiddenFields = new Set<string>(config.popupDefinition.hiddenPopupFields || ['latitude', 'longitude']);
+    const definedFields = isNil(config.popupDefinition.popupFields) ? ['latitude', 'longitude'] : ['latitude', 'longitude'].concat(config.popupDefinition.popupFields);
+    const hiddenFields = new Set<string>(['latitude', 'longitude']);
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new FieldInfo({ fieldName: f.name, label: f.alias, visible: !hiddenFields.has(f.name) }));
@@ -261,7 +262,7 @@ export class EsriBoundaryService {
       result.actions = [];
     }
     if (config.popupDefinition.useCustomPopup && this._popupFactory != null) {
-      result.content = (feature: __esri.Feature) => this._popupFactory.call(this._popupThisContext, feature, fieldInfos, config.portalId, config.popupDefinition);
+      result.content = (feature: __esri.Feature) => this._popupFactory.call(this._popupThisContext, feature, config.portalId, config.popupDefinition);
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }

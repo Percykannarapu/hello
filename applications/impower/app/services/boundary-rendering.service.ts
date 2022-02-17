@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { getUuid, mapByExtended } from '@val/common';
+import { getUuid, isNil, mapByExtended } from '@val/common';
 import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService } from '@val/esri';
 import { distinctUntilChanged, filter, take, withLatestFrom } from 'rxjs/operators';
 import { updateBoundaries } from '../../../../modules/esri/src/state/boundary/esri.boundary.actions';
@@ -224,8 +224,8 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
           useCustomPopup: false,
+          includeInvestment: false,
           popupFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
-          secondaryPopupFields: []
         },
       },
       {
@@ -238,8 +238,8 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'County: {COUNTY_NAM}, {STATE_ABBR}',
           useCustomPopup: false,
+          includeInvestment: false,
           popupFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long'],
-          secondaryPopupFields: []
         },
       },
       {
@@ -252,9 +252,10 @@ export class BoundaryRenderingService {
           customExpression: BoundaryRenderingService.getHHCLabelExpression('$feature.wrap_name', isSummer) },
         popupDefinition: {
           titleExpression: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-          useCustomPopup: false,
-          popupFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
-          secondaryPopupFields: []
+          useCustomPopup: true,
+          includeInvestment: false,
+          customPopupPks: [40690, 40691],
+          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       },
       {
@@ -268,9 +269,9 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
-          popupFields: ['dma_name', 'county_name', 'Investment'],
-          secondaryPopupFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language'],
-          hiddenPopupFields: ['latitude', 'longitude']
+          includeInvestment: true,
+          customPopupPks: [40690, 40691],
+          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       },
       {
@@ -286,9 +287,9 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
-          popupFields: ['dma_name', 'county_name', 'Investment'],
-          secondaryPopupFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language'],
-          hiddenPopupFields: ['latitude', 'longitude']
+          includeInvestment: true,
+          customPopupPks: [40690, 40691],
+          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       },
       {
@@ -304,9 +305,9 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
-          popupFields: ['dma_name', 'county_name', 'Investment'],
-          secondaryPopupFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
-          hiddenPopupFields: ['latitude', 'longitude']
+          includeInvestment: true,
+          customPopupPks: [40690, 40691],
+          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       },
       {
@@ -322,9 +323,9 @@ export class BoundaryRenderingService {
         popupDefinition: {
           titleExpression: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
-          popupFields: ['dma_name', 'county_name', 'Investment'],
-          secondaryPopupFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language'],
-          hiddenPopupFields: ['latitude', 'longitude']
+          includeInvestment: true,
+          customPopupPks: [40690, 40691],
+          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       }
     ];

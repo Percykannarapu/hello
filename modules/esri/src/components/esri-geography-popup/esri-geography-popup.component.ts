@@ -1,65 +1,35 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
-import { isConvertibleToNumber } from '@val/common';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TreeNode } from 'primeng/api';
-import { PopupDefinition } from '../../models/boundary-configuration';
 
-export interface NodeVariable {
-  digitRounding: number;
+export interface PopupTreeNodeData {
   name: string;
-  value: any;
-  isNumber: boolean;
+  sortOrder: number;
+  pk?: number;
+  value?: string | number;
+  isNumber?: boolean;
+  numberFormat?: 'percent' | 'currency' | 'none';
+  digitsInfo?: string;
   isMessageNode?: boolean;
-}
-
-interface AttributeField {
-  fieldName: string;
-  label?: string;
-  visible?: boolean;
-}
-
-function attributeToTreeNode(attribute: AttributeField, value: any, isChild: boolean) : TreeNode {
-  return {
-    data: {
-      name: attribute.label,
-      value: value,
-      isNumber: isConvertibleToNumber(value),
-      digitsInfo: '1.0-2',
-      isChild
-    },
-    leaf: true
-  };
-}
-
-function varToTreeNode(variable: NodeVariable) : TreeNode {
-  const digitsInfo = `1.${variable.digitRounding}-${variable.digitRounding}`;
-  return {
-    data: {
-      name: variable.name,
-      value: variable.value,
-      isNumber: variable.isNumber,
-      digitsInfo: digitsInfo,
-      isMessageNode: variable.isMessageNode,
-      isChild: true
-    },
-    leaf: true
-  };
 }
 
 @Component({
   selector: 'val-esri-geometry-popup',
   templateUrl: 'esri-geography-popup.component.html',
   styleUrls: ['./esri-geography-popup.component.scss'],
-  encapsulation: ViewEncapsulation.None
 })
 export class EsriGeographyPopupComponent implements OnInit {
 
-  data: TreeNode[];
+  private readonly secondaryRootName = 'Standard Variables';
+  private readonly audienceRootName = 'Selected Audiences';
+
+  data: TreeNode<PopupTreeNodeData>[];
 
   @Input() geocode: string;
-  @Input() selectedVars: NodeVariable[];
-  @Input() attributes: { [key: string] : any };
-  @Input() attributeFields: AttributeField[];
-  @Input() customPopupDefinition: PopupDefinition;
+  @Input() primaryTreeNodes: TreeNode<PopupTreeNodeData>[] = [];
+  @Input() secondaryTreeNodes: TreeNode<PopupTreeNodeData>[] = [];
+  @Input() audienceTreeNodes: TreeNode<PopupTreeNodeData>[] = [];
+  @Input() loadingPrimaryData: boolean = false;
+  @Input() loadingAudienceData: boolean = false;
 
   @Output() needsRefresh = new EventEmitter<any>();
 
@@ -69,59 +39,38 @@ export class EsriGeographyPopupComponent implements OnInit {
     this.refreshTreeview();
   }
 
-  onExpand(node: TreeNode) {
+  onExpand(node: TreeNode<PopupTreeNodeData>) {
     this.nodeExpandState[node.data.name] = true;
     this.needsRefresh.emit(this.nodeExpandState);
   }
 
-  onCollapse(node: TreeNode) {
+  onCollapse(node: TreeNode<PopupTreeNodeData>) {
     this.nodeExpandState[node.data.name] = false;
     this.needsRefresh.emit(this.nodeExpandState);
   }
 
   public refreshTreeview() {
-    this.data = this.getDataTree();
+    const result = Array.from(this.primaryTreeNodes);
+    let sortNum = this.primaryTreeNodes.length;
+    if (this.secondaryTreeNodes.length > 0) {
+      result.push(this.createRootNode(this.secondaryRootName, this.secondaryTreeNodes, sortNum++));
+    }
+    if (this.audienceTreeNodes.length > 0) {
+      result.push(this.createRootNode(this.audienceRootName, this.audienceTreeNodes, sortNum));
+    }
+    this.data = result;
   }
 
-  private getDataTree() : TreeNode[] {
-    const result: TreeNode[] = this.getRootAttributeNodes();
-    result.push(this.getSelectedVariableTree());
-    result.push(this.getStandardVariableTree());
-    return result.filter(node => node != null);
-  }
-
-  private getRootAttributeNodes() : TreeNode[] {
-    const rootNameSet = new Set<string>(this.customPopupDefinition.popupFields);
-    const rootAttributes = this.attributeFields.filter(f => rootNameSet.has(f.fieldName));
-    return rootAttributes.map(attr => attributeToTreeNode(attr, this.attributes[attr.fieldName], false));
-  }
-
-  private getSelectedVariableTree() : TreeNode {
-    if (this.selectedVars.length === 0) return null;
+  private createRootNode(rootName: string, childNodes: TreeNode<PopupTreeNodeData>[], sortOrder: number) : TreeNode<PopupTreeNodeData> {
     return {
       data: {
-        name: 'Selected Audiences',
+        name: rootName,
         isMessageNode: true,
-        isToggle: true
+        sortOrder
       },
       leaf: false,
-      expanded: this.nodeExpandState['Selected Audiences'] ?? false,
-      children: this.selectedVars.map(v => varToTreeNode(v))
-    };
-  }
-
-  private getStandardVariableTree() : TreeNode {
-    const standardNameSet = new Set<string>(this.customPopupDefinition.secondaryPopupFields);
-    const standardAttributes = this.attributeFields.filter(f => standardNameSet.has(f.fieldName));
-    return {
-      data: {
-        name: 'Standard Variables',
-        isMessageNode: true,
-        isToggle: true
-      },
-      leaf: false,
-      expanded: this.nodeExpandState['Standard Variables'] ?? true,
-      children: standardAttributes.map(attr => attributeToTreeNode(attr, this.attributes[attr.fieldName], true))
+      expanded: this.nodeExpandState[rootName] ?? false,
+      children: Array.from(childNodes)
     };
   }
 }

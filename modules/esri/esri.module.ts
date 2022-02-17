@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTableModule } from 'primeng/treetable';
@@ -68,6 +69,7 @@ const PUBLIC_COMPONENTS = [
         FormsModule,
         EffectsModule.forFeature(allEffects),
         TooltipModule,
+        ProgressSpinnerModule,
     ],
   declarations: [
     EsriToolbarComponent,
