@@ -36,9 +36,6 @@ const emptyStatistic: Statistics = {
   variance: 0,
   stdDeviation: 0,
   distance: 0,
-  meanIntervals: [],
-  quantiles: [],
-  uniqueValues: []
 };
 const collection = new Map<string | number, StatisticCollector>();
 
@@ -98,7 +95,12 @@ export function getIntervalsFromCollectedStats(collectedStats: CollectedStatisti
 }
 
 export function getEmptyStatistic() : Statistics {
-  return { ... emptyStatistic };
+  return {
+    ... emptyStatistic,
+    meanIntervals: Array.from<number>([]),
+    quantiles: Array.from<number>([]),
+    uniqueValues: Array.from<string>([])
+  };
 }
 
 export function calculateStatistics(data: number[], intervalCount: number = 0) : Statistics {

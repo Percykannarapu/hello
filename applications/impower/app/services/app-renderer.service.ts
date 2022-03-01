@@ -148,15 +148,15 @@ export class AppRendererService {
   }
 
   private setupLocalLayerWatcher() : void {
-    this.store$.select(shadingSelectors.readyLocalLayerDefs).subscribe(defs => {
-
-    });
-    combineLatest([this.store$.select(shadingSelectors.visibleLocalLayerDefs), this.store$.select(getNationalShadingAudiences)]).pipe(
-      withLatestFrom(this.appStateService.analysisLevel$, this.store$.select(fetchableAudiences))
-    ).subscribe(([[defs, nationalAudiences], analysisLevel, audiences]) => {
-      this.logger.debug.log('Calling National Map Update', { defs, nationalAudiences, analysisLevel, audiences });
-      this.updateNationalMap(defs, nationalAudiences, analysisLevel, audiences);
-    });
+    // this.store$.select(shadingSelectors.readyLocalLayerDefs).subscribe(defs => {
+    //
+    // });
+    // combineLatest([this.store$.select(shadingSelectors.visibleLocalLayerDefs), this.store$.select(getNationalShadingAudiences)]).pipe(
+    //   withLatestFrom(this.appStateService.analysisLevel$, this.store$.select(fetchableAudiences))
+    // ).subscribe(([[defs, nationalAudiences], analysisLevel, audiences]) => {
+    //   this.logger.debug.log('Calling National Map Update', { defs, nationalAudiences, analysisLevel, audiences });
+    //   this.updateNationalMap(defs, nationalAudiences, analysisLevel, audiences);
+    // });
   }
 
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>, tradeAreaDataStore: Observable<ImpGeofootprintTradeArea[]>) : void {
