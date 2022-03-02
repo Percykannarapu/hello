@@ -54,7 +54,7 @@ export function isObject(value: any) : value is Object {
   return value !== null && typeof value === 'object';
 }
 
-export function isArray(value: any)  : value is any[] {
+export function isArray<T = any>(value: any)  : value is T[] {
   return Array.isArray(value); // returns false for null & undefined as well
 }
 
