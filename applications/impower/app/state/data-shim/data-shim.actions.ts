@@ -26,6 +26,7 @@ export enum DataShimActionTypes {
   FiltersChanged = '[Application Data Shim] Project Filters Changed',
 
   CalculateMetrics = '[Application Data Shim] Calculate Color box metrics',
+  ProcessMetrics = '[Application Data Shim] Process Color box metrics',
 
   ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
 
@@ -122,6 +123,10 @@ export class CalculateMetrics implements Action {
   readonly type = DataShimActionTypes.CalculateMetrics;
 }
 
+export class ProcessMetrics implements Action {
+  readonly type = DataShimActionTypes.ProcessMetrics;
+}
+
 export class ProjectLoadFinish implements Action {
   readonly type = DataShimActionTypes.ProjectLoadFinish;
 }
@@ -206,4 +211,4 @@ export type DataShimActions =
   ExportCustomTAIssuesLog|
   ExportMCIssuesLog|
   DeleteCustomTAGeos| DeleteMustCoverGeos | DeleteCustomData |
-  DeleteCustomTAMustCoverGeosReset;
+  DeleteCustomTAMustCoverGeosReset| ProcessMetrics;

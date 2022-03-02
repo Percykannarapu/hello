@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
-import { FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
+import { getMapVarEntities } from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
+import { ClearMetricVars, FetchMetricVarsComplete, MetricVarActionTypes } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
+import { getMetricVarEntities, getMetricVars, metricVarSlice } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.selectors';
+import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { LoggingService } from '../../../../../modules/esri/src/services/logging.service';
@@ -23,6 +26,7 @@ import {
   DataShimActionTypes,
   FiltersChanged,
   MustCoverRollDownGeos,
+  ProcessMetrics,
   ProjectLoad,
   ProjectLoadFailure,
   ProjectLoadFinish,
@@ -105,7 +109,7 @@ export class DataShimEffects {
   @Effect()
   processGeoAttributes$ = this.actions$.pipe(
     ofType<ProcessGeoAttributes>(GeoAttributeActionTypes.ProcessGeoAttributes),
-    withLatestFrom(this.store$.pipe(select(projectIsLoaded)), this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
+    withLatestFrom(this.store$.pipe(select(projectIsLoaded)), this.store$.pipe(select(getMetricVarEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
     tap(([, isLoaded, attrs, geos, project]) => {
       this.appDataShimService.prepGeoFields(geos, attrs, project);
       if (isLoaded) {
@@ -131,21 +135,33 @@ export class DataShimEffects {
   @Effect()
   filtersChanged$ = this.actions$.pipe(
     ofType<FiltersChanged>(DataShimActionTypes.FiltersChanged),
-    withLatestFrom(this.filterableGeos$, this.store$.select(selectGeoAttributeEntities), this.appDataShimService.currentProject$),
+    withLatestFrom(this.filterableGeos$, this.store$.select(getMetricVarEntities), this.appDataShimService.currentProject$),
     tap(([action, geos, attributes, project]) => {
       if (!action.payload.filterFlag) this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged);
       }),
     map(() => new CalculateMetrics())
   );
 
-  @Effect({ dispatch: false })
+  @Effect({dispatch: false})
   calculateMetrics$ = this.actions$.pipe(
     ofType(DataShimActionTypes.CalculateMetrics),
-    withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project)),
-    switchMap(([, , , project]) => this.appDataShimService.getAudience()),
-    switchMap(audiences => this.appDataShimService.getAudienceVariables(audiences)),
-    map(metricVars => new FetchMetricVarsComplete({metricVars})));
+    withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.appDataShimService.currentProject$),
+    switchMap(([, , project]) => this.appDataShimService.getAudience()),
+    switchMap(audience => this.appDataShimService.getAudienceVariables(audience)),
+    map(metricVars =>  this.appDataShimService.fetchMatricVars(metricVars) ));
+
+  @Effect({dispatch: false})
+  processMetrics$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProcessMetrics),
+    withLatestFrom(this.store$.pipe(select(getMetricVarEntities)), this.appDataShimService.currentActiveGeocodeSet$, this.appDataShimService.currentProject$),
+    tap(([, metricVars, geocodes, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), metricVars, project)),
+  );
+
+  @Effect()
+  metricVarsRequestSuccess$ = this.actions$.pipe(
+    ofType<FetchMetricVarsComplete>(MetricVarActionTypes.FetchMetricVarsComplete),
+    map(() => new ProcessMetrics())
+  );
 
   @Effect()
   tradeAreaRollDownGeos$ = this.actions$.pipe(

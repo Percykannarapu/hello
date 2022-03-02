@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { MessageBoxService } from '@val/messaging';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
@@ -33,6 +33,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
 
    constructor(private appStateService: AppStateService,
                private logger: LoggingService,
+               private cd: ChangeDetectorRef,
                private messageBoxService: MessageBoxService) {
      this.flags = new Map<string, boolean>();
     }
@@ -86,6 +87,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
      this.metric = keys[this.index];
      this.metricValue = this.model.get(this.metric);
      this.isFlagged = this.flags.get(this.metric) || false;
+     this.cd.detectChanges();
    }
 
    // Model methods that update the UI
@@ -93,6 +95,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
       this.model.set(key, value);
       this.flags.set(key, flag);
       this.updateModel(this.model);
+      this.cd.detectChanges();
    }
 
    public delete(key: string){
@@ -120,5 +123,6 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
          }
       }
       this.updateModel(this.model);
+      this.cd.detectChanges();
    }
 }

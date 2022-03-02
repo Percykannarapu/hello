@@ -16,7 +16,7 @@ export class ClearMetricVars implements Action {
 
 export class FetchMetricVars implements Action {
   readonly type = MetricVarActionTypes.FetchMetricVars;
-  constructor(public payload: { audiences: Audience[], txId: number }) {}
+  constructor(public payload: { audiences: Audience[]}) {}
 }
 
 export class FetchMetricVarsComplete implements Action {
@@ -28,6 +28,8 @@ export class FetchMetricVarsFailed implements Action {
   readonly type = MetricVarActionTypes.FetchMetricVarsFailed;
   constructor(public payload: { err: any }) {}
 }
+
+
 
 export type MetricVarActions =
 ClearMetricVars

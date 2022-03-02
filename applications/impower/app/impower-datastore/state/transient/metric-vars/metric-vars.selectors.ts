@@ -2,7 +2,7 @@ import { createSelector } from '@ngrx/store';
 import { transientSlice } from '../../impower-datastore.selectors';
 import * as fromMetricVars from './metric-vars.reducer';
 
-export const metricVarSlice = createSelector(transientSlice, state => state.mapVars);
+export const metricVarSlice = createSelector(transientSlice, state => state.metricVars);
 export const allMetricVars = createSelector(metricVarSlice, fromMetricVars.selectAll);
 export const allMetricVarEntities = createSelector(metricVarSlice, fromMetricVars.selectEntities);
 

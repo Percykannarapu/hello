@@ -22,7 +22,7 @@ import { clearTransientData } from '../impower-datastore/state/transient/transie
 import { createExistingAudienceInstance } from '../common/models/audience-factories';
 import { ProjectFilterChanged } from '../common/models/ui-enums';
 import { FullAppState, MustCoverPref } from '../state/app.interfaces';
-import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
+import { LayerSetupComplete, ProcessMetrics } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -41,7 +41,14 @@ import { BoundaryRenderingService } from './boundary-rendering.service';
 import { CustomDataService } from './custom-data.service';
 import { PoiRenderingService } from './poi-rendering.service';
 import { UnifiedAudienceService } from './unified-audience.service';
+import { ClearMetricVars, FetchMetricVars, FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
+import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
+import { FetchMapVarsComplete } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 
+const varPkMap = new Map<string, number>([
+  ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],
+  ['pob', 14029], ['num_ip_addrs', 9103], ['hhld_s', 14031], ['hhld_w', 14032], ['tap049', 40912]
+]);
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
  * until the data is held natively in NgRx and can be removed after that
@@ -214,7 +221,7 @@ export class AppDataShimService {
       filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
       tap(() => {
-        this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
+        //this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
       }),
       map(() => project)
     );
@@ -268,8 +275,9 @@ export class AppDataShimService {
     this.store$.dispatch(clearTransientData({ fullEntityWipe: true }));
   }
 
-  calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
-    const result = this.metricService.updateDefinitions(attribute, geocodes, project);
+  calcMetrics(geocodes: string[], attributes: { [geocode: string] : DynamicVariable }, project: ImpProject) : void {
+    const geoAttributes = this.metricService.convertVariablesToGeoAttributes(attributes);
+    const result = this.metricService.updateDefinitions(geoAttributes, geocodes, project);
     this.metricService.onMetricsChanged(result);
   }
 
@@ -278,18 +286,24 @@ export class AppDataShimService {
   }
 
   getAudienceVariables(audiences: Audience[]){
-    return this.metricService.getAudienceVariaables(audiences);
+    //this.store$.dispatch(new FetchMetricVars({audiences}));
+   return this.metricService.getAudienceVariaables(audiences);
   }
 
-  prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
+  fetchMatricVars(metricVars: DynamicVariable[]){
+    this.store$.dispatch(new ClearMetricVars());
+    this.store$.dispatch(new FetchMetricVarsComplete({metricVars}));
+  }
+
+  prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : DynamicVariable }, project: ImpProject) : void {
     const hhcField = project.impGeofootprintMasters[0].methSeason === 'S' ? 'hhld_s' : 'hhld_w';
     geos.forEach(geo => {
       const currentAttr = attributes[geo.geocode];
-      if (currentAttr != null) geo.hhc = Number(currentAttr[hhcField]);
+      if (currentAttr != null) geo.hhc = Number(currentAttr[varPkMap.get(hhcField)]);
     });
   }
 
-  filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : GeoAttribute }, currentProject: ImpProject, filterType?: ProjectFilterChanged) : void {
+  filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : DynamicVariable }, currentProject: ImpProject, filterType?: ProjectFilterChanged) : void {
     if (currentProject == null || geoAttributes == null || geos == null || geos.length === 0) return;
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
@@ -304,7 +318,7 @@ export class AppDataShimService {
         const filterReasons: string[] = [];
         let ignore: boolean = (filterType != null);
         let state: boolean;
-        switch (currentAttribute['owner_group_primary']) {
+        switch (currentAttribute[varPkMap.get('owner_group_primary')]) {
           case 'VALASSIS':
             if (filterType === ProjectFilterChanged.Valassis) ignore = false;
             if (!includeValassis) filterReasons.push('VALASSIS');
@@ -318,12 +332,12 @@ export class AppDataShimService {
           default:
             state = true;
         }
-        if (currentAttribute['cov_frequency'] === 'Solo') {
+        if (currentAttribute[varPkMap.get('cov_frequency')] === 'Solo') {
           if (filterType === ProjectFilterChanged.Solo) ignore = false;
           if (!includeSolo) filterReasons.push('SOLO');
           state = state && includeSolo;
         }
-        if (currentAttribute['pob'] === 'B') {
+        if (currentAttribute[varPkMap.get('pob')] === 'B') {
           if (filterType === ProjectFilterChanged.Pob) ignore = false;
           if (!includePob) filterReasons.push('POB');
           state = state && includePob;

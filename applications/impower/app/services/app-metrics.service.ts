@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { isConvertibleToNumber, mapBy, mapByExtended } from '@val/common';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, of, Subject, Subscription } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -21,10 +21,11 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
 import { AudienceFetchService} from '../impower-datastore/services/audience-fetch.service';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
+import { getMetricVars } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 
-const varPkMap = new Map<number, string>([
-  [5020, 'cl2i00'], [1001, 'cl0c00'], [1086, 'cl2prh'], [33013, 'city_name'], [14001, 'cov_desc'], [40690, 'dma_name'], [30534, 'cov_frequency'], [33024, 'owner_group_primary'],
-  [14029, 'pob'], [9103, 'num_ip_addrs'], [14031, 'hhld_s'], [14032, 'hhld_w'], [40912, 'tap049']
+const varPkMap = new Map<string, number>([
+  ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],
+  ['pob', 14029], ['num_ip_addrs', 9103], ['hhld_s', 14031], ['hhld_w', 14032], ['tap049', 40912]
 ]);
 
 export interface MetricDefinition<T> {
@@ -49,7 +50,6 @@ export class ValMetricsService implements OnDestroy {
   private mismatch$: Observable<boolean>;
   private queryEngine: OfflineQuery;
   private geoTxId$ = new BehaviorSubject<number | null>(null);
-  private destroyed$ = new Subject<void>();
 
   constructor(private config: AppConfig,
               private metricService: MetricService,
@@ -66,9 +66,10 @@ export class ValMetricsService implements OnDestroy {
       this.stateService.uniqueSelectedGeocodes$.subscribe(() => this.store$.dispatch(new CalculateMetrics()));
       this.mismatch$ = this.getMismatchObservable();
       this.mismatch$.subscribe(mismatch => this.geoCpmMismatch = mismatch);
+      this.store$.select(geoTransactionId).subscribe(this.geoTxId$);
     });
     this.queryEngine = new OfflineQuery();
-    this.store$.select(geoTransactionId).pipe(takeUntil(this.destroyed$)).subscribe(this.geoTxId$);
+    
   }
 
   public ngOnDestroy() : void {
@@ -305,15 +306,15 @@ export class ValMetricsService implements OnDestroy {
 
   private getMismatchObservable() : Observable<boolean> {
     const geoOwnerTypes$ = this.store$.pipe(
-      select(selectGeoAttributes),
+      select(getMetricVars),
       withLatestFrom(this.stateService.uniqueSelectedGeocodes$),
       map(([attributes, geocodes]) => [attributes, new Set(geocodes)]),
-      map(([attributes, geoSet]: [GeoAttribute[], Set<string>]) => attributes.filter(a => geoSet.has(a.geocode))),
+      map(([attributes, geoSet]: [DynamicVariable[], Set<string>]) => attributes.filter(a => geoSet.has(a.geocode))),
       map(attributes => {
         return {
-          valExists: attributes.some(a => a['owner_group_primary'] === 'VALASSIS'),
-          anneExists: attributes.some(a => a['owner_group_primary'] === 'ANNE'),
-          soloExists: attributes.some(a => a['cov_frequency'] === 'Solo')
+          valExists: attributes.some(a => a[varPkMap.get('owner_group_primary')] === 'VALASSIS'),
+          anneExists: attributes.some(a => a[varPkMap.get('owner_group_primary')] === 'ANNE'),
+          soloExists: attributes.some(a => a[varPkMap.get('cov_frequency')] === 'Solo')
         };
       })
     );
@@ -331,7 +332,7 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  public updateDefinitions(attributes: { [geocode: string] : GeoAttribute }, geocodes: string[], project: ImpProject) : MetricDefinition<any>[] {
+  public updateDefinitions(attributes: Map<string, GeoAttribute>, geocodes: string[], project: ImpProject) : MetricDefinition<any>[] {
     if (project == null || attributes == null) return;
     this.currentProject = project;
     this.isWinter = project.impGeofootprintMasters[0].methSeason === 'W';
@@ -339,7 +340,7 @@ export class ValMetricsService implements OnDestroy {
       const values: any[] = [];
       definition.metricValue = definition.metricDefault;
       for (const geo of geocodes) {
-        const currentAttribute: GeoAttribute = attributes[geo];
+        const currentAttribute: GeoAttribute = attributes.get(geo);
         if (currentAttribute != null) {
           values.push(definition.valueCalc(currentAttribute));
         }
@@ -368,7 +369,7 @@ export class ValMetricsService implements OnDestroy {
 
   public async getColorBoxAudience(){
     
-    const audienceResponse = await this.queryEngine.retrieveAudiences(Array.from(varPkMap.keys()));
+    const audienceResponse = await this.queryEngine.retrieveAudiences(Array.from(varPkMap.values()));
     const audiences: Audience[] = [];
     audienceResponse.forEach(aud => {
         audiences.push(createOfflineAudienceInstance(aud.fielddescr, `${aud.pk}`, aud.fieldconte) as Audience);
@@ -384,10 +385,20 @@ export class ValMetricsService implements OnDestroy {
     );
   }
 
-  public convertVariablesToGeoAttributes(variables: DynamicVariable[]){
-
-    const geoAttributes = mapBy(variables, 'geocode');
-
+  public convertVariablesToGeoAttributes(metricVars: { [geocode: string] : DynamicVariable }) {
+    const attributes: GeoAttribute[] = [];
+    for ( const geocode in metricVars){
+      if (geocode != null){
+          const geoAttribute = {};
+          const variables = metricVars[geocode];
+          for (const [v, k] of varPkMap){
+            geoAttribute[v] =  variables[k] != null ? variables[k] : null;
+          }
+          geoAttribute['geocode'] = geocode;
+          attributes.push(geoAttribute as GeoAttribute);
+      }  
+    }
+    return mapBy(attributes, 'geocode');
   }
 
   
