@@ -8,3 +8,4 @@ export * from './src/errorUtils';
 export * from './src/type-checks';
 export * from './src/common-sort';
 export * from './src/utils';
+export * from './src/keyed-set';

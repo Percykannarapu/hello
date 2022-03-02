@@ -1,5 +1,12 @@
 <val-market-geos
-  (onGetGeos)="onGetGeos($event)"
-  (onGeosRetrieved)="onGeosRetrieved($event)"
-  (onError)="onGetGeosError($event)">
+  [isFetchingData]="isFetchingData$ | async"
+  [isFetchingGeos]="isFetchingGeos$ | async"
+  [allStates]="allStates$ | async"
+  [containerValues]="containerValues$ | async"
+  [gridUniqueStates]="gridUniqueStates$ | async"
+  [currentActiveRowCount]="currentActiveRowCount$ | async"
+
+  (onRowSelection)="handleRowSelection($event)"
+  (onGetGridData)="handleGetGridValues($event)"
+  (onGetGeos)="handleGetGeos($event)">
 </val-market-geos>
