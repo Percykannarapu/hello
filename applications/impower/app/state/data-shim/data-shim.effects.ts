@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { getMapVarEntities } from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
-import { ClearMetricVars, FetchMetricVarsComplete, MetricVarActionTypes } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
+import { ClearMetricVars, FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
+import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 import { getMetricVarEntities, getMetricVars, metricVarSlice } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
 import { of } from 'rxjs';
@@ -157,11 +158,15 @@ export class DataShimEffects {
     tap(([, metricVars, geocodes, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), metricVars, project)),
   );
 
-  @Effect()
+  /*@Effect()
   metricVarsRequestSuccess$ = this.actions$.pipe(
     ofType<FetchMetricVarsComplete>(MetricVarActionTypes.FetchMetricVarsComplete),
     map(() => new ProcessMetrics())
-  );
+  );*/
+  metricVarsRequestSuccess$ = createEffect(() => this.actions$.pipe(
+    ofType(FromMetricVarActions.FetchMetricVarsComplete),
+    map(() => new ProcessMetrics())
+  ));
 
   @Effect()
   tradeAreaRollDownGeos$ = this.actions$.pipe(

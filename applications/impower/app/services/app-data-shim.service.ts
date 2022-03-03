@@ -44,6 +44,7 @@ import { UnifiedAudienceService } from './unified-audience.service';
 import { ClearMetricVars, FetchMetricVars, FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import { FetchMapVarsComplete } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
+import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 
 const varPkMap = new Map<string, number>([
   ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],
@@ -291,8 +292,8 @@ export class AppDataShimService {
   }
 
   fetchMatricVars(metricVars: DynamicVariable[]){
-    this.store$.dispatch(new ClearMetricVars());
-    this.store$.dispatch(new FetchMetricVarsComplete({metricVars}));
+    this.store$.dispatch(FromMetricVarActions.ClearMetricVars());
+    this.store$.dispatch(FromMetricVarActions.FetchMetricVarsComplete({metricVars}));
   }
 
   prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : DynamicVariable }, project: ImpProject) : void {

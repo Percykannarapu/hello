@@ -3,7 +3,7 @@ import { createReducer, on } from '@ngrx/store';
 import { isEmpty } from '@val/common';
 import { DynamicVariable, mergeVariables } from '../dynamic-variable.model';
 import * as fromTransientActions from '../transient.actions';
-import { MetricVarActions, MetricVarActionTypes } from './metric-vars.action';
+import * as fromAction from './metric-vars.action';
 
 export interface State extends EntityState<DynamicVariable> {}
 
@@ -18,22 +18,19 @@ const transientReducer = createReducer(initialState,
   on(fromTransientActions.clearTransientData, state => adapter.removeAll(state))
 );
 
-export function reducer(state = initialState, action: MetricVarActions) : State {
-  switch (action.type) {
-    case MetricVarActionTypes.FetchMetricVarsComplete: {
-        return adapter.upsertMany(action.payload.metricVars, state);
-    }
-
-    case MetricVarActionTypes.FetchMetricVarsFailed:
-    case MetricVarActionTypes.ClearMetricVars: {
-      return adapter.removeAll(state);
-    }
-
-    default: {
-      return transientReducer(state, action);
-    }
-  }
-}
+export const reducer = createReducer(
+  initialState,
+    on(fromAction.FetchMetricVarsComplete,
+      (state, action) => {
+        return adapter.upsertMany(action.metricVars, state); }
+      ),
+    
+    on(fromAction.ClearMetricVars,
+       fromAction.FetchMetricVarsFailed,
+       (state, action) => {
+         return adapter.removeAll(state);
+       })  
+);
 
 export const {
   selectIds,

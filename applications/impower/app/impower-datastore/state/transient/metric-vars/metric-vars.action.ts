@@ -1,39 +1,23 @@
-import { Action } from '@ngrx/store';
+import { Action, createAction, props } from '@ngrx/store';
 import { Audience } from '../audience/audience.model';
 import { DynamicVariable } from '../dynamic-variable.model';
 
-export enum MetricVarActionTypes {
-  ClearMetricVars                = '[MetricVar] Clear MetricVars',
-  FetchMetricVars                = '[MetricVar] Fetch MetricVars',
-  FetchMetricVarsComplete        = '[MetricVar] Fetch MetricVars Complete',
-  FetchMetricVarsFailed          = '[MetricVar] Fetch MetricVars Failed',
-}
 
+export const FetchMetricVars = createAction(
+  '[MetricVar/API] Fetch MetricVars',
+  props<{ audiences: Audience[] }>()
+);
 
-export class ClearMetricVars implements Action {
-  readonly type = MetricVarActionTypes.ClearMetricVars;
-}
+export const ClearMetricVars = createAction(
+  '[MetricVar/API] Clear MetricVars'
+);
 
-export class FetchMetricVars implements Action {
-  readonly type = MetricVarActionTypes.FetchMetricVars;
-  constructor(public payload: { audiences: Audience[]}) {}
-}
+export const FetchMetricVarsComplete = createAction(
+  '[MetricVar/API] Fetch MetricVars Complete',
+  props<{metricVars: DynamicVariable[]}>()
+);
 
-export class FetchMetricVarsComplete implements Action {
-  readonly type = MetricVarActionTypes.FetchMetricVarsComplete;
-  constructor(public payload: { metricVars: DynamicVariable[] }) {}
-}
-
-export class FetchMetricVarsFailed implements Action {
-  readonly type = MetricVarActionTypes.FetchMetricVarsFailed;
-  constructor(public payload: { err: any }) {}
-}
-
-
-
-export type MetricVarActions =
-ClearMetricVars
-  | FetchMetricVars
-  | FetchMetricVarsComplete
-  | FetchMetricVarsFailed
-  ;
+export const FetchMetricVarsFailed = createAction(
+  '[MetricVar/API] Fetch MetricVars Failed',
+  props<{ err: any}>()
+);
