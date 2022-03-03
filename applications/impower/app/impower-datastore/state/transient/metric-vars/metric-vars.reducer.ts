@@ -14,10 +14,6 @@ export const adapter: EntityAdapter<DynamicVariable> = createEntityAdapter<Dynam
 
 export const initialState: State = adapter.getInitialState();
 
-const transientReducer = createReducer(initialState,
-  on(fromTransientActions.clearTransientData, state => adapter.removeAll(state))
-);
-
 export const reducer = createReducer(
   initialState,
     on(fromAction.FetchMetricVarsComplete,
@@ -27,6 +23,7 @@ export const reducer = createReducer(
     
     on(fromAction.ClearMetricVars,
        fromAction.FetchMetricVarsFailed,
+       fromTransientActions.clearTransientData,
        (state, action) => {
          return adapter.removeAll(state);
        })  
