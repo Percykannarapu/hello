@@ -1,7 +1,7 @@
 <header>
   <div class="p-d-flex p-ai-center p-jc-between p-pl-3 p-pr-3">
     <div class="logo"></div>
-    <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
+    <!-- <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
       <p-messages severity="error" styleClass="val-no-message-padding p-shadow-4">
         <ng-template pTemplate>
           <div class="p-p-2 p-d-flex p-ai-center">
@@ -13,7 +13,7 @@
           </div>
         </ng-template>
       </p-messages>
-    </div>
+    </div> -->
     <div class="p-d-flex p-ai-center">
       <p-menu #menu [model]="messageCenterMenu" [popup]="true" styleClass="val-message-center-menu"></p-menu>
       <button type="button" pButton class="p-button-rounded p-button-text val-content-button" (click)="menu.toggle($event)" [pTooltip]="messageTip$ | async">
