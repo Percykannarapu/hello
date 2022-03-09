@@ -6,18 +6,27 @@
                  severity="info"></p-message>
     </div>
     <div class="p-col-12 p-d-flex p-flex-column">
-      <h5>Sites to Include</h5>
+      <h5>Map Contents</h5>
       <div class="nested-list padded-children">
         <p-radioButton name="sitesToInclude" value="allActiveSites" label="All Active Sites ({{sitesCount}})"
                        formControlName="sitesToInclude"></p-radioButton>
         <p-radioButton name="sitesToInclude" value="currentMap" label="Current Map (visible sites only)"
                        formControlName="sitesToInclude"></p-radioButton>
-        <div>              
+        <!--div>              
                 <p-radioButton name="sitesToInclude" value="nationalMap" label="National Map: &nbsp;"
                               formControlName="sitesToInclude"></p-radioButton>  
                 <p-dropdown formControlName="nationalMapControl" labelText="National Map" [options]="nationalMapOptions"
                               styleClass="p-col-4 p-col-nogutter"></p-dropdown>    
-          </div>  
+          </div--> 
+          <p-radioButton name="sitesToInclude" value="nationalMapContinental" label="National Map (Continental US)"
+            formControlName="sitesToInclude"></p-radioButton>
+          <div>
+              <p-radioButton name="sitesToInclude" value="nationalMapCustom" label="National Map (Custom Data Defined)"
+                formControlName="sitesToInclude"></p-radioButton>
+              <p-dropdown formControlName="nationalMapControl" labelText="Custom Audience" [options]="nationalMapOptions"
+              [includeUnselected]="true" styleClass="p-col-4 p-col-nogutter"></p-dropdown>
+          </div>
+            
 
           <!--div class="nested-list padded-children">
             <p-radioButton name="sitesPerPage" value="oneSitePerPage" label="One site per page" formControlName="sitesPerPage"></p-radioButton>
@@ -29,7 +38,7 @@
             </div>
           </div-->
          
-        <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
+        
  
       </div>
         
@@ -70,6 +79,7 @@
                            formControlName="sitesPerPage"></p-radioButton>
             <p-dropdown formControlName="sitesByGroup" [options]="siteByGroupList" styleClass="p-col-4 p-col-nogutter"></p-dropdown>
           </div>
+          <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
         </div>
         <h5>Neighboring Sites</h5>
         <div class="nested-list padded-children">

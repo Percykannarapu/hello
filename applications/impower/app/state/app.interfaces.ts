@@ -121,6 +121,28 @@ export interface CurrentPageBatchMapPayload {
   }];
 }
 
+export interface NationalMapBatchMapPayload {
+  calls: [{
+    service: string,
+    function: string,
+    args: {
+      'nationalMapConfiguration': {
+        email: string;
+        projectId: number;
+        layout: string;
+        title: string;
+        subTitle: string;
+        subSubTitle: string;
+        taName: string;
+        projectName: string;
+        jobType: string;
+        nationalMaps: string;
+        audience: string;
+      }
+    }
+  }];
+}
+
 export interface TitlePayload {
   siteId: string;
   title: string;

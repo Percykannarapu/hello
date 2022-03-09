@@ -23,6 +23,7 @@ import {
   CurrentPageBatchMapPayload,
   ExtentPayload,
   LocalAppState,
+  NationalMapBatchMapPayload,
   SinglePageBatchMapPayload
 } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
@@ -70,7 +71,7 @@ export class BatchMapService {
     this.appStateService.notifyMapReady();
   }
 
-  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload | CurrentPageBatchMapPayload, project: ImpProject) : Observable<any> {
+  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload | CurrentPageBatchMapPayload | NationalMapBatchMapPayload, project: ImpProject) : Observable<any> {
     if (payload.calls[0].args['printJobConfiguration'] != null) {
       const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
       project.getImpGeofootprintLocations().forEach( l => {

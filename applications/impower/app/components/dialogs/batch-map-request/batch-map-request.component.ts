@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { groupByExtended, isNotNil, mapBy, removeNonAsciiChars, removeTabAndNewLineRegx } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
+import { allAudiences, getCustomAudiencesInFootprint } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import {
@@ -12,7 +13,8 @@ import {
   FitToPageOptions,
   LocalAppState,
   SinglePageBatchMapPayload,
-  TitlePayload
+  TitlePayload,
+  NationalMapBatchMapPayload
 } from 'app/state/app.interfaces';
 import { CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -90,10 +92,6 @@ export class BatchMapRequestComponent implements OnInit {
       { label: '45%', value: 45 },
       { label: '50%', value: 50 }
     ];
-    this.nationalMapOptions = [
-      {label: 'Continental US', value: 'continentalUS'},
-      {label: 'Continental US + Alaska and Hawaii', value: 'usAlaskaHawaii'},
-    ];
   }
 
   ngOnInit() {
@@ -131,9 +129,10 @@ export class BatchMapRequestComponent implements OnInit {
       enableLabels: true,
       enableSymbols: true,
       enableTradeAreaBoundaries: true,
-      nationalMapControl: 'Continental US'
+      nationalMapControl: 'Custom Audience'
     });
     this.batchMapForm.get('sitesByGroup').disable();
+    this.batchMapForm.get('nationalMapControl').disable();
   }
 
   populateFormData() {
@@ -159,7 +158,8 @@ export class BatchMapRequestComponent implements OnInit {
           taTitle: savedFormData.taTitle ?? '',
           enableLabels: savedFormData.enableLabels ?? true,
           enableSymbols: savedFormData.enableSymbols ?? true,
-          enableTradeAreaBoundaries: savedFormData.enableTradeAreaBoundaries ?? false
+          enableTradeAreaBoundaries: savedFormData.enableTradeAreaBoundaries ?? false,
+          nationalMapControl: savedFormData.nationalMapControl
         });
 
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
@@ -179,6 +179,11 @@ export class BatchMapRequestComponent implements OnInit {
          this.batchMapForm.get('sitesByGroup').enable();
       else    
          this.batchMapForm.get('sitesByGroup').disable();
+      
+      if (savedFormData.sitesToInclude === 'nationalMapCustom')
+          this.batchMapForm.get('nationalMapControl').enable(); 
+      else
+          this.batchMapForm.get('nationalMapControl').disable();      
 
       if (savedFormData.neighboringSites === 'exclude'){
         this.batchMapForm.get('enableTradeAreaShading').disable();
@@ -214,7 +219,7 @@ export class BatchMapRequestComponent implements OnInit {
         enableLabels: true,
         enableSymbols: true,
         enableTradeAreaBoundaries: false,
-        nationalMapControl: 'Continental US'
+        nationalMapControl: 'Custom Audience'
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
@@ -282,6 +287,14 @@ export class BatchMapRequestComponent implements OnInit {
       }
     });
 
+    this.batchMapForm.get('sitesToInclude').valueChanges.subscribe(val => {
+      if (val === 'nationalMapCustom') {
+        this.batchMapForm.get('nationalMapControl').enable();
+      } else {
+        this.batchMapForm.get('nationalMapControl').disable();
+      }
+    });
+
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
       this.currentProjectName = p.projectName;
@@ -308,18 +321,20 @@ export class BatchMapRequestComponent implements OnInit {
       }
     });
     this.batchMapForm.get('sitesToInclude').valueChanges.subscribe(val => {
-      if (val === 'currentMap' || val == 'nationalMap')
+      if (val === 'currentMap' || val === 'nationalMapContinental' || val === 'nationalMapCustom')
         this.currentViewSetting();
       else
         this.activeSitesSetting();
     });
-    /*this.batchMapForm.get('enableSymbols').valueChanges.subscribe(val => {
-      if (!val){
-        this.batchMapForm.get('enableLabels').disable();
-        }else{
-        this.batchMapForm.get('enableLabels').enable();
-       }
-      });*/
+
+    this.store$.select(getCustomAudiencesInFootprint).subscribe(audiences => {
+        const customList: SelectItem[] = [];
+        customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
+        audiences.forEach(aud => {
+          customList.push({label: aud.audienceName, value: aud.audienceName});
+        });
+        this.nationalMapOptions = customList.length > 0 ? customList : [];
+    });
   }
 
   onSubmit(dialogFields: any) {
@@ -373,6 +388,31 @@ export class BatchMapRequestComponent implements OnInit {
             }
           }
         ]
+      };
+      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+    }else if (dialogFields.sitesToInclude === 'nationalMapContinental' || dialogFields.sitesToInclude === 'nationalMapCustom'){
+      const formData: NationalMapBatchMapPayload = {
+          calls: [
+            {
+              service: 'ImpowerPdf',
+              function: 'nationalMaps',
+              args: {
+                nationalMapConfiguration: {
+                  email: `${this.user.email}`,
+                  projectId: this.currentProjectId,
+                  layout: dialogFields.layout,
+                  title: dialogFields.titleInput,
+                  subTitle: dialogFields.subTitleInput,
+                  subSubTitle: dialogFields.subSubTitleInput,
+                  taName: removeNonAsciiChars(this.batchMapForm.get('taTitle').value || '') ,
+                  projectName: this.currentProjectName,
+                  jobType: 'National Maps',
+                  nationalMaps: dialogFields.sitesToInclude,
+                  audience: this.batchMapForm.get('nationalMapControl').value
+                }
+              }
+            }
+          ]
       };
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
@@ -443,7 +483,6 @@ export class BatchMapRequestComponent implements OnInit {
                   enableLabel: dialogFields.enableLabels,
                   enableSymbol: dialogFields.enableSymbols,
                   enableTaBoundaries: dialogFields.enableTradeAreaBoundaries
-
                 }
               }
             }
@@ -456,9 +495,7 @@ export class BatchMapRequestComponent implements OnInit {
         } else
            this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
       }
-
     }
-
     this.ddRef.close(this.batchMapForm.value);
   }
 
@@ -616,6 +653,9 @@ export class BatchMapRequestComponent implements OnInit {
     this.batchMapForm.get('title').enable();
     this.batchMapForm.get('subTitle').enable();
     this.batchMapForm.get('subSubTitle').enable();
+    this.batchMapForm.get('enableSymbols').enable();
+    this.batchMapForm.get('enableLabels').enable();
+    this.batchMapForm.get('enableTradeAreaBoundaries').enable();
 
     if (this.batchMapForm.get('title').value === 'user-defined') {
       this.batchMapForm.get('titleInput').enable();
@@ -647,6 +687,9 @@ export class BatchMapRequestComponent implements OnInit {
         this.batchMapForm.get('title').disable();
         this.batchMapForm.get('subTitle').disable();
         this.batchMapForm.get('subSubTitle').disable();
+        this.batchMapForm.get('enableSymbols').disable();
+        this.batchMapForm.get('enableLabels').disable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
 
         this.batchMapForm.get('titleInput').enable();
         this.batchMapForm.get('subTitleInput').enable();
