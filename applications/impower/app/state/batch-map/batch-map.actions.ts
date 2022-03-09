@@ -1,5 +1,5 @@
 import { Action } from '@ngrx/store';
-import { BatchMapPayload, SinglePageBatchMapPayload, CurrentPageBatchMapPayload } from '../app.interfaces';
+import { BatchMapPayload, SinglePageBatchMapPayload, CurrentPageBatchMapPayload, NationalMapBatchMapPayload } from '../app.interfaces';
 
 export enum BatchMapActionTypes {
   CreateBatchMap = '[BatchMap] Create Batch Map',
@@ -15,7 +15,7 @@ export enum BatchMapActionTypes {
 
 export class CreateBatchMap implements Action {
   readonly type = BatchMapActionTypes.CreateBatchMap;
-  constructor(public payload: { templateFields: BatchMapPayload | SinglePageBatchMapPayload | CurrentPageBatchMapPayload}) {}
+  constructor(public payload: { templateFields: BatchMapPayload | SinglePageBatchMapPayload | CurrentPageBatchMapPayload | NationalMapBatchMapPayload}) {}
 }
 
 export class SetBatchMode implements Action {
