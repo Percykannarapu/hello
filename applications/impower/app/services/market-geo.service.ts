@@ -139,14 +139,18 @@ export class MarketGeoService {
     const locationMap = mapByExtended(this.impGeofootprintLocationService.get(), loc => loc.locationNumber);
     const centroidGeos: string[] = [];
     const currentProject = this.appStateService.currentProject$.getValue();
+    let localMarketList = Array.from(marketList);
     let numGeos = 0;
 
     // Build an array of markets to process and count total number of geos
     const existingMarkets: string[] = [];
     const existingIds = new Set<string>();
+    const emptyMarkets: ContainerValue[] = [];
     this.logger.info.groupCollapsed('Market Geo Counts');
-    marketList.forEach(d => {
-      if (locationMap.has(`${d.id ?? d.code}`)) {
+    localMarketList.forEach(d => {
+      if (isEmpty(d.geocodes)) {
+        emptyMarkets.push(d);
+      } else if (locationMap.has(`${d.id ?? d.code}`)) {
         existingMarkets.push(`${d.code} - ${d.name}`);
         existingIds.add(`${d.id ?? d.code}`);
       } else {
@@ -156,28 +160,33 @@ export class MarketGeoService {
       }
     });
     this.logger.info.groupEnd();
+    if (!isEmpty(emptyMarkets)) {
+      this.store$.dispatch(WarningNotification({ message: emptyMarkets.map(w => w.name).join('\n'), notificationTitle: 'These markets have no geos'}));
+      this.logger.warn.groupCollapsed('Market Geo Warnings');
+      emptyMarkets.forEach(w => this.logger.warn.log('Empty Market:', w));
+      this.logger.warn.groupEnd();
+      // remove empty markets from further processing
+      localMarketList = localMarketList.filter(market => market.geocodes?.length ?? 0 !== 0);
+    }
 
     if (!isEmpty(existingMarkets)) {
       this.store$.dispatch(WarningNotification({ message: existingMarkets.join('\n'), notificationTitle: 'These locations already exist' }));
-      marketList = marketList.filter(market => !existingIds.has(`${market.id ?? market.code}`));
+      // remove markets that existed prior to this run
+      localMarketList = localMarketList.filter(market => !existingIds.has(`${market.id ?? market.code}`));
     }
 
-    if (isEmpty(marketList)) {
+    if (isEmpty(localMarketList)) {
       return throwError({ message: 'There were no valid markets to use' });
-    }
-
-    if (isEmpty(centroidGeos)) {
-      return throwError({ message: 'There were no geos returned for those markets' });
     }
 
     const newLocations: ImpGeofootprintLocation[] = [];
     this.logger.debug.log('marketCode: ', marketCode, ', centroidGeos: ', centroidGeos);
-    this.liveBusyState$.next(`Creating ${marketList.length} locations`);
+    this.liveBusyState$.next(`Creating ${localMarketList.length} locations`);
     // Query for geos that will become the locations homegeo
 
     let currGeos = 0;
     const observables: Observable<ImpGeofootprintTradeArea>[] = [];
-    marketList.forEach((market, index) => {
+    localMarketList.forEach((market, index) => {
       currGeos += market.geocodes.length;
       this.liveBusyState$.next(`Creating location ${market.code}`);
 
@@ -186,7 +195,7 @@ export class MarketGeoService {
           + ', locations count: ' + newLocations.filter(loc => loc.locationNumber == market.code).length);
 
         // Create a new location
-        this.liveBusyState$.next(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
+        this.liveBusyState$.next(`Creating location ${market.code} ${index}/${localMarketList.length} - ${currGeos}/${numGeos} geos`);
         const location: ImpGeofootprintLocation = new ImpGeofootprintLocation();
         location.baseStatus = DAOBaseStatus.INSERT;
         location.locationNumber = market.id == null ? market.code : market.id.toString();
