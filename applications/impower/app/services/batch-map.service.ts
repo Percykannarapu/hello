@@ -75,7 +75,7 @@ export class BatchMapService {
     if (payload.calls[0].args['printJobConfiguration'] != null) {
       const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
       project.getImpGeofootprintLocations().forEach( l => {
-      if ((l.clientLocationTypeCode === 'Failed Site' || !l.isActive) && requestedSiteIds.has(l.locationNumber))
+      if ((l.clientLocationTypeCode === 'Failed Site' || (!l.isActive && l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site)) && requestedSiteIds.has(l.locationNumber))
         requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites, competitors, or inactive sites
       });
       payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
