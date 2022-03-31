@@ -129,6 +129,7 @@ export interface NationalMapBatchMapPayload {
       'nationalMapConfiguration': {
         email: string;
         projectId: number;
+        size: BatchMapSizes;
         layout: string;
         title: string;
         subTitle: string;

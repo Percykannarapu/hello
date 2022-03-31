@@ -400,6 +400,7 @@ export class BatchMapRequestComponent implements OnInit {
                 nationalMapConfiguration: {
                   email: `${this.user.email}`,
                   projectId: this.currentProjectId,
+                  size: size,
                   layout: dialogFields.layout,
                   title: dialogFields.titleInput,
                   subTitle: dialogFields.subTitleInput,
