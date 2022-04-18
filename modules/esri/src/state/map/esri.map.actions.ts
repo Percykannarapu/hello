@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { ElementRef } from '@angular/core';
+import { MapViewImmediateClickEvent } from '../../core/esri-event-shims';
 import { EsriMapToolbarButtonActions } from './esri.map-button.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from './esri.map.reducer';
 
@@ -59,12 +60,12 @@ export class SetSelectedLayer implements Action {
 
 export class MapClicked implements Action {
   readonly type = EsriMapActionTypes.MapClicked;
-  constructor(public payload: { event: __esri.MapViewImmediateClickEvent }){}
+  constructor(public payload: { event: MapViewImmediateClickEvent }){}
 }
 
 export class CopyCoordinatesToClipboard implements Action {
   readonly type = EsriMapActionTypes.CopyCoordinatesToClipboard;
-  constructor(public payload: { event: __esri.MapViewImmediateClickEvent }){}
+  constructor(public payload: { event: MapViewImmediateClickEvent }){}
 }
 
 export class FeaturesSelected implements Action {

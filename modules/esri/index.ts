@@ -7,6 +7,7 @@ export * from './src/components/esri-map-panel/esri-map-panel.component';
 export * from './src/core/type-checks';
 export * from './src/core/esri.enums';
 export * from './src/core/esri.models';
+export * from './src/core/esri-event-shims';
 export * from './src/core/esri-utils';
 export * from './src/core/esri-arcade.utils';
 export * from './src/core/esri-quad-tree';

@@ -4,7 +4,7 @@ import { union } from '@arcgis/core/geometry/geometryEngine';
 import Point from '@arcgis/core/geometry/Point';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
 import {

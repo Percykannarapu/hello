@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
 import Multipoint from '@arcgis/core/geometry/Multipoint';
 import Point from '@arcgis/core/geometry/Point';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import { chunkArray, getUuid, isNumberArray, isStringArray } from '@val/common';
 import { EMPTY, from, merge, Observable } from 'rxjs';
-import { expand, filter, finalize, map, mergeAll, mergeMap, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
+import { expand, filter, finalize, map, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';

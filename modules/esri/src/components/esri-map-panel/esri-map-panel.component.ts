@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, 
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { MapViewImmediateClickEvent } from '../../core/esri-event-shims';
 import { esriZoomLocalStorageKey } from '../../configuration';
 import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriMapService } from '../../services/esri-map.service';
@@ -75,7 +76,7 @@ export class EsriMapPanelComponent implements OnInit {
     this.useAlternateZoom = JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
   }
 
-  onMapClick(location:  __esri.MapViewImmediateClickEvent) : void {
+  onMapClick(location:  MapViewImmediateClickEvent) : void {
     this.store.dispatch(new MapClicked({ event: { ...location } }));
   }
 

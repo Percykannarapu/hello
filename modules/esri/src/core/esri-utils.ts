@@ -1,7 +1,29 @@
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Polyline from '@arcgis/core/geometry/Polyline';
-import { Observable } from 'rxjs';
 import { isValidNumber, toUniversalCoordinates } from '@val/common';
+import { Observable } from 'rxjs';
+import {
+  MapViewBlurEvent,
+  MapViewClickEvent,
+  MapViewDoubleClickEvent,
+  MapViewDragEvent,
+  MapViewFocusEvent,
+  MapViewHoldEvent,
+  MapViewImmediateClickEvent,
+  MapViewImmediateDoubleClickEvent,
+  MapViewKeyDownEvent,
+  MapViewKeyUpEvent,
+  MapViewLayerViewCreateErrorEvent,
+  MapViewLayerViewCreateEvent,
+  MapViewLayerViewDestroyEvent,
+  MapViewMouseWheelEvent,
+  MapViewPointerDownEvent,
+  MapViewPointerEnterEvent,
+  MapViewPointerLeaveEvent,
+  MapViewPointerMoveEvent,
+  MapViewPointerUpEvent,
+  MapViewResizeEvent
+} from './esri-event-shims';
 import { isGroupLayer, isPortalFeatureLayer } from './type-checks';
 
 export interface TokenResponse {
@@ -18,17 +40,33 @@ export interface WatchResult<T extends __esri.Accessor, K extends keyof T> {
   target: T;
 }
 
-type mapViewEventNames = 'resize' | 'layerview-create' | 'layerview-destroy' | 'click' |
-                        'double-click' | 'immediate-click' | 'hold' | 'drag' | 'mouse-wheel' |
-                        'key-down' | 'key-up' | 'pointer-down' | 'pointer-move' | 'pointer-up' |
-                        'pointer-enter' | 'pointer-leave' | 'focus' | 'blur';
+type mapViewEventNames = 'blur' |
+  'click' |
+  'double-click' |
+  'drag' |
+  'focus' |
+  'hold' |
+  'immediate-click' |
+  'immediate-double-click' |
+  'key-down' |
+  'key-up' |
+  'layerview-create' |
+  'layerview-create-error' |
+  'layerview-destroy' |
+  'mouse-wheel' |
+  'pointer-down' |
+  'pointer-enter' |
+  'pointer-leave' |
+  'pointer-move' |
+  'pointer-up' |
+  'resize';
 
 type mapViewEventResults =
-  __esri.MapViewResizeEvent | __esri.MapViewLayerviewCreateEvent | __esri.MapViewLayerviewDestroyEvent | __esri.MapViewClickEvent |
-  __esri.MapViewDoubleClickEvent | __esri.MapViewImmediateClickEvent | __esri.MapViewHoldEvent | __esri.MapViewDragEvent |
-  __esri.MapViewMouseWheelEvent | __esri.MapViewKeyDownEvent | __esri.MapViewKeyUpEvent | __esri.MapViewPointerDownEvent |
-  __esri.MapViewPointerMoveEvent | __esri.MapViewPointerUpEvent | __esri.MapViewPointerEnterEvent | __esri.MapViewPointerLeaveEvent |
-  __esri.MapViewFocusEvent | __esri.MapViewBlurEvent;
+  MapViewResizeEvent | MapViewLayerViewCreateEvent | MapViewLayerViewDestroyEvent | MapViewClickEvent |
+  MapViewDoubleClickEvent | MapViewImmediateClickEvent | MapViewHoldEvent | MapViewDragEvent |
+  MapViewMouseWheelEvent | MapViewKeyDownEvent | MapViewKeyUpEvent | MapViewPointerDownEvent |
+  MapViewPointerMoveEvent | MapViewPointerUpEvent | MapViewPointerEnterEvent | MapViewPointerLeaveEvent |
+  MapViewFocusEvent | MapViewBlurEvent | MapViewImmediateDoubleClickEvent | MapViewLayerViewCreateErrorEvent;
 
 interface PointLike {
   x: number;
@@ -100,24 +138,26 @@ export class EsriUtils {
     });
   }
 
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'resize') : Observable<__esri.MapViewResizeEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-create') : Observable<__esri.MapViewLayerviewCreateEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-destroy') : Observable<__esri.MapViewLayerviewDestroyEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'click') : Observable<__esri.MapViewClickEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'double-click') : Observable<__esri.MapViewDoubleClickEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'immediate-click') : Observable<__esri.MapViewImmediateClickEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'hold') : Observable<__esri.MapViewHoldEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'drag') : Observable<__esri.MapViewDragEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'mouse-wheel') : Observable<__esri.MapViewMouseWheelEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'key-down') : Observable<__esri.MapViewKeyDownEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'key-up') : Observable<__esri.MapViewKeyUpEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-down') : Observable<__esri.MapViewPointerDownEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-move') : Observable<__esri.MapViewPointerMoveEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-up') : Observable<__esri.MapViewPointerUpEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-enter') : Observable<__esri.MapViewPointerEnterEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-leave') : Observable<__esri.MapViewPointerLeaveEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'focus') : Observable<__esri.MapViewFocusEvent>;
-  public static handleMapViewEvent(mapView: __esri.MapView, event: 'blur') : Observable<__esri.MapViewBlurEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'blur') : Observable<MapViewBlurEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'click') : Observable<MapViewClickEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'double-click') : Observable<MapViewDoubleClickEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'drag') : Observable<MapViewDragEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'focus') : Observable<MapViewFocusEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'hold') : Observable<MapViewHoldEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'immediate-click') : Observable<MapViewImmediateClickEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'immediate-double-click') : Observable<MapViewImmediateDoubleClickEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'key-down') : Observable<MapViewKeyDownEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'key-up') : Observable<MapViewKeyUpEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-create') : Observable<MapViewLayerViewCreateEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-create-error') : Observable<MapViewLayerViewCreateErrorEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-destroy') : Observable<MapViewLayerViewDestroyEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'mouse-wheel') : Observable<MapViewMouseWheelEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-down') : Observable<MapViewPointerDownEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-enter') : Observable<MapViewPointerEnterEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-leave') : Observable<MapViewPointerLeaveEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-move') : Observable<MapViewPointerMoveEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'pointer-up') : Observable<MapViewPointerUpEvent>;
+  public static handleMapViewEvent(mapView: __esri.MapView, event: 'resize') : Observable<MapViewResizeEvent>;
   public static handleMapViewEvent(mapView: __esri.MapView, event: mapViewEventNames) : Observable<mapViewEventResults> {
     return new Observable<mapViewEventResults>(observer => {
       let handle;

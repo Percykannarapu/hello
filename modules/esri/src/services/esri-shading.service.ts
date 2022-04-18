@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { reduceConcat } from '@val/common';
 import { Observable } from 'rxjs';
-import { concatMap, last, map, mergeMap, pairwise, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { isComplexRenderer, isFeatureLayer } from '../core/type-checks';
 import { FillSymbolDefinition } from '../models/common-configuration';

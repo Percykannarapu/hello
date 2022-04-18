@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
-import { debounceTime, filter, map, startWith, take, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, take } from 'rxjs/operators';
+import { MapViewImmediateClickEvent } from '../../../core/esri-event-shims';
 import { EsriUtils } from '../../../core/esri-utils';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { LoggingService } from '../../../services/logging.service';
@@ -22,7 +23,7 @@ export class EsriMapComponent implements OnInit {
   @Input() baseMap: string;
   @Input() batchMode: boolean = false;
 
-  @Output() mapClicked = new EventEmitter<__esri.MapViewImmediateClickEvent>();
+  @Output() mapClicked = new EventEmitter<MapViewImmediateClickEvent>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
 
   @ViewChild('mapViewNode', { static: true }) private mapViewEl: ElementRef;

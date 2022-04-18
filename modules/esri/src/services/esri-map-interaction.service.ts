@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { isNil } from '@val/common';
 import { from, Observable } from 'rxjs';
 import { map, reduce } from 'rxjs/operators';
+import { MapViewImmediateClickEvent } from '../core/esri-event-shims';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
 import { AppState } from '../state/esri.reducers';
@@ -67,7 +68,7 @@ export class EsriMapInteractionService {
     this.mapService.mapView.graphics.add(sketchGraphic);
   }
 
-  processClick(event: __esri.MapViewImmediateClickEvent, portalId: string) : Observable<__esri.Graphic[]> {
+  processClick(event: MapViewImmediateClickEvent, portalId: string) : Observable<__esri.Graphic[]> {
     const analysisLayer = this.layerService.getPortalLayerById(portalId);
     const options = isNil(analysisLayer) ? undefined : { include: analysisLayer };
     return from(this.mapService.mapView.hitTest(event, options)).pipe(

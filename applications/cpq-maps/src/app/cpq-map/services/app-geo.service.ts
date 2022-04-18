@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { geodesicLength } from '@arcgis/core/geometry/geometryEngine';
 import Polyline from '@arcgis/core/geometry/Polyline';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import { Store } from '@ngrx/store';
 import { groupBy, mapBy } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils, isPoint } from '@val/esri';
