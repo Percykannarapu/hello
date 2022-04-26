@@ -1,25 +1,25 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
+  CollectedStatistics,
   collectStatistics,
   convertKeys,
-  getCollectedStatistics, getEmptyStatistic,
+  getCollectedStatistics,
   isConvertibleToNumber,
   isEmpty,
   isNotNil,
   isStringArray,
   mapByExtended,
-  Statistics,
   toNullOrNumber
 } from '@val/common';
 import { WarningNotification } from '@val/messaging';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { FullState } from '../../../../cpq-maps/src/app/cpq-map/state/index';
 import { AppConfig } from '../../app.config';
 import { AudienceDataDefinition, NationalAudienceModel, UnifiedPayload, UnifiedResponse, VarListItem } from '../../common/models/audience-data.model';
 import { createAudienceVarListItem, createCombinedVarListItem, createCompositeVarListItem } from '../../common/models/audience-factories';
 import { AppLoggingService } from '../../services/app-logging.service';
+import { FullAppState } from '../../state/app.interfaces';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { Audience } from '../state/transient/audience/audience.model';
 import { DynamicVariable } from '../state/transient/dynamic-variable.model';
@@ -34,7 +34,7 @@ export class AudienceFetchService {
   constructor(private config: AppConfig,
               private logger: AppLoggingService,
               private restService: RestDataService,
-              private store$: Store<FullState>) { }
+              private store$: Store<FullAppState>) { }
 
   public getNationalAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, silent: boolean) : Observable<NationalAudienceModel> {
     const txId = this.config.getNationalTxId(analysisLevel);
@@ -154,19 +154,13 @@ export class AudienceFetchService {
 
   private createNationalAudienceModel(payload: UnifiedResponse) : NationalAudienceModel {
     const data: Record<string, Record<number, string | number>> = {};
-    let stats: Record<number, Statistics> = { ...(payload.stats ?? {})};
-    const uniqueValues = new Map<number, Set<string>>();
+    let stats: Record<number, CollectedStatistics> = {};
     payload.rows.forEach(row => {
       data[row.geocode] = { ...convertKeys(row.variables, k => isConvertibleToNumber(k.split('_')[0]) ? Number(k.split('_')[0]) : -1) };
       Object.keys(data[row.geocode]).forEach(key => {
         const keyNum = Number(key);
         const value = data[row.geocode][keyNum];
-        if (isConvertibleToNumber(value)) {
-          collectStatistics(keyNum, Number(value));
-        } else {
-          if (!uniqueValues.has(keyNum)) uniqueValues.set(keyNum, new Set<string>());
-          uniqueValues.get(keyNum).add(value);
-        }
+        collectStatistics(keyNum, value);
       });
     });
     const collectedStats = getCollectedStatistics(true);
@@ -174,14 +168,6 @@ export class AudienceFetchService {
       ...stats,
       ...collectedStats,
     };
-    if (uniqueValues.size > 0) {
-      uniqueValues.forEach((value, key) => {
-        stats[key] = {
-          ...getEmptyStatistic(),
-          uniqueValues: Array.from(value)
-        };
-      });
-    }
     return { data, stats };
   }
 }

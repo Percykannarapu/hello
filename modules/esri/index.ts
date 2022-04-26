@@ -35,11 +35,12 @@ export * from './src/services/esri.service';
 export * from './src/state/esri.actions';
 export { EsriState, AppState } from './src/state/esri.reducers';
 export { selectors } from './src/state/esri.selectors';
-export { shadingSelectors } from './src/state/shading/esri.shading.selectors';
+export { shadingSelectors, nationalShadingSelectors } from './src/state/shading/esri.shading.selectors';
 export * from './src/state/init/esri.init.actions';
 export * from './src/state/map/esri.map.actions';
 export { EsriLabelLayerOptions } from './src/state/map/esri.map.reducer';
 export * from './src/state/shading/esri.shading.actions';
+export * from './src/state/boundary/esri.boundary.actions';
 
 export * from './src/configuration';
 export * from './src/layer-configuration';

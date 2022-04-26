@@ -1,3 +1,4 @@
+import { isConvertibleToNumber, isNil } from './type-checks';
 import { sortedIndex } from './utils';
 
 export interface Statistics {
@@ -22,13 +23,16 @@ export interface StatisticIntervals {
   quantiles: number[];
 }
 
+export type CompleteCollectedStatistics = CollectedStatistics & Partial<StatisticIntervals>;
+
 interface StatisticCollector {
-  sum: number;
-  squareSum: number;
-  sortedValues: number[];
+  sum?: number;
+  squareSum?: number;
+  sortedValues?: number[];
+  uniqueValues?: Set<string>;
 }
 
-const emptyStatistic: Statistics = {
+const emptyStatistic: CollectedStatistics = {
   mean: 0,
   sum: 0,
   min: Number.POSITIVE_INFINITY,
@@ -36,10 +40,22 @@ const emptyStatistic: Statistics = {
   variance: 0,
   stdDeviation: 0,
   distance: 0,
+  sortedValues: [],
+  uniqueValues: []
 };
 const collection = new Map<string | number, StatisticCollector>();
 
-export function collectStatistics(dataKey: string | number, dataPoint: number) : void {
+export function collectStatistics(dataKey: string | number, dataValue: string | number) : void {
+  if (isNil(dataValue)) return;
+  if (isConvertibleToNumber(dataValue)) {
+    const dataPoint = Number(dataValue);
+    collectNumericStatistic(dataKey, dataPoint);
+  } else {
+    collectStringStatistic(dataKey, dataValue);
+  }
+}
+
+function collectNumericStatistic(dataKey: string | number, dataPoint: number) : void {
   let currentCollector: StatisticCollector;
   if (collection.has(dataKey)) {
     currentCollector = collection.get(dataKey);
@@ -56,20 +72,44 @@ export function collectStatistics(dataKey: string | number, dataPoint: number) :
   }
 }
 
+function collectStringStatistic(dataKey: string | number, dataPoint: string) : void {
+  let currentCollector: StatisticCollector;
+  if (collection.has(dataKey)) {
+    currentCollector = collection.get(dataKey);
+    currentCollector.uniqueValues?.add(dataPoint);
+  } else {
+    currentCollector = {
+      uniqueValues: new Set<string>([dataPoint])
+    };
+    collection.set(dataKey, currentCollector);
+  }
+}
+
 export function getCollectedStatistics(clearAfterGet: boolean) : Record<string | number, CollectedStatistics> {
   const finalResult = {};
   collection.forEach((collector, key) => {
-    const n = collector.sortedValues.length;
-    const result: Statistics = {
-      ...getEmptyStatistic(),
-      mean: collector.sum / n,
-      sum: collector.sum,
-      min: collector.sortedValues[0],
-      max: collector.sortedValues[n - 1]
-    };
-    result.distance = Math.abs(result.max - result.min);
-    result.variance = (collector.squareSum / n) - (collector.sum / n);
-    result.stdDeviation = Math.sqrt(result.variance);
+    let result: CollectedStatistics = { ...getEmptyStatistic() };
+    if (isNil(collector.uniqueValues)) {
+      const n = collector.sortedValues.length;
+      result = {
+        ...result,
+        mean: collector.sum / n,
+        sum: collector.sum,
+        min: collector.sortedValues[0],
+        max: collector.sortedValues[n - 1],
+        sortedValues: collector.sortedValues
+      };
+      result.distance = Math.abs(result.max - result.min);
+      result.variance = (collector.squareSum / n) - (collector.sum / n);
+      result.stdDeviation = Math.sqrt(result.variance);
+    } else {
+      const items = Array.from(collector.uniqueValues);
+      items.sort();
+      result = {
+        ...result,
+        uniqueValues: items,
+      };
+    }
     finalResult[key] = result;
   });
   if (clearAfterGet) collection.clear();
@@ -94,12 +134,11 @@ export function getIntervalsFromCollectedStats(collectedStats: CollectedStatisti
   return result;
 }
 
-export function getEmptyStatistic() : Statistics {
+export function getEmptyStatistic() : CollectedStatistics {
   return {
     ... emptyStatistic,
     meanIntervals: Array.from<number>([]),
     quantiles: Array.from<number>([]),
-    uniqueValues: Array.from<string>([])
   };
 }
 

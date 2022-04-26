@@ -1,5 +1,6 @@
 /* tslint:disable:component-selector */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { isNil } from '@val/common';
 import { MenuItem } from 'primeng/api';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { GfpShaderKeys } from '../../../../common/models/ui-enums';
@@ -32,7 +33,7 @@ export class AddShaderButtonComponent implements OnChanges {
 
   public ngOnChanges(changes: SimpleChanges) : void {
     this.buttonOptions = this.createButtonMenu();
-    this.buttonEnabled = this.buttonOptions.some(m => m.visible);
+    this.buttonEnabled = this.buttonOptions.some(m => m.visible) && !isNil(this.currentAnalysisLevel);
   }
 
   private createButtonMenu() : MenuItem[] {

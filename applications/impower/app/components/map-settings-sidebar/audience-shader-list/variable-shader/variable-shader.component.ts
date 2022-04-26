@@ -70,10 +70,11 @@ export class VariableShaderComponent extends AudienceShaderComponentBase<Shading
       dataKey: [this.definition.dataKey, Validators.required],
       shadingType: [this.definition.shadingType, Validators.required],
       layerName: new FormControl(this.definition.layerName, { updateOn: 'blur', validators: [Validators.required] }),
-      useLocalGeometry: this.definition.useLocalGeometry,
+      useLocalGeometry: new FormControl(this.definition.useLocalGeometry, { updateOn: 'change' }),
       filterByFeaturesOfInterest: this.definition.filterByFeaturesOfInterest,
       opacity: new FormControl(this.definition.opacity, { updateOn: 'blur', validators: [Validators.required, Validators.min(0), Validators.max(1)] }),
     };
+
     this.shaderForm = this.fb.group(formSetup);
     if (this.currentAudience != null) {
       if (this.currentAudience.audienceSourceType !== 'Custom') {

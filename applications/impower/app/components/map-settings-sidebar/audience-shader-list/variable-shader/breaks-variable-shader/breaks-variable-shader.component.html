@@ -1,6 +1,7 @@
 <ng-container *ngIf="!isEditing">
   <div>
-    <label>Audience:</label>
+    <label *ngIf="!definition.useLocalGeometry">Audience:</label>
+    <label *ngIf="definition.useLocalGeometry">National Audience:</label>
     <strong [title]="audienceDescription">{{audienceDescription | truncate:50:'...'}}</strong>
   </div>
   <div>
@@ -85,8 +86,8 @@
                   [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
   <ng-container *ngIf="selectedBreakType != null">
     <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-<!--    <boolean-input labelText="Local Rendering?" formControlName="useLocalGeometry"></boolean-input>-->
-    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+    <boolean-input labelText="Create National Map" formControlName="useLocalGeometry" (ngModelChange)="onLocalGeometryChange()"></boolean-input>
+    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents" ></dropdown-input>
     <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
     <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
     <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">

@@ -27,20 +27,18 @@ import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
-import { TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { TradeAreaTypeCodes } from 'worker-shared/data-model/impower.data-model.enums';
 import { NationalAudienceModel } from '../common/models/audience-data.model';
 import { GfpShaderKeys } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
-import { fetchableAudiences } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { allCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import {
   getAllMappedAudiences,
-  getFirstTimeCustomShadedAudiences,
-  getNationalShadingAudiences
+  getFirstTimeCustomShadedAudiences
 } from '../impower-datastore/state/transient/transient.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
@@ -56,6 +54,7 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { BoundaryRenderingService } from './boundary-rendering.service';
+import { NationalMapService } from './national-map.service';
 
 @Injectable({ providedIn: 'root' })
 export class AppRendererService {
@@ -72,6 +71,7 @@ export class AppRendererService {
               private esriShaderService: EsriShadingService,
               private esriLayerService: EsriLayerService,
               private audienceFetch: AudienceFetchService,
+              private nationalService: NationalMapService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
@@ -85,7 +85,6 @@ export class AppRendererService {
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapWatcher(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapVarWatcher(this.impGeoService.storeObservable);
-      this.setupLocalLayerWatcher();
     });
   }
 
@@ -147,18 +146,6 @@ export class AppRendererService {
     });
   }
 
-  private setupLocalLayerWatcher() : void {
-    // this.store$.select(shadingSelectors.readyLocalLayerDefs).subscribe(defs => {
-    //
-    // });
-    // combineLatest([this.store$.select(shadingSelectors.visibleLocalLayerDefs), this.store$.select(getNationalShadingAudiences)]).pipe(
-    //   withLatestFrom(this.appStateService.analysisLevel$, this.store$.select(fetchableAudiences))
-    // ).subscribe(([[defs, nationalAudiences], analysisLevel, audiences]) => {
-    //   this.logger.debug.log('Calling National Map Update', { defs, nationalAudiences, analysisLevel, audiences });
-    //   this.updateNationalMap(defs, nationalAudiences, analysisLevel, audiences);
-    // });
-  }
-
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>, tradeAreaDataStore: Observable<ImpGeofootprintTradeArea[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
 
@@ -175,7 +162,7 @@ export class AppRendererService {
       const newDefs: ShadingDefinition[] = [];
       currentLayerDefs.forEach(definition => {
         const newDef = duplicateShadingDefinition(definition);
-        if (newDef != null && isComplexShadingDefinition(newDef) && !newDef.useLocalGeometry) {
+        if (newDef != null && isComplexShadingDefinition(newDef)) {
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
               newDef.arcadeExpression = null;
@@ -444,7 +431,7 @@ export class AppRendererService {
     const layerData = this.boundaryRenderingService.getLayerSetupInfo(layerKey);
     const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
     if (definition.sourcePortalId == null || isNewAnalysisLevel) {
-      definition.sourcePortalId = layerData.boundary;
+      definition.sourcePortalId = definition.useLocalGeometry ? layerData.simplifiedBoundary : layerData.boundary;
       definition.minScale = layerData.batchMinScale;
     }
     if (definition.dataKey === 'selection-shading' && (definition.layerName == null || isNewAnalysisLevel)) {
@@ -589,7 +576,6 @@ export class AppRendererService {
     const allUniqueValues = new Set<string>();
     const uniquesToKeep = new Set<string>();
     const allValuesForStats: number[] = [];
-    if (definition.useLocalGeometry) return;
     const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
       switch (definition.shadingType) {
         case ConfigurationTypes.Unique:
@@ -659,37 +645,6 @@ export class AppRendererService {
     }
   }
 
-  updateLocalLayerDefinitionData(definition: ShadingDefinition, varPk: number, response: NationalAudienceModel) {
-    let colorPalette: RgbTuple[] = [];
-    let fillPalette: FillPattern[] = [];
-    if (isComplexShadingDefinition(definition)) {
-      colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
-      fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-    }
-
-    if (isArcadeCapableShadingDefinition(definition)) {
-      definition.arcadeExpression = `if (haskey($feature, '${varPk}')) { return $feature['${varPk}']; } else return null;`;
-    }
-
-    switch (definition.shadingType) {
-      case ConfigurationTypes.Unique:
-        definition.breakDefinitions = generateUniqueValues(response.stats[varPk].uniqueValues, colorPalette, fillPalette, false);
-        break;
-      case ConfigurationTypes.Ramp:
-        definition.breakDefinitions = generateContinuousValues(response.stats[varPk], colorPalette);
-        break;
-      case ConfigurationTypes.ClassBreak:
-        if (definition.dynamicallyAllocate) {
-          let symbology = [ ...(definition.userBreakDefaults || []) ];
-          if (definition.dynamicLegend) {
-            symbology = generateDynamicSymbology(response.stats[varPk], colorPalette, fillPalette);
-          }
-          definition.breakDefinitions = generateDynamicClassBreaks(response.stats[varPk], definition.dynamicAllocationType, symbology);
-        }
-        break;
-    }
-  }
-
   updateForPcrIndicator(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], visibleGeos: Set<string>){
     const allUniqueValues = new Set<string>();
 
@@ -733,19 +688,5 @@ export class AppRendererService {
     }
     if (definition.shadingType == ConfigurationTypes.Unique)
       definition.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, new Set(uniqueValues));
-  }
-
-  private updateNationalMap(defs: ShadingDefinition[], nationalAudiences: Audience[], analysisLevel: string, audiences: Audience[]) : void {
-    if (!isNil(analysisLevel) && !isEmpty(nationalAudiences)) {
-      this.audienceFetch.getNationalAudienceData(nationalAudiences, audiences, analysisLevel, false).subscribe(response => {
-        defs.forEach(def => {
-          const currentVarPk = isConvertibleToNumber(def.dataKey) ? Number(def.dataKey) : null;
-          if (!isNil(currentVarPk)) {
-            this.esriLayerService.updateLocalLayerData(def.destinationLayerUniqueId, response.data);
-            this.updateLocalLayerDefinitionData(def, currentVarPk, response);
-          }
-        });
-      });
-    }
   }
 }

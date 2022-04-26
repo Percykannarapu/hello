@@ -222,6 +222,7 @@ body {
           margin: 0;
         }
         > .esri-legend__layer {
+          overflow: unset;
           > .esri-legend__layer-table {
             margin-bottom: 0;
             > .esri-legend__layer-caption {

@@ -171,7 +171,7 @@ export class EsriQueryService {
     );
   }
 
-  public executeParallelQuery(layerId, baseQuery: __esri.Query, pageSize: number = 5000, streams: number = 5) : Observable<__esri.FeatureSet> {
+  public executeParallelQuery(layerId: string, baseQuery: __esri.Query, pageSize: number = 5000, streams: number = 5) : Observable<__esri.FeatureSet> {
     const txId = getUuid();
     const count$ = from(this.mapService.mapView.when()).pipe(
       map(() => this.layerService.getQueryLayer(layerId, txId, true)),

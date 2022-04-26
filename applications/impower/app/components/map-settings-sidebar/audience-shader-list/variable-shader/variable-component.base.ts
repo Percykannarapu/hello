@@ -54,6 +54,17 @@ export abstract class VariableComponentBase<T extends ShadingDefinitionBase> imp
     this.destroyed$.next();
   }
 
+  public onLocalGeometryChange() : void {
+    const localGeoControl = this.parentForm.get('useLocalGeometry');
+    const filterControl = this.parentForm.get('filterByFeaturesOfInterest');
+    if (localGeoControl.value) {
+      filterControl.setValue(false);
+      filterControl.disable();
+    } else {
+      filterControl.enable();
+    }
+  }
+
   protected abstract setupForm() : void;
   protected abstract  tearDownForm() : void;
 }

@@ -141,7 +141,8 @@ function duplicateDotDensity(def: DotDensityShadingDefinition) : DotDensityShadi
   };
 }
 
-export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
+export type StatisticalShadingDefinition = RampShadingDefinition | ClassBreakShadingDefinition;
+export type ComplexShadingDefinition = UniqueShadingDefinition | StatisticalShadingDefinition;
 export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition | DotDensityShadingDefinition;
 
 export function duplicateShadingDefinition(def: ShadingDefinition) : ShadingDefinition {
@@ -167,9 +168,11 @@ export function isArcadeCapableShadingDefinition(s: ShadingDefinition) : s is Co
 }
 
 export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition {
-  return s.shadingType === ConfigurationTypes.Unique ||
-         s.shadingType === ConfigurationTypes.Ramp ||
-         s.shadingType === ConfigurationTypes.ClassBreak;
+  return s.shadingType === ConfigurationTypes.Unique || isStatisticalShadingDefinition(s);
+}
+
+export function isStatisticalShadingDefinition(s: ShadingDefinition) : s is StatisticalShadingDefinition {
+  return s.shadingType === ConfigurationTypes.Ramp || s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
 export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false, valuesToKeep?: Set<string>) : UniqueValueFillDefinition[] {

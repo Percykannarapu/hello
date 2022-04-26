@@ -87,7 +87,7 @@ export class EsriShadingService {
       withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
     ).subscribe(([defs, features]) => {
       defs.forEach(d => {
-        if (!this.layersInFlight.has(d.id)) {
+        if (!this.layersInFlight.has(d.id) && !d.useLocalGeometry) {
           this.layersInFlight.add(d.id);
           this.createGeneralizedShadingLayer(d, features).pipe(
             take(1)
@@ -115,7 +115,9 @@ export class EsriShadingService {
     this.store$.select(shadingSelectors.layerDefsForUpdate).pipe(
       withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
     ).subscribe(([defs, features]) => {
-      defs.forEach(d => this.updateGeneralizedShadingLayer(d, features));
+      defs.forEach(d => {
+        if (!d.useLocalGeometry) this.updateGeneralizedShadingLayer(d, features);
+      });
     });
   }
 
@@ -193,7 +195,7 @@ export class EsriShadingService {
     let layerFactory$: Observable<__esri.FeatureLayer>;
     if (config.useLocalGeometry) {
       this.layerService.longLayerLoadInProgress$.next(true);
-      const query = new Query({ where: `1 = 1 AND COALESCE(pob, \'\') <> \'B\'`, returnGeometry: true, outFields: ['geocode'] });
+      const query = new Query({ returnGeometry: true, outFields: ['geocode'] });
       layerFactory$ = this.queryService.executeParallelQuery(config.sourcePortalId, query, 5000, 3).pipe(
         map(fs => fs.features),
         reduceConcat(),

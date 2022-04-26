@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { getUuid, isNil, mapByExtended } from '@val/common';
-import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService } from '@val/esri';
+import { getUuid, mapByExtended } from '@val/common';
+import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService, updateBoundaries } from '@val/esri';
+import { EnvironmentData } from 'environments/environment';
 import { distinctUntilChanged, filter, take, withLatestFrom } from 'rxjs/operators';
-import { updateBoundaries } from '../../../../modules/esri/src/state/boundary/esri.boundary.actions';
-import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';

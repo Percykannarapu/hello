@@ -130,6 +130,14 @@ export class EsriLayerService {
     return this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
   }
 
+  public getFeatureLayerByUniqueId(layerUniqueId: string) : __esri.FeatureLayer {
+    const layer = this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
+    if (isFeatureLayer(layer)) {
+      return layer;
+    }
+    return null;
+  }
+
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
     const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
     if (isFeatureLayer(layer)) {
@@ -281,7 +289,7 @@ export class EsriLayerService {
       fields: [],
       geometryType: 'polygon',
       spatialReference: { wkid: 4326 },
-      outFields: ['*'],
+      outFields: ['geocode'],
       globalIdField: 'esri_oid',
       ...additionalLayerAttributes
     } as __esri.FeatureLayerProperties;
@@ -450,14 +458,18 @@ export class EsriLayerService {
   }
 
   private createQueryLayer(portalId: string, queryId: string, hideLayer: boolean) : __esri.FeatureLayer {
-    const result = new FeatureLayer({
-      portalItem: {
-        id: portalId
-      },
+    const attributes: __esri.FeatureLayerProperties = {
       visible: false,
       listMode: hideLayer ? 'hide' : 'show',
       title: `Query Layer - ${portalId}`
-    });
+    };
+    if (portalId.startsWith('http')) {
+      attributes.url = portalId;
+    } else {
+      attributes.portalItem = { id: portalId };
+    }
+    this.logger.debug.log('Query Layer Attributes:', attributes);
+    const result = new FeatureLayer(attributes);
     this.queryOnlyLayers.set(queryId, result);
     this.mapService.mapView.map.add(result);
     return result;

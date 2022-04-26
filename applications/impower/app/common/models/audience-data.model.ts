@@ -82,6 +82,6 @@ export interface NationalAudienceModel {
     }
   };
   stats: {
-    [varPk: number] : Statistics
+    [varPk: number] : CollectedStatistics
   };
 }

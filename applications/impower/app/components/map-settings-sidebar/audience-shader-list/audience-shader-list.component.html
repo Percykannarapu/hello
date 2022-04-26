@@ -14,7 +14,7 @@
                 [ngClass]="{ 'pi-eye': def.visible, 'pi-eye-slash': !def.visible }" (click)="toggleVisibility($event, def)">
           </span>
           <span [ngStyle]="{ 'font-style': def.visible ? null : 'italic' }">
-            {{def.layerName}}<ng-container *ngIf="!def.visible">&nbsp;(hidden)</ng-container>
+            {{def.layerName}}<ng-container *ngIf="def.useLocalGeometry">&nbsp;National Map</ng-container><ng-container *ngIf="!def.visible">&nbsp;(hidden)</ng-container>
           </span>
         </div>
         <div *ngIf="def.sourcePortalId == null" class="p-col p-col-nogutter">New {{def.layerName == null ? 'Variable' : def.layerName}}</div>

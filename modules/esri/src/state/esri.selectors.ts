@@ -1,5 +1,4 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { isPortalFeatureLayer } from '../core/type-checks';
 import { AppState, EsriState } from './esri.reducers';
 
 const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
