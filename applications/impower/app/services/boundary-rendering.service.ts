@@ -115,6 +115,11 @@ export class BoundaryRenderingService {
 
   public getLayerSetupInfo(key: string) : BasicLayerSetup {
     const scales = {
+      state: {
+        minScale: undefined,
+        batchMinScale: undefined,
+        defaultFontSize: 12
+      },
       dma: {
         minScale: undefined,
         batchMinScale: undefined,
@@ -178,6 +183,8 @@ export class BoundaryRenderingService {
       const defaultMap = mapByExtended(defaultSetup, b => b.dataKey);
       // here we are fixing up any saved data with internal values that the users will never really modify
       // (arcade strings, popup definitions, etc...)
+      const existingIds = new Set<string>(existingSetup.map(b => b.dataKey));
+      const newConfigs = defaultSetup.filter(db => !existingIds.has(db.dataKey));
       existingSetup.forEach(b => {
         if (defaultMap.has(b.dataKey)) {
           const currentDefaults = defaultMap.get(b.dataKey);
@@ -198,12 +205,15 @@ export class BoundaryRenderingService {
           }
           b.popupDefinition = currentDefaults.popupDefinition;
           b.isPrimarySelectableLayer = currentDefaults.isPrimarySelectableLayer;
+          b.sortOrder = currentDefaults.sortOrder;
         }
       });
+      existingSetup.push(...newConfigs);
       result = existingSetup;
     }
-    this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(result), 'STRING', true);
+
     this.esriBoundaryService.setDynamicPopupFactory(this.generator.geographyPopupFactory, this.generator);
+    this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(result), 'STRING', true);
     return result;
   }
 
@@ -212,8 +222,23 @@ export class BoundaryRenderingService {
     // const labelExpression = 'replace($feature.geocode, $feature.zip, "")'; new label - requires layer changes to work
     return [
       {
-        ...this.createBasicBoundaryDefinition('dma', analysisLevel),
+        ...this.createBasicBoundaryDefinition('state', analysisLevel),
         sortOrder: 0,
+        hasPOBs: false,
+        groupName: 'States',
+        layerName: 'State Boundaries',
+        showLabels: false,
+        showPopups: false,
+        symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [80, 80, 80, 1], outlineWidth: 1 },
+        labelDefinition: {
+          haloColor: [255, 255, 255, 1], isBold: true, featureAttribute: 'STATE_ABBR', color: [80, 80, 80, 1],
+          size: this.getLayerSetupInfo('state').defaultFontSize
+        },
+        popupDefinition: null
+      },
+      {
+        ...this.createBasicBoundaryDefinition('dma', analysisLevel),
+        sortOrder: 1,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [139, 76, 178, 1], outlineWidth: 2.5 },
         labelDefinition: {
@@ -229,7 +254,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('counties', analysisLevel),
-        sortOrder: 1,
+        sortOrder: 2,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: this.getLayerSetupInfo('counties').defaultFontSize,
@@ -243,7 +268,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('wrap', analysisLevel),
-        sortOrder: 2,
+        sortOrder: 3,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize, featureAttribute: 'wrap_name' },
@@ -259,7 +284,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('zip', analysisLevel),
-        sortOrder: 3,
+        sortOrder: 4,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [51, 59, 103, 1], outlineWidth: 2 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
@@ -275,7 +300,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('atz', analysisLevel),
-        sortOrder: 4,
+        sortOrder: 5,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
           customExpression: labelExpression },
@@ -293,7 +318,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('dtz', analysisLevel),
-        sortOrder: 5,
+        sortOrder: 6,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
           customExpression: labelExpression },
@@ -311,7 +336,7 @@ export class BoundaryRenderingService {
       },
       {
         ...this.createBasicBoundaryDefinition('pcr', analysisLevel),
-        sortOrder: 6,
+        sortOrder: 7,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [131, 134, 150, 1], outlineWidth: 0.5 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
           customExpression: labelExpression },

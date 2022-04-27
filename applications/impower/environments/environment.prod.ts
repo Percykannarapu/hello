@@ -26,6 +26,11 @@ export class EnvironmentData {
   };
 
   public static layerIds: AllLayerIds = {
+    state: {
+      boundary: '99fd67933e754a1181cc755146be21ca',
+      simplifiedBoundary: undefined,
+      centroid: undefined
+    },
     dma: {
       boundary: '7fa18dcf1b934ff3bd6137b209d1faf0',
       simplifiedBoundary: undefined,

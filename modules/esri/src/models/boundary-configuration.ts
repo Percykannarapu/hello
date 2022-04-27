@@ -1,4 +1,4 @@
-import { DeepPartial } from '@val/common';
+import { DeepPartial, isNil } from '@val/common';
 import { applyFillChanges, applyLabelChanges, duplicateFill, duplicateLabel, FillSymbolDefinition, LabelDefinition } from './common-configuration';
 
 export interface PopupDefinition {
@@ -11,6 +11,7 @@ export interface PopupDefinition {
 }
 
 export function duplicatePopupDefinition(def: PopupDefinition) : PopupDefinition {
+  if (isNil(def)) return null;
   const result = {
     ...def,
   };

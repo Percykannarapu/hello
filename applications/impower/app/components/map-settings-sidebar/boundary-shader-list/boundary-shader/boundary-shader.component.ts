@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { DeepPartial } from '@val/common';
-import { applyBoundaryChanges, applyFillChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple, SymbolDefinition } from '@val/esri';
+import { applyBoundaryChanges, applyFillChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { ValassisValidators } from '../../../../common/valassis-validators';
@@ -77,7 +77,7 @@ export class BoundaryShaderComponent implements OnDestroy {
       showPOBs: new FormControl(this.configuration.showPOBs),
       showPopups: new FormControl(this.configuration.showPopups),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
-      
+
       symbolDefinition: this.fb.group({
         outlineWidth: new FormControl(this.configuration.symbolDefinition.outlineWidth),
       }),

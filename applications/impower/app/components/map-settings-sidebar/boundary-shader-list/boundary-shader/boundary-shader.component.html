@@ -59,7 +59,7 @@
         <div class="p-col-6">
           <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
         </div>
-        <div class="p-col-6">
+        <div class="p-col-6" *ngIf="configuration.popupDefinition != null">
           <boolean-input labelText="Show Popups?" formControlName="showPopups"></boolean-input>
         </div>
       </div>
