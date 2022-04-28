@@ -14,6 +14,11 @@ export enum FitTo {
   TA = 'ta'
 }
 
+export enum NationalMapTypes {
+  Continental = 'nationalMapContinental',
+  Custom = 'nationalMapCustom'
+}
+
 export interface BatchMapQueryParams {
   id: number;
   height: number;
@@ -33,6 +38,9 @@ export interface BatchMapQueryParams {
   labels: boolean;
   symbols: boolean;
   tradeAreaBoundaries: boolean;
+  nationalMap: boolean;
+  nationalMapType: NationalMapTypes;
+  audience: number;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -54,6 +62,9 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   labels: true,
   symbols: true,
   tradeAreaBoundaries: true,
+  nationalMap: false,
+  nationalMapType: null,
+  audience: null
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;
@@ -74,6 +85,8 @@ export const getTypedBatchQueryParams = createSelector(getRouteQueryParams, stat
     if (state.labels != null) result.labels = strToBool(state.labels);
     if (state.symbols != null) result.symbols = strToBool(state.symbols);
     if (state.tradeAreaBoundaries != null) result.tradeAreaBoundaries = strToBool(state.tradeAreaBoundaries);
+    if (state.nationalMap != null) result.nationalMap = strToBool(state.nationalMap);
+    if (isConvertibleToInteger(state.audience)) result.audience = Number(state.audience);
   }
   return result;
 });

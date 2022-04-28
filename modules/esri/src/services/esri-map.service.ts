@@ -136,8 +136,8 @@ export class EsriMapService {
     this.mapView.graphics.removeAll();
   }
 
-  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
-    return EsriUtils.setupWatch(this.mapView, propertyName);
+  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T, startWithInitialValue: boolean = false) : Observable<WatchResult<__esri.MapView, T>> {
+    return EsriUtils.setupWatch(this.mapView, propertyName, startWithInitialValue);
   }
 
   createBasicWidget(constructor: __esri.WidgetConstructor, properties?: any, position: string = 'top-left') : void {

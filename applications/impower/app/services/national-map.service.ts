@@ -158,12 +158,13 @@ export class NationalMapService {
   private mergeDataToLayer(config: ShadingDefinition, features: __esri.Graphic[], data: NationalAudienceModel, varPk: number) : __esri.FeatureLayer {
     let oid = 0;
     let currentStats: CompleteCollectedStatistics = data.stats[varPk];
+    const dataType = config.shadingType === ConfigurationTypes.Unique ? 'string' : 'double';
     features.forEach(feat => {
       if (!isNil(feat.attributes.geocode) && !isNil(data.data[feat.attributes.geocode])) {
         const dataValue = data.data[feat.attributes.geocode][varPk];
         feat.attributes.esri_oid = oid++;
         if (!isNil(dataValue)) {
-          feat.attributes[varPk] = dataValue;
+          feat.attributes[varPk] = isEmpty(dataValue) ? null : dataValue;
           if (isNil(currentStats)) {
             collectStatistics(varPk, dataValue);
           }
@@ -180,8 +181,7 @@ export class NationalMapService {
         ...getIntervalsFromCollectedStats(currentStats, config.dynamicAllocationSlots)
       };
     }
-    const dataType = config.shadingType === ConfigurationTypes.Unique ? 'string' : 'double';
-    config.defaultSymbolDefinition.fillColor = [0, 0, 0, 1];
+    config.defaultSymbolDefinition.fillColor = [0, 0, 0, 0];
     const newRenderer = this.createNationalRenderer(config, varPk, currentStats);
     const layerProps: __esri.FeatureLayerProperties = {
       fields: [{ name: 'esri_oid', alias: 'ObjectId', type: 'oid' }, { name: 'geocode', alias: 'Geocode', type: 'string' }, { name: `${varPk}`, alias: 'RenderData', type: dataType }],

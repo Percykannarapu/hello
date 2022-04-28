@@ -105,7 +105,7 @@ export class BoundaryRenderingService {
   }
 
   public getDataKeyByBoundaryLayerId(layerId: string) : string {
-    const dataKey = Object.keys(EnvironmentData.layerIds).filter(key => EnvironmentData.layerIds[key].boundary === layerId);
+    const dataKey = Object.keys(EnvironmentData.layerIds).filter(key => EnvironmentData.layerIds[key].boundary === layerId || EnvironmentData.layerIds[key].simplifiedBoundary === layerId);
     if (dataKey != null && dataKey.length > 0) {
       return dataKey[0];
     } else {

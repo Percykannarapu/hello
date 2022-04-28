@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { groupByExtended, isNotNil, mapBy, removeNonAsciiChars, removeTabAndNewLineRegx } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
-import { allAudiences, getCustomAudiencesInFootprint } from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import {
@@ -95,16 +95,15 @@ export class BatchMapRequestComponent implements OnInit {
   }
 
   ngOnInit() {
+    const activeSites = this.getActiveSites();
     this.hasFullPdfGrant = this.ddConfig.data.userHasFullPDFGrant ?? false;
     this.user = this.ddConfig.data.user;
+    this.sitesCount = activeSites.length;
+    this.totalSites = activeSites.length;
 
     this.initForm();
     this.populateFormData();
     this.watchFormChanges();
-
-    const activeSites = this.getActiveSites();
-    this.sitesCount = activeSites.length;
-    this.totalSites = activeSites.length;
   }
 
   initForm() {
@@ -154,7 +153,7 @@ export class BatchMapRequestComponent implements OnInit {
           subTitleInput: savedFormData.subTitleInput ?? '',
           subSubTitleInput: savedFormData.subSubTitleInput ?? '',
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
-          sitesToInclude: savedFormData.sitesToInclude ?? 'allActiveSites',
+          sitesToInclude: savedFormData.sitesToInclude ?? this.sitesCount > 0 ? 'allActiveSites' : 'nationalMapContinental',
           taTitle: savedFormData.taTitle ?? '',
           enableLabels: savedFormData.enableLabels ?? true,
           enableSymbols: savedFormData.enableSymbols ?? true,
@@ -177,20 +176,20 @@ export class BatchMapRequestComponent implements OnInit {
 
       if (savedFormData.sitesPerPage === 'sitesGroupedBy')
          this.batchMapForm.get('sitesByGroup').enable();
-      else    
-         this.batchMapForm.get('sitesByGroup').disable();
-      
-      if (savedFormData.sitesToInclude === 'nationalMapCustom')
-          this.batchMapForm.get('nationalMapControl').enable(); 
       else
-          this.batchMapForm.get('nationalMapControl').disable();      
+         this.batchMapForm.get('sitesByGroup').disable();
+
+      this.batchMapForm.get('nationalMapControl').disable();
+      if (savedFormData.sitesToInclude === 'nationalMapCustom') {
+        this.batchMapForm.get('nationalMapControl').enable();
+      }
 
       if (savedFormData.neighboringSites === 'exclude'){
         this.batchMapForm.get('enableTradeAreaShading').disable();
         this.batchMapForm.get('enableLabels').disable();
         this.batchMapForm.get('enableSymbols').disable();
         this.batchMapForm.get('enableTradeAreaBoundaries').disable();
-      }else{
+      } else {
         this.batchMapForm.get('enableTradeAreaShading').enable();
         this.batchMapForm.get('enableLabels').enable();
         this.batchMapForm.get('enableSymbols').enable();
@@ -214,7 +213,7 @@ export class BatchMapRequestComponent implements OnInit {
         subTitleInput: '',
         subSubTitleInput: '',
         enableTradeAreaShading: false,
-        sitesToInclude: 'allActiveSites',
+        sitesToInclude: this.sitesCount > 0 ? 'allActiveSites' : 'nationalMapContinental',
         taTitle: '',
         enableLabels: true,
         enableSymbols: true,
@@ -235,6 +234,12 @@ export class BatchMapRequestComponent implements OnInit {
         this.currentProjectName = p.projectName;
         this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       });
+    }
+    const sitesValue = this.batchMapForm.get('sitesToInclude').value;
+    if (sitesValue === 'currentMap' || sitesValue === 'nationalMapContinental' || sitesValue === 'nationalMapCustom'){
+      this.currentViewSetting();
+    } else {
+      this.activeSitesSetting();
     }
   }
 
@@ -327,11 +332,11 @@ export class BatchMapRequestComponent implements OnInit {
         this.activeSitesSetting();
     });
 
-    this.store$.select(getCustomAudiencesInFootprint).subscribe(audiences => {
+    this.store$.select(allAudiences).subscribe(audiences => {
         const customList: SelectItem[] = [];
-        customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
+        // customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
         audiences.forEach(aud => {
-          customList.push({label: aud.audienceName, value: aud.audienceName});
+          customList.push({ label: aud.audienceName, value: aud.audienceIdentifier });
         });
         this.nationalMapOptions = customList.length > 0 ? customList : [];
     });

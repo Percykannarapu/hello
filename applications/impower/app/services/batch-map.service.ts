@@ -2,13 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
-import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
+import { getUuid, groupByExtended, isConvertibleToNumber, isNil, UniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/common/models/User';
 import { ForceMapUpdate, MapViewUpdating, ResetForceMapUpdate, SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
-import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
+import { BatchMapQueryParams, FitTo, NationalMapTypes } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -16,8 +16,12 @@ import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { LocationBySiteNum } from '../common/valassis-sorters';
 import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../common/models/print-job.model';
+import { LocationBySiteNum } from '../common/valassis-sorters';
+import {
+  allCustomVarEntities,
+  allCustomVarIds,
+} from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import {
   BatchMapPayload,
   CurrentPageBatchMapPayload,
@@ -33,6 +37,8 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
+
+type AnyArray<T> = T[] | ReadonlyArray<T>;
 
 @Injectable({
   providedIn: 'root'
@@ -117,11 +123,11 @@ export class BatchMapService {
       return false;
     }
     this.logService.debug.log('location count for batchmap', project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length);
-    if (project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
-      const noLocationFound = 'The project must have saved Locations to generate a batch map.';
-      this.store$.dispatch(ErrorNotification({ message: noLocationFound, notificationTitle }));
-      return false;
-    }
+    // if (project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
+    //   const noLocationFound = 'The project must have saved Locations to generate a batch map.';
+    //   this.store$.dispatch(ErrorNotification({ message: noLocationFound, notificationTitle }));
+    //   return false;
+    // }
     return true;
   }
 
@@ -139,7 +145,9 @@ export class BatchMapService {
         }
       });
     });
-    if (params.currentView)
+    if (params.nationalMap)
+      return this.zoomToNational(params, project.methAnalysis);
+    else if (params.currentView)
        return  this.zoomToCurrentView(project, params);
     else if (params.groupByAttribute != null)
       return this.mapByAttribute(project, siteNum, params);
@@ -335,12 +343,12 @@ export class BatchMapService {
 
   public forceMapUpdate() {
     const timeout = 120000; // 2 minutes
-    const mapReady$ = this.esriMapService.watchMapViewProperty('updating').pipe(
-      filter(result => !result.newValue)
+    const mapReady$ = this.esriMapService.watchMapViewProperty('ready', true).pipe(
+      filter(result => result.newValue)
     );
 
     const timeout$ = timer(timeout).pipe(
-      map(() => false),
+      map(() => true),
     );
 
     race(mapReady$, timeout$).pipe(
@@ -380,7 +388,7 @@ export class BatchMapService {
     );
   }
 
-  private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, additionalPoints: [number, number][]) : Observable<__esri.Graphic[]> {
+  private polysFromGeos(analysisLevel: string, geos: AnyArray<Partial<ImpGeofootprintGeo>>, additionalPoints: [number, number][]) : Observable<__esri.Graphic[]> {
     const activeGeos: Set<string> = new Set();
     geos.forEach(g => {
       if (g.isActive)
@@ -425,4 +433,32 @@ export class BatchMapService {
     }, [] as __esri.Graphic[]);
     return of(circles);
   }
+
+  private zoomToNational(params: BatchMapQueryParams, analysisLevel: string) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    // Continental map if requested or audience data is missing
+    if (params.nationalMapType === NationalMapTypes.Continental || isNil(params.audience)) {
+      const USPoints: UniversalCoordinates[] = [
+        { y: 48.095482, x: -125.199929 },
+        { y: 49.412705, x: -95.153929 },
+        { y: 44.678887, x: -66.69328 },
+        { y: 24.519634, x: -81.802725 }
+      ];
+      this.esriMapService.zoomToPoints(USPoints, 0.01);
+      this.store$.dispatch(new ForceMapUpdate());
+      return of({ siteNum: '', isLastSite: true });
+    } else {
+      return combineLatest([this.store$.select(allCustomVarEntities), this.store$.select(allCustomVarIds)]).pipe(
+        map(([entity, ids]) => ids.reduce((pv, cv) => {
+          if (!isNil(entity[cv][params.audience])) pv.push({ geocode: cv, isActive: true });
+          return pv;
+        } , [])),
+        switchMap(geocodes => this.polysFromGeos(analysisLevel, geocodes, [])),
+        switchMap(polys => this.esriMapService.zoomToPolys(polys)),
+        tap(() => this.store$.dispatch(new ForceMapUpdate())),
+        map(() => ({ siteNum: '', isLastSite: true }))
+      );
+    }
+  }
+
+
 }

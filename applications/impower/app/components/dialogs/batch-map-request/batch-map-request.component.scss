@@ -10,4 +10,11 @@
   > * {
     padding-bottom: 0.5rem;
   }
+  .p-grid {
+    align-items: baseline;
+    margin-left: 0;
+    dropdown-input {
+      padding-top: 0;
+    }
+  }
 }
