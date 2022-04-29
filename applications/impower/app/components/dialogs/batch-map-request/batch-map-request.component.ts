@@ -54,7 +54,6 @@ export class BatchMapRequestComponent implements OnInit {
     'subSubTitle': ''
   };
   enableTradeAreaShading: boolean;
-  disableTradeArea: boolean;
   sitesCount: number = 0;
   enableTradeAreaBoundaries: boolean;
   enableLabels: boolean;
@@ -128,10 +127,21 @@ export class BatchMapRequestComponent implements OnInit {
       enableLabels: true,
       enableSymbols: true,
       enableTradeAreaBoundaries: true,
-      nationalMapControl: 'Custom Audience'
+      nationalMapControl: null
     });
     this.batchMapForm.get('sitesByGroup').disable();
     this.batchMapForm.get('nationalMapControl').disable();
+    this.store$.select(customAudiences).subscribe(audiences => {
+      const customList: SelectItem[] = [];
+      // customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
+      audiences.forEach(aud => {
+        customList.push({ label: aud.audienceName, value: aud.audienceIdentifier });
+      });
+      this.nationalMapOptions = customList.length > 0 ? customList : [];
+      if (this.nationalMapOptions.length > 0) {
+        this.batchMapForm.patchValue({ nationalMapControl: this.nationalMapOptions[0].value });
+      }
+    });
   }
 
   populateFormData() {
@@ -218,7 +228,7 @@ export class BatchMapRequestComponent implements OnInit {
         enableLabels: true,
         enableSymbols: true,
         enableTradeAreaBoundaries: false,
-        nationalMapControl: 'Custom Audience'
+        nationalMapControl: this.nationalMapOptions.length > 0 ? this.nationalMapOptions[0].value : null
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
@@ -330,15 +340,6 @@ export class BatchMapRequestComponent implements OnInit {
         this.currentViewSetting();
       else
         this.activeSitesSetting();
-    });
-
-    this.store$.select(customAudiences).subscribe(audiences => {
-        const customList: SelectItem[] = [];
-        // customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
-        audiences.forEach(aud => {
-          customList.push({ label: aud.audienceName, value: aud.audienceIdentifier });
-        });
-        this.nationalMapOptions = customList.length > 0 ? customList : [];
     });
   }
 
