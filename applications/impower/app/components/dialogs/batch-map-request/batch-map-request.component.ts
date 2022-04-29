@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { groupByExtended, isNotNil, mapBy, removeNonAsciiChars, removeTabAndNewLineRegx } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
-import { allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { customAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import {
@@ -332,7 +332,7 @@ export class BatchMapRequestComponent implements OnInit {
         this.activeSitesSetting();
     });
 
-    this.store$.select(allAudiences).subscribe(audiences => {
+    this.store$.select(customAudiences).subscribe(audiences => {
         const customList: SelectItem[] = [];
         // customList.push({ label: 'Custom Audience', value: 'Custom Audience' });
         audiences.forEach(aud => {
@@ -395,7 +395,7 @@ export class BatchMapRequestComponent implements OnInit {
         ]
       };
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    }else if (dialogFields.sitesToInclude === 'nationalMapContinental' || dialogFields.sitesToInclude === 'nationalMapCustom'){
+    } else if (dialogFields.sitesToInclude === 'nationalMapContinental' || dialogFields.sitesToInclude === 'nationalMapCustom') {
       const formData: NationalMapBatchMapPayload = {
           calls: [
             {
@@ -414,15 +414,14 @@ export class BatchMapRequestComponent implements OnInit {
                   projectName: this.currentProjectName,
                   jobType: 'National Maps',
                   nationalMaps: dialogFields.sitesToInclude,
-                  audience: this.batchMapForm.get('nationalMapControl').value
+                  audience: dialogFields === 'nationalMapCustom' ? this.batchMapForm.get('nationalMapControl').value : null,
                 }
               }
             }
           ]
       };
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    }
-    else{
+    } else {
       if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
         const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
         this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
