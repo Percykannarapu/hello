@@ -414,7 +414,7 @@ export class BatchMapRequestComponent implements OnInit {
                   projectName: this.currentProjectName,
                   jobType: 'National Maps',
                   nationalMaps: dialogFields.sitesToInclude,
-                  audience: dialogFields === 'nationalMapCustom' ? this.batchMapForm.get('nationalMapControl').value : null,
+                  audience: dialogFields.sitesToInclude === 'nationalMapCustom' ? this.batchMapForm.get('nationalMapControl').value : null,
                 }
               }
             }
