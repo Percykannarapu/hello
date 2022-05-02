@@ -238,7 +238,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   private createBatchMap() {
     const currentProject = this.stateService.currentProject$.getValue();
-    const isProjectSaved = this.batchService.validateProjectReadiness(currentProject);
+    const isProjectSaved = this.batchService.validateProjectReadiness(currentProject, this.userService.userHasGrants(['IMPOWER_PDF_FULL']));
     if (isProjectSaved) {
       const pref = this.projectPrefService.getPref('batchMapPayload');
       const batchMapPref = pref?.largeVal ?? pref?.val ?? null;
@@ -250,7 +250,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         data: {
           batchMapPayload,
           user: this.userService.getUser(),
-          userHasFullPDFGrant: this.userService.userHasGrants(['IMPOWER_PDF_FULL'])
+          userHasFullPDFGrant: this.userService.userHasGrants(['IMPOWER_PDF_FULL']),
+          projectAnalysisLevel: currentProject.methAnalysis
         }
       });
       ref.onClose.subscribe(prefs => {

@@ -14,6 +14,7 @@ export abstract class VariableComponentBase<T extends ShadingDefinitionBase> imp
   @Input() parentForm: FormGroup;
   @Input() isEditing: boolean;
   @Input() currentAudience: Audience;
+  @Input() currentAnalysisLevel: string;
 
   public get audienceDescription() : string {
     return this.currentAudience == null ? '' : `${this.currentAudience.audienceName} (${this.currentAudience.audienceSourceName})`;

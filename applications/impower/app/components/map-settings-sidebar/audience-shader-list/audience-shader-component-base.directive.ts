@@ -9,6 +9,7 @@ import { Subject } from 'rxjs';
 export abstract class AudienceShaderComponentBase<T extends ShadingDefinitionBase> implements OnInit, OnDestroy {
 
   @Input() definition: T;
+  @Input() currentAnalysisLevel: string;
   @Output() applyShader: EventEmitter<T> = new EventEmitter<T>();
   @Output() deleteShader: EventEmitter<T> = new EventEmitter<T>();
 

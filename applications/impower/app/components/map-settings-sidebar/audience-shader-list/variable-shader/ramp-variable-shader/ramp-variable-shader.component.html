@@ -24,7 +24,10 @@
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-  <boolean-input labelText="Create National Map" formControlName="useLocalGeometry" (ngModelChange)="onLocalGeometryChange()"></boolean-input>
+  <ng-container *ngIf="currentAnalysisLevel == 'ZIP' || currentAnalysisLevel == 'ATZ'">
+    <boolean-input labelText="Create National Map" formControlName="useLocalGeometry" *acsGrant="['IMPOWER_PDF_FULL']"
+                   (ngModelChange)="onLocalGeometryChange()"></boolean-input>
+  </ng-container>
   <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <dropdown-input formControlName="theme" labelText="Theme" [options]="numericThemes"></dropdown-input>
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>

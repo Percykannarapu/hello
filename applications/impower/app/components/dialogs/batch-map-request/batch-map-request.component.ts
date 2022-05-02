@@ -43,6 +43,7 @@ export class BatchMapRequestComponent implements OnInit {
   fullPageSettings: SelectItem[];
   limitedPageSettings: SelectItem[];
   hasFullPdfGrant: boolean;
+  nationalMapIsAllowed: boolean;
   siteLabels: SelectItem[];
   siteByGroupList: SelectItem[];
   mapBufferOptions: SelectItem[];
@@ -96,6 +97,7 @@ export class BatchMapRequestComponent implements OnInit {
   ngOnInit() {
     const activeSites = this.getActiveSites();
     this.hasFullPdfGrant = this.ddConfig.data.userHasFullPDFGrant ?? false;
+    this.nationalMapIsAllowed = this.hasFullPdfGrant && (this.ddConfig.data.projectAnalysisLevel === 'ZIP' || this.ddConfig.data.projectAnalysisLevel === 'ATZ');
     this.user = this.ddConfig.data.user;
     this.sitesCount = activeSites.length;
     this.totalSites = activeSites.length;
@@ -123,7 +125,7 @@ export class BatchMapRequestComponent implements OnInit {
       subSubTitleInput: '',
       taTitle: '',
       enableTradeAreaShading: false,
-      sitesToInclude: 'allActiveSites',
+      sitesToInclude: this.sitesCount > 0 ? 'allActiveSites' : 'nationalMapContinental',
       enableLabels: true,
       enableSymbols: true,
       enableTradeAreaBoundaries: true,

@@ -8,13 +8,15 @@
     <div class="p-col-12 p-d-flex p-flex-column">
       <h5>Map Contents</h5>
       <div class="nested-list padded-children">
+        <p-message text="There was an error generating map options for this project. Please contact the ImPower team for assistance."
+                   severity="error" *ngIf="sitesCount == 0 && !nationalMapIsAllowed"></p-message>
         <p-radioButton name="sitesToInclude" value="allActiveSites" label="All Active Sites ({{sitesCount}})"
                        formControlName="sitesToInclude" *ngIf="sitesCount > 0"></p-radioButton>
         <p-radioButton name="sitesToInclude" value="currentMap" label="Current Map (visible sites only)"
                        formControlName="sitesToInclude" *ngIf="sitesCount > 0"></p-radioButton>
         <p-radioButton name="sitesToInclude" value="nationalMapContinental" label="National Map (Continental US)"
-                       formControlName="sitesToInclude"></p-radioButton>
-        <div *ngIf="nationalMapOptions.length > 0" class="p-grid">
+                       formControlName="sitesToInclude" *ngIf="nationalMapIsAllowed"></p-radioButton>
+        <div *ngIf="nationalMapOptions.length > 0 && nationalMapIsAllowed" class="p-grid">
             <p-radioButton name="sitesToInclude" value="nationalMapCustom" label="National Map (Custom Data Defined)"
                            formControlName="sitesToInclude"></p-radioButton>
             <dropdown-input formControlName="nationalMapControl" labelText="Custom Audience" class="p-col-3"

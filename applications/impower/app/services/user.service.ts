@@ -81,6 +81,8 @@ export class UserService {
   public userHasGrants(requiredGrants: string[], grantType: GrantType = DEFAULT_GRANT_TYPE) : boolean {
     let result = false;
     const currentUserGrants = new Set<string>(this.userGrantList);
+    // remove grants for local testing purposes
+    // currentUserGrants.delete('IMPOWER_PDF_FULL');
     requiredGrants.forEach((p, i) => {
       if (i === 0) {
         result = currentUserGrants.has(p.toUpperCase());

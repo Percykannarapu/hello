@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
-import { getUuid, groupByExtended, isConvertibleToNumber, isNil, UniversalCoordinates } from '@val/common';
+import { getUuid, groupByExtended, isConvertibleToNumber, isEmpty, isNil, UniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/common/models/User';
@@ -115,19 +115,25 @@ export class BatchMapService {
     return this.http.get(uri, { responseType: 'arraybuffer' });
   }
 
-  validateProjectReadiness(project: ImpProject) : boolean {
+  validateProjectReadiness(project: ImpProject, userHasFullPDFGrant: boolean) : boolean {
     const notificationTitle = 'Batch Map Issue';
+    if (isEmpty(project.methAnalysis)) {
+      const NoAnalysisLevel = 'An analysis level must be selected before you can generate a batch map.';
+      this.store$.dispatch(ErrorNotification({ message: NoAnalysisLevel, notificationTitle }));
+      return false;
+    }
     if (project.projectId == null) {
       const projectNotSaved = 'The project must be saved before you can generate a batch map.';
       this.store$.dispatch(ErrorNotification({ message: projectNotSaved, notificationTitle }));
       return false;
     }
     this.logService.debug.log('location count for batchmap', project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length);
-    // if (project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
-    //   const noLocationFound = 'The project must have saved Locations to generate a batch map.';
-    //   this.store$.dispatch(ErrorNotification({ message: noLocationFound, notificationTitle }));
-    //   return false;
-    // }
+    const nationalMapAllowed = userHasFullPDFGrant && (project.methAnalysis === 'ZIP' || project.methAnalysis === 'ATZ');
+    if (!nationalMapAllowed && project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
+      const noLocationFound = 'The project must have saved Locations to generate a batch map.';
+      this.store$.dispatch(ErrorNotification({ message: noLocationFound, notificationTitle }));
+      return false;
+    }
     return true;
   }
 

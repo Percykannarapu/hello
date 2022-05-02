@@ -25,13 +25,17 @@
       <div *ngIf="shaderForm.get('dataKey')?.value !== '' && shaderForm.get('shadingType')?.value !== ''">
         <ng-container [ngSwitch]="shaderForm.get('shadingType').value">
           <val-ramp-variable-shader *ngSwitchCase="ConfigurationTypes.Ramp" [definition]="definition" [currentAudience]="currentAudience"
-                                    [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-ramp-variable-shader>
+                                    [parentForm]="shaderForm" [currentAnalysisLevel]="currentAnalysisLevel"
+                                    [isEditing]="true" (cancelForm)="cancel()"></val-ramp-variable-shader>
           <val-unique-variable-shader *ngSwitchCase="ConfigurationTypes.Unique" [definition]="definition" [currentAudience]="currentAudience"
-                                      [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-unique-variable-shader>
+                                      [parentForm]="shaderForm" [currentAnalysisLevel]="currentAnalysisLevel"
+                                      [isEditing]="true" (cancelForm)="cancel()"></val-unique-variable-shader>
           <val-density-variable-shader *ngSwitchCase="ConfigurationTypes.DotDensity" [definition]="definition" [currentAudience]="currentAudience"
-                                       [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-density-variable-shader>
+                                       [parentForm]="shaderForm" [currentAnalysisLevel]="currentAnalysisLevel"
+                                       [isEditing]="true" (cancelForm)="cancel()"></val-density-variable-shader>
           <val-breaks-variable-shader *ngSwitchCase="ConfigurationTypes.ClassBreak" [definition]="definition" [currentAudience]="currentAudience"
-                                      [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-breaks-variable-shader>
+                                      [parentForm]="shaderForm" [currentAnalysisLevel]="currentAnalysisLevel"
+                                      [isEditing]="true" (cancelForm)="cancel()"></val-breaks-variable-shader>
         </ng-container>
       </div>
     </form>

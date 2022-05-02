@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { catchError, debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { BatchMapService } from '../../services/batch-map.service';
+import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../app.interfaces';
 import { DataShimActionTypes } from '../data-shim/data-shim.actions';
 import { getTypedBatchQueryParams } from '../shared/router.interfaces';
@@ -19,7 +20,7 @@ export class BatchMapEffects {
   createBatchMap$ = this.actions$.pipe(
     ofType(BatchMapActionTypes.CreateBatchMap),
     withLatestFrom(this.appStateService.currentProject$),
-    filter(([, project]) => this.batchMapService.validateProjectReadiness(project)),
+    filter(([, project]) => this.batchMapService.validateProjectReadiness(project, this.userService.userHasGrants(['IMPOWER_PDF_FULL']))),
     switchMap(([action, project]) => this.batchMapService.requestBatchMap(action.payload.templateFields, project).pipe(
       map(response => SuccessNotification({ notificationTitle: 'Batch Map', message: `The Batch Map is processing, id ${response.results[0].result.jobId}`})),
       catchError(e => of(ErrorNotification({ notificationTitle: 'Batch Map', message: 'There was an error requesting the Batch Map', additionalErrorInfo: e})))
@@ -52,7 +53,8 @@ export class BatchMapEffects {
 
   constructor(private actions$: Actions<BatchMapActions>,
               private store$: Store<LocalAppState>,
+              private appStateService: AppStateService,
               private batchMapService: BatchMapService,
-              private appStateService: AppStateService) {}
+              private userService: UserService) {}
 
 }
