@@ -35,7 +35,7 @@ export const selectGridGeoVars = createSelector(
   }
 );
 
-export const getAllMappedAudiences = createSelector(
+export const getRegularMappedAudiences = createSelector(
   fromAudienceSel.allAudiences,
   shadingSelectors.layerDataKeys,
   (allAudiences, mappedIds) => {

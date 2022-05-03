@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, CommonSort, getUuid, isConvertibleToNumber, isEmpty, isNil, isNotNil } from '@val/common';
+import { calculateStatistics, CommonSort, getUuid, isEmpty, isNotNil, removedSincePrev } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
@@ -28,18 +28,15 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { TradeAreaTypeCodes } from 'worker-shared/data-model/impower.data-model.enums';
-import { NationalAudienceModel } from '../common/models/audience-data.model';
 import { GfpShaderKeys } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
+import { allAudiences } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { allCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
-import {
-  getAllMappedAudiences,
-  getFirstTimeCustomShadedAudiences
-} from '../impower-datastore/state/transient/transient.selectors';
+import { getFirstTimeCustomShadedAudiences, getRegularMappedAudiences } from '../impower-datastore/state/transient/transient.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -85,6 +82,7 @@ export class AppRendererService {
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapWatcher(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapVarWatcher(this.impGeoService.storeObservable);
+      this.setupAudienceRemovalWatcher();
     });
   }
 
@@ -213,7 +211,7 @@ export class AppRendererService {
       withLatestFrom(
         this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueIdentifiedGeocodeSet$,
-        this.store$.select(getAllMappedAudiences),
+        this.store$.select(getRegularMappedAudiences),
         this.store$.select(getMapVars),
         this.store$.select(allCustomVars),
         geoDataStore,
@@ -232,7 +230,7 @@ export class AppRendererService {
         this.store$.select(allCustomVars),
         this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueIdentifiedGeocodeSet$,
-        this.store$.select(getAllMappedAudiences),
+        this.store$.select(getRegularMappedAudiences),
         this.esriService.visibleFeatures$,
         geoDataStore
       )
@@ -253,6 +251,18 @@ export class AppRendererService {
     ).subscribe(([audiences, mapVars, customVars, layerDefs, geocodes, features, geos]) => {
       const visibleGeos = new Set<string>(features.map(f => f.attributes.geocode));
       this.updateAudiences(mapVars, customVars, visibleGeos, layerDefs, geocodes, audiences, geos, null);
+    });
+  }
+
+  private setupAudienceRemovalWatcher() : void {
+    const removedAudienceIdSet$ = this.store$.select(allAudiences).pipe(
+      removedSincePrev(aud => aud.audienceIdentifier),
+      map(aud => new Set(aud.map(a => a.audienceIdentifier)))
+    );
+    combineLatest([removedAudienceIdSet$, this.store$.select(shadingSelectors.allLayerDefs)]).pipe(
+      map(([removedIds, allShaders]) => allShaders.filter(s => removedIds.has(s.dataKey)))
+    ).subscribe(shadersToDelete => {
+      this.esriShaderService.deleteShader(shadersToDelete);
     });
   }
 
@@ -657,9 +667,7 @@ export class AppRendererService {
         }
       }
     });
-    let uniqueValues: string[] = [];
-    uniqueValues = Array.from(allUniqueValues);
-    //uniqueValues.push('ZIP');
+    const uniqueValues: string[] = Array.from(allUniqueValues);
     uniqueValues.sort();
 
     const valueIndexMap: Record<string, string> = {};
@@ -675,8 +683,7 @@ export class AppRendererService {
     if(haskey(uniqueVal, subStr)){
       return uniqueVal[subStr];
     }
-    return null;
-    `;
+    return null;`;
     let colorPalette: RgbTuple[] = [];
     let fillPalette: FillPattern[] = [];
     if (isComplexShadingDefinition(definition)) {

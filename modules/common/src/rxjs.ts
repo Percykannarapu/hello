@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
+import { KeyedSet } from './keyed-set';
 
 export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
@@ -70,5 +71,33 @@ export function distinctUntilFieldsChanged<T>(fields: (keyof T)[]) : (source$: O
       comparer[f] = b[f];
       return result;
     }))
+  );
+}
+
+export function removedSincePrev<T>() : (source$: Observable<T[]>) => Observable<T[]>;
+export function removedSincePrev<T, K>(entityKey: (item: T) => K) : (source$: Observable<T[]>) => Observable<T[]>;
+export function removedSincePrev<T, K>(entityKey?: (item: T) => K) : (source$: Observable<T[]>) => Observable<T[]> {
+  const key = entityKey ?? (item => (item as unknown as K));
+  return source$ => source$.pipe(
+    startWith([]),
+    pairwise(),
+    map(([previous, current]) => {
+      const currentSet = new KeyedSet(key, current);
+      return previous.filter(id => !currentSet.has(id));
+    })
+  );
+}
+
+export function addedSincePrev<T>() : (source$: Observable<T[]>) => Observable<T[]>;
+export function addedSincePrev<T, K>(entityKey: (item: T) => K) : (source$: Observable<T[]>) => Observable<T[]>;
+export function addedSincePrev<T, K>(entityKey?: (item: T) => K) : (source$: Observable<T[]>) => Observable<T[]> {
+  const key = entityKey ?? (item => (item as unknown as K));
+  return source$ => source$.pipe(
+    startWith([]),
+    pairwise(),
+    map(([previous, current]) => {
+      const previousSet = new KeyedSet(key, previous);
+      return current.filter(id => !previousSet.has(id));
+    })
   );
 }
