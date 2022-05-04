@@ -37,7 +37,7 @@
             </div>
           </div>
           <div class="p-d-flex p-jc-center val-flex-1">
-            <label>{{allSiteCount$ | async}} sites ({{activeSiteCount$ | async}} active)</label>
+            <label>{{allSiteCount$ | async}} {{selectedListType$ | async}}s ({{activeSiteCount$ | async}} active)</label>
           </div>
           <div class="p-d-flex p-jc-end val-flex-1">
             <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>

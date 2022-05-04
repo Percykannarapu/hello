@@ -444,7 +444,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
   onSelectSites(newIsActive: boolean) : void {
     const hasFilters = this.hasFilters();
-    const filteredSites: ImpGeofootprintLocation[] = this.siteCache.filter(site => !hasFilters
+    const selectedListType = this.selectedListType$.getValue();
+    const filteredLocationCache = this.siteCache.filter(loc => loc.clientLocationTypeCode === selectedListType);
+    const filteredSites: ImpGeofootprintLocation[] = filteredLocationCache.filter(site => !hasFilters 
       || (this.grid.filteredValue.filter(flatSite => flatSite.loc.locationNumber === site.locationNumber)).length > 0);
     filteredSites.forEach(site => site.isActive = newIsActive);
     this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
