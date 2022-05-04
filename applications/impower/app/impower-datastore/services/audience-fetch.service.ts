@@ -84,7 +84,7 @@ export class AudienceFetchService {
       if (payload.issues.WARN[0] === 'No variable values were found') {
         const notificationTitle = payload.issues.WARN.shift();
         const message = payload.issues.WARN.join('\n');
-        this.store$.dispatch(WarningNotification({ notificationTitle, message }));
+        if (!silent) this.store$.dispatch(WarningNotification({ notificationTitle, message }));
       } else {
         this.logger.warn.toggleLevelIgnore(); // ensures warnings get logged in production
         this.logger.warn.groupCollapsed('Additional Audience Fetch Warning Info');

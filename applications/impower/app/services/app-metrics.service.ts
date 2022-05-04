@@ -69,7 +69,7 @@ export class ValMetricsService implements OnDestroy {
       this.store$.select(geoTransactionId).subscribe(this.geoTxId$);
     });
     this.queryEngine = new OfflineQuery();
-    
+
   }
 
   public ngOnDestroy() : void {
@@ -368,7 +368,7 @@ export class ValMetricsService implements OnDestroy {
   }
 
   public async getColorBoxAudience(){
-    
+
     const audienceResponse = await this.queryEngine.retrieveAudiences(Array.from(varPkMap.values()));
     const audiences: Audience[] = [];
     audienceResponse.forEach(aud => {
@@ -381,7 +381,7 @@ export class ValMetricsService implements OnDestroy {
 
     return this.store$.pipe(
       select(geoTransactionId),
-      switchMap(txId => this.fetchService.getCachedAudienceData(audiences, audiences, this.stateService.analysisLevel$.getValue(), txId, false))
+      switchMap(txId => this.fetchService.getCachedAudienceData(audiences, audiences, this.stateService.analysisLevel$.getValue(), txId, true))
     );
   }
 
@@ -396,10 +396,10 @@ export class ValMetricsService implements OnDestroy {
           }
           geoAttribute['geocode'] = geocode;
           attributes.push(geoAttribute as GeoAttribute);
-      }  
+      }
     }
     return mapBy(attributes, 'geocode');
   }
 
-  
+
 }

@@ -66,8 +66,8 @@ export class AppComponentGeneratorService {
         this.setupPopupAudienceData(requestedGeocode, analysisLevel, cacheKey, popup);
       } else {
         popup.instance.audienceTreeNodes = [];
-        setTimeout(() => popup.changeDetectorRef.detectChanges());
       }
+      setTimeout(() => popup.changeDetectorRef.detectChanges());
     }
     if (this.cachedGeoPopup.get(cacheKey) != null && this.cachedGeoPopup.get(cacheKey).location != null) {
       return this.cachedGeoPopup.get(cacheKey).location.nativeElement;
@@ -138,7 +138,10 @@ export class AppComponentGeneratorService {
 
   private setupPopupAudienceData(geocode: string, analysisLevel: string, cacheKey: string, component: ComponentRef<EsriGeographyPopupComponent>) : void {
     const currentSub = this.store$.select(fetchableAudiences).pipe(
-      tap(() => component.instance.loadingAudienceData = true),
+      tap(() => {
+        component.instance.loadingAudienceData = true;
+        setTimeout(() => component.changeDetectorRef.detectChanges());
+      }),
       switchMap(aud => this.audienceService.getCachedAudienceData(aud, aud, analysisLevel, [geocode], true).pipe(
         catchError(() => of([] as DynamicVariable[])),
         map(varReturn => [varReturn, aud] as const)

@@ -1,13 +1,9 @@
 <p-treeTable [value]="data" (onNodeExpand)="onExpand($event.node)" (onNodeCollapse)="onCollapse($event.node)">
   <ng-template pTemplate="header">
+    <p-progressBar mode="indeterminate" *ngIf="loadingPrimaryData || loadingAudienceData"></p-progressBar>
   </ng-template>
   <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-    <tr *ngIf="loadingAudienceData || loadingPrimaryData">
-      <td>
-        <p-progressSpinner></p-progressSpinner>
-      </td>
-    </tr>
-    <tr *ngIf="!loadingPrimaryData && !loadingAudienceData">
+    <tr>
       <td class="esri-truncate-all">
         <div [title]="rowData.name" [ngClass]="{ 'esri-popup-root-node': rowNode.parent == null }">
           <p-treeTableToggler [rowNode]="rowNode" ></p-treeTableToggler>
