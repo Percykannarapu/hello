@@ -176,11 +176,11 @@ export class EsriQueryService {
     const count$ = from(this.mapService.mapView.when()).pipe(
       map(() => this.layerService.getQueryLayer(layerId, txId, true)),
       switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
-      map(layer => layer.sourceJSON['maxRecordCount'] as number),
+      switchMap(layer => layer.queryFeatureCount({ where: '1 = 1' })),
     );
     return count$.pipe(
-      tap(() => console.log('Starting parallel queries')),
       map(count => this.createParallelQueries(baseQuery, pageSize, count)),
+      tap((q) => console.log(`Starting ${q.length} parallel queries`)),
       switchMap(queries => merge(...(queries.map(q => this.executeFeatureQuery(layerId, q, txId, true))), streams)),
       finalize(() => this.finalizeQuery(txId))
     );

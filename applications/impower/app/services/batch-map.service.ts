@@ -348,16 +348,22 @@ export class BatchMapService {
   }
 
   public forceMapUpdate() {
-    const timeout = 120000; // 2 minutes
+    const twoMinutes = 120000;
     const mapReady$ = this.esriMapService.watchMapViewProperty('ready', true).pipe(
-      filter(result => result.newValue)
+      map(result => result.newValue)
+    );
+    const layersReady$ = this.esriLayerService.longLayerLoadInProgress$.pipe(
+      map(inProgress => !inProgress)
+    );
+    const allReady$ = combineLatest([mapReady$, layersReady$]).pipe(
+      filter(([mReady, lReady]) => mReady && lReady),
     );
 
-    const timeout$ = timer(timeout).pipe(
+    const timeout$ = timer(twoMinutes).pipe(
       map(() => true),
     );
 
-    race(mapReady$, timeout$).pipe(
+    race(allReady$, timeout$).pipe(
       take(1)
       ).subscribe(() => {
         this.store$.dispatch(new SetMapReady({ mapReady: true }));
@@ -465,6 +471,4 @@ export class BatchMapService {
       );
     }
   }
-
-
 }

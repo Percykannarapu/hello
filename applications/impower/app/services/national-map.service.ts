@@ -182,10 +182,14 @@ export class NationalMapService {
       };
     }
     config.defaultSymbolDefinition.fillColor = [0, 0, 0, 0];
+    const today = new Date();
+    const copyrightToday = new Date(today);
+    copyrightToday.setDate(copyrightToday.getDate() + 14);
     const newRenderer = this.createNationalRenderer(config, varPk, currentStats);
     const layerProps: __esri.FeatureLayerProperties = {
       fields: [{ name: 'esri_oid', alias: 'ObjectId', type: 'oid' }, { name: 'geocode', alias: 'Geocode', type: 'string' }, { name: `${varPk}`, alias: 'RenderData', type: dataType }],
       title: config.layerName,
+      copyright: varPk > 100 ? `Portions © 2006-${copyrightToday.getFullYear()} TomTom and Valassis DirectMail, Inc.` : null,
       popupEnabled: false,
       labelingInfo: [],
       labelsVisible: false,
