@@ -266,7 +266,7 @@ export class AppStateService {
       }),
       filter(newGeos => newGeos.length > 0),
     ).subscribe(geoLocations => {
-      //this.store$.dispatch(new GetLayerAttributes({ geoLocations }));
+      this.store$.dispatch(new GetLayerAttributes({ geoLocations }));
     });
   }
 

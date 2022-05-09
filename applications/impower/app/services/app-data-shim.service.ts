@@ -9,7 +9,7 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { KeyedSet } from '../../../../modules/common/src/keyed-set';
+import { KeyedSet } from '@val/common';
 import { MessageCenterService } from '../../../../modules/messaging/core/message-center.service';
 import { ImpClientLocationTypeCodes, ProjectPrefGroupCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
@@ -222,7 +222,7 @@ export class AppDataShimService {
       filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
       tap(() => {
-        //this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
+        this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
       }),
       map(() => project)
     );
