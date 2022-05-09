@@ -4,7 +4,6 @@ import { disjointSets, distinctUntilFieldsChanged, isEmpty, isNotNil } from '@va
 import { MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { LazyLoadEvent, PrimeIcons } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
@@ -14,6 +13,7 @@ import { ActiveTypedGridColumn, GeoGridMetaData, GeoGridResponse, GeoGridRow, Ge
 import { GeoGridExportRequest, GeoGridPayload } from '../../../../worker-shared/grid-workers/payloads';
 import { getCpmForGeo } from '../../../common/complex-rules';
 import { WorkerFactory } from '../../../common/worker-factory';
+import { getMetricVarEntities } from '../../../impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 import { selectGridGeoVars } from '../../../impower-datastore/state/transient/transient.selectors';
 import { AppGeoService } from '../../../services/app-geo.service';
 import { AppStateService } from '../../../services/app-state.service';
@@ -230,7 +230,7 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
     this.impGeofootprintGeoService.allMustCoverBS$.asObservable().pipe(
       takeUntil(this.destroyed$)
     ).subscribe(mustCovers => this.sendMessage({ gridData: { mustCovers }}));
-    this.store$.pipe(select(selectGeoAttributeEntities)).pipe(
+    this.store$.pipe(select(getMetricVarEntities)).pipe(
       takeUntil(this.destroyed$),
       tap(entities => this.geoAttributes = entities)
     ).subscribe(geoAttributes => this.sendMessage({ gridData: { geoAttributes }}));

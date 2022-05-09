@@ -453,7 +453,7 @@ export class EsriLayerService {
     if (layers == null || layers.length === 0) {
       return false;
     } else {
-      return layers.some(layer => layer.visible && (this.mapService.mapView.scale <= layer.minScale));
+      return layers.some(layer => layer.visible);
     }
   }
 

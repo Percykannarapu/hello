@@ -30,12 +30,13 @@ interface ProjectCpmFragment {
   smAnneCpm?: number;
   smSoloCpm?: number;
 }
-export function getCpmForGeo(geoAttributes: Record<string, any>, currentProject: ProjectCpmFragment) : number {
+export function getCpmForGeo(geoAttributes: Record<string | number, any>, currentProject: ProjectCpmFragment) : number {
   let cpm: number;
   if (isNotNil(currentProject?.estimatedBlendedCpm)) {
     cpm = currentProject?.estimatedBlendedCpm;
   } else {
-    switch (geoAttributes['owner_group_primary']) {
+    const attributeValue = geoAttributes['owner_group_primary'] ?? geoAttributes[33024];
+    switch (attributeValue) {
       case 'VALASSIS':
         cpm = currentProject?.smValassisCpm ?? 0;
         break;

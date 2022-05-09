@@ -47,6 +47,7 @@ export class EsriService {
       const selectedLayerIsReady$ = this.store$.select(selectors.getEsriSelectedLayer).pipe(distinctUntilChanged());
 
       this.mapService.viewsCanBeQueried$.pipe(
+        tap(flag => console.log('Views Can Be Queried', flag)),
         filter(ready => ready),
         withLatestFrom(selectedLayerIsReady$),
         switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId, false) : of([]))

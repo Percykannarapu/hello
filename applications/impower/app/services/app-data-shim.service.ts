@@ -1,28 +1,30 @@
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isEmpty, isNotNil, mapArray, mapByExtended } from '@val/common';
+import { CommonSort, filterArray, groupBy, isEmpty, isNotNil, KeyedSet, mapArray, mapByExtended } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
+import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
+import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { KeyedSet } from '@val/common';
 import { MessageCenterService } from '../../../../modules/messaging/core/message-center.service';
-import { ImpClientLocationTypeCodes, ProjectPrefGroupCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import {
+  ImpClientLocationTypeCodes,
+  ProjectPrefGroupCodes,
+  SuccessfulLocationTypeCodes
+} from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { quadPartitionGeos, quadPartitionLocations } from '../common/quad-tree';
-import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
-import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
-import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
-import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
 import { createExistingAudienceInstance } from '../common/models/audience-factories';
 import { ProjectFilterChanged } from '../common/models/ui-enums';
+import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
+import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
 import { FullAppState, MustCoverPref } from '../state/app.interfaces';
-import { LayerSetupComplete, ProcessMetrics } from '../state/data-shim/data-shim.actions';
+import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -41,10 +43,6 @@ import { BoundaryRenderingService } from './boundary-rendering.service';
 import { CustomDataService } from './custom-data.service';
 import { PoiRenderingService } from './poi-rendering.service';
 import { UnifiedAudienceService } from './unified-audience.service';
-import { ClearMetricVars, FetchMetricVars, FetchMetricVarsComplete } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
-import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
-import { FetchMapVarsComplete } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
 
 const varPkMap = new Map<string, number>([
   ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],
@@ -222,7 +220,7 @@ export class AppDataShimService {
       filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
       tap(() => {
-        this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
+        // this.store$.dispatch(new GetLayerAttributes({ geoLocations: Array.from(geocodes.values()) }));
       }),
       map(() => project)
     );
@@ -294,14 +292,6 @@ export class AppDataShimService {
   fetchMatricVars(metricVars: DynamicVariable[]){
     this.store$.dispatch(FromMetricVarActions.ClearMetricVars());
     this.store$.dispatch(FromMetricVarActions.FetchMetricVarsComplete({metricVars}));
-  }
-
-  prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : DynamicVariable }, project: ImpProject) : void {
-    const hhcField = project.impGeofootprintMasters[0].methSeason === 'S' ? 'hhld_s' : 'hhld_w';
-    geos.forEach(geo => {
-      const currentAttr = attributes[geo.geocode];
-      if (currentAttr != null) geo.hhc = Number(currentAttr[varPkMap.get(hhcField)]);
-    });
   }
 
   filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : DynamicVariable }, currentProject: ImpProject, filterType?: ProjectFilterChanged) : void {

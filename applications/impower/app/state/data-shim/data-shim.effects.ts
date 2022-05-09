@@ -107,18 +107,18 @@ export class DataShimEffects {
     map(() => new ProcessGeoAttributes())
   );
 
-  @Effect()
-  processGeoAttributes$ = this.actions$.pipe(
-    ofType<ProcessGeoAttributes>(GeoAttributeActionTypes.ProcessGeoAttributes),
-    withLatestFrom(this.store$.pipe(select(projectIsLoaded)), this.store$.pipe(select(getMetricVarEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
-    tap(([, isLoaded, attrs, geos, project]) => {
-      this.appDataShimService.prepGeoFields(geos, attrs, project);
-      if (isLoaded) {
-        this.appDataShimService.filterGeos(geos, attrs, project);
-      }
-    }),
-    map(() => new CalculateMetrics())
-  );
+  // @Effect({ dispatch: false })
+  // processGeoAttributes$ = this.actions$.pipe(
+  //   ofType<ProcessGeoAttributes>(GeoAttributeActionTypes.ProcessGeoAttributes),
+  //   withLatestFrom(this.store$.pipe(select(projectIsLoaded)), this.store$.pipe(select(getMetricVarEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
+  //   tap(([, isLoaded, attrs, geos, project]) => {
+  //     this.appDataShimService.prepGeoFields(geos, attrs, project);
+  //     if (isLoaded) {
+  //       this.appDataShimService.filterGeos(geos, attrs, project);
+  //     }
+  //   }),
+  //   // map(() => new CalculateMetrics())
+  // );
 
   @Effect()
   loadSuccess$ = this.actions$.pipe(
@@ -158,11 +158,6 @@ export class DataShimEffects {
     tap(([, metricVars, geocodes, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), metricVars, project)),
   );
 
-  /*@Effect()
-  metricVarsRequestSuccess$ = this.actions$.pipe(
-    ofType<FetchMetricVarsComplete>(MetricVarActionTypes.FetchMetricVarsComplete),
-    map(() => new ProcessMetrics())
-  );*/
   metricVarsRequestSuccess$ = createEffect(() => this.actions$.pipe(
     ofType(FromMetricVarActions.FetchMetricVarsComplete),
     map(() => new ProcessMetrics())

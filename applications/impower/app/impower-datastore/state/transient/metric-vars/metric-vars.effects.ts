@@ -1,18 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Actions, createEffect, Effect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNotNil } from '@val/common';
 import { ValMetricsService } from 'app/services/app-metrics.service';
 import { of } from 'rxjs';
-import { catchError, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AppLoggingService } from '../../../../services/app-logging.service';
 import { AppStateService } from '../../../../services/app-state.service';
 import { FullAppState } from '../../../../state/app.interfaces';
 import { AudienceFetchService } from '../../../services/audience-fetch.service';
 import { fetchableAudiences } from '../audience/audience.selectors';
-import { FetchMapVarsComplete } from '../map-vars/map-vars.actions';
 import { geoTransactionId } from '../transactions/transactions.reducer';
-import { getMetricVars } from './metric-vars.selectors';
 import * as fromAction from './metric-vars.action';
 
 

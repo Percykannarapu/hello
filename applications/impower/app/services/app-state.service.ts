@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { filterArray, isConvertibleToNumber } from '@val/common';
+import { select, Store } from '@ngrx/store';
+import { filterArray, isConvertibleToNumber, isNotNil } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
@@ -13,7 +13,9 @@ import {
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
+import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { getMetricVarEntities } from '../impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -252,21 +254,10 @@ export class AppStateService {
       map(([, allGeocodes]) => allGeocodes)
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
 
-    geoSplit$.pipe(
-      map(([, , , , allGeoLocations]) => allGeoLocations),
-      filter(geoSet => geoSet.length > 0),
-      withLatestFrom(this.store$.select(selectGeoAttributeEntities), this.applicationIsReady$),
-      filter(([, , ready]) => ready),
-      map(([requestedGeos, attrs]) => {
-        const result: ImpGeofootprintGeo[] = [];
-        requestedGeos.forEach(geo => {
-          if (attrs[geo.geocode] == null || !attrs[geo.geocode].hasOwnProperty('hhld_s')) result.push(geo);
-        });
-        return result;
-      }),
-      filter(newGeos => newGeos.length > 0),
-    ).subscribe(geoLocations => {
-      this.store$.dispatch(new GetLayerAttributes({ geoLocations }));
+    this.store$.pipe(select(getMetricVarEntities)).pipe(
+      withLatestFrom(this.geoService.storeObservable, this.currentProject$)
+    ).subscribe(([attrs, geos, project]) => {
+      this.prepGeoFields(geos, attrs, project);
     });
   }
 
@@ -303,5 +294,25 @@ export class AppStateService {
       filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
+  }
+
+  private prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : DynamicVariable }, project: ImpProject) : void {
+    const season = project?.impGeofootprintMasters?.[0]?.methSeason;
+    if (isNotNil(season)) {
+      const hhcField = season === 'S' ? 14031 : 14032; // TODO: magic numbers
+      let needsUpdate = false;
+      geos.forEach(geo => {
+        const currentAttr = attributes[geo.geocode];
+        // TODO: Mutates the geo entity. Bad Developer. No.
+        if (isNotNil(currentAttr) && isNotNil(currentAttr[hhcField])) {
+          const newValue = Number(currentAttr[hhcField]);
+          if (geo.hhc !== newValue) {
+            geo.hhc = Number(currentAttr[hhcField]);
+            needsUpdate = true;
+          }
+        }
+      });
+      if (needsUpdate) this.geoService.makeDirty();
+    }
   }
 }

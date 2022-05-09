@@ -50,6 +50,11 @@ export function requestGridExport(payload: GeoGridExportRequest) : WorkerRespons
   return stateInstance.getExport(payload);
 }
 
+const varPkMap = new Map<string, number>([
+  ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],
+  ['pob', 14029], ['num_ip_addrs', 9103], ['hhld_s', 14031], ['hhld_w', 14032], ['tap049', 40912]
+]);
+
 export class GeoGridState {
 
   private primeFilterService = new FilterService();
@@ -224,7 +229,7 @@ export class GeoGridState {
     const currentLocation = this.locations.get(currentGeo.glId);
     const currentAttribute = this.currentDataState.geoAttributes?.[currentGeo.geocode] ?? {};
     const currentVar = this.currentDataState.geoVars?.[currentGeo.geocode] ?? {};
-    const cityAttr = `${currentAttribute['city_name'] ?? ''}`;
+    const cityAttr = `${currentAttribute[varPkMap.get('city_name')] ?? ''}`;
     let cityName = '';
     if (!isEmpty(cityAttr)) {
       cityName = cityAttr.substring(0, 1).toUpperCase() + cityAttr.substring(1, cityAttr.length - 3).toLowerCase() + ' ' + cityAttr.substring(cityAttr.length - 2);
@@ -267,10 +272,10 @@ export class GeoGridState {
       cpm: cpm,
       investment: (cpm / 1000) * currentGeo.hhc,
       investmentAllocated: isAllocated ? (cpm / 1000) * currentGeo.hhc : 0,
-      ownerGroup: `${currentAttribute['owner_group_primary'] ?? ''}`,
-      coverageDescription: `${currentAttribute['cov_desc'] ?? ''}`,
-      isPOB: currentAttribute['pob'] === 'B',
-      dma: `${currentAttribute['dma_name'] ?? ''}`,
+      ownerGroup: `${currentAttribute[varPkMap.get('owner_group_primary')] ?? ''}`,
+      coverageDescription: `${currentAttribute[varPkMap.get('cov_desc')] ?? ''}`,
+      isPOB: currentAttribute[varPkMap.get('pob')] === 'B',
+      dma: `${currentAttribute[varPkMap.get('dma_name')] ?? ''}`,
       isInDeduped: isAllocated,
       ownerSite: currentGeo.ownerSite,
       audienceData: audienceData
