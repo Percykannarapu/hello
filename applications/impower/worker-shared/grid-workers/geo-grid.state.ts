@@ -6,7 +6,7 @@ import {
   isNil,
   isNotNil,
   isString,
-  mapByExtended,
+  mapByExtended, SortCallback,
   toNullOrNumber,
   toNullOrString
 } from '@val/common';
@@ -391,25 +391,38 @@ export class GeoGridState {
   }
 
   private tableSort(sortInfo: { field: string; order: number; }[], data: GeoGridRow[]) : void {
-    let sortFn: (a: any, b: any) => number = () => 0;
+    let sortFn: SortCallback<GeoGridRow> = () => 0;
     sortInfo.forEach(meta => {
       sortFn = this.addSortCallback(sortFn, meta.field, meta.order);
     });
     data.sort(sortFn);
   }
 
-  private addSortCallback(currentCallback: (a: any, b: any) => number, fieldName: string, order: number) : (a: any, b: any) => number {
+  private addSortCallback(currentCallback: SortCallback<GeoGridRow>, fieldName: string, order: number) : SortCallback<GeoGridRow> {
+    const isAudience = this.additionalAudienceColumns.some(c => c.field === fieldName);
     const sortType = (this.currentDataState.primaryColumnDefs ?? []).concat(this.additionalAudienceColumns ?? []).filter(c => c.field === fieldName)?.[0]?.sortType;
-    let result: (a: any, b: any) => number;
+    let result: SortCallback<GeoGridRow>;
     switch (sortType) {
       case 'locNum':
-        result = (a, b) => currentCallback(a, b) || (CommonSort.FieldNameAsStringParsedToNumber(fieldName, a, b) * order);
+        result = (a, b) => {
+          const aVal = isAudience ? a?.audienceData : a;
+          const bVal = isAudience ? b?.audienceData : b;
+          return currentCallback(a, b) || (CommonSort.FieldNameAsStringParsedToNumber(fieldName, aVal, bVal) * order);
+        };
         break;
       case 'number':
-        result = (a, b) => currentCallback(a, b) || (CommonSort.FieldNameAsNumber(fieldName, a, b) * order);
+        result = (a, b) => {
+          const aVal = isAudience ? a?.audienceData : a;
+          const bVal = isAudience ? b?.audienceData : b;
+          return currentCallback(a, b) || (CommonSort.FieldNameAsNumber(fieldName, aVal, bVal) * order);
+        };
         break;
       default:
-        result = (a, b) => currentCallback(a, b) || (CommonSort.FieldNameAsString(fieldName, a, b) * order);
+        result = (a, b) => {
+          const aVal = isAudience ? a?.audienceData : a;
+          const bVal = isAudience ? b?.audienceData : b;
+          return currentCallback(a, b) || (CommonSort.FieldNameAsString(fieldName, aVal, bVal) * order);
+        };
         break;
     }
     return result;
