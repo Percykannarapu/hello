@@ -384,7 +384,7 @@ export class AppRendererService {
     return result;
   }
 
-  private createSelectionShadingDefinition(analysisLevel: string, isAlsoShaded: boolean) : ShadingDefinition {
+  public createSelectionShadingDefinition(analysisLevel: string, isAlsoShaded: boolean) : ShadingDefinition {
     const result: ShadingDefinition = {
       id: getUuid(),
       dataKey: 'selection-shading',

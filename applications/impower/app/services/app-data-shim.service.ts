@@ -176,6 +176,7 @@ export class AppDataShimService {
     const poiConfigurations = this.poiRenderingService.getConfigurations(project);
     const boundaryConfigurations = this.boundaryRenderingService.getConfigurations(project);
     const projectVarMap = mapByExtended(project.impProjectVars, pv => `${pv.varPk}`);
+    let hasSelectedGeoLayer = false;
     shadingDefinitions.forEach(sd => {
       // just in case stuff was saved with a destination id
       delete sd.destinationLayerUniqueId;
@@ -193,7 +194,13 @@ export class AppDataShimService {
         sd.sourcePortalId = this.appConfig.getRefreshedLayerId(sd.sourcePortalId);
       }
       sd.shaderNeedsDataFetched = false;
+      if (sd.dataKey === 'selection-shading') hasSelectedGeoLayer = true;
     });
+    if (!hasSelectedGeoLayer) {
+      const selectionShading = this.appRendererService.createSelectionShadingDefinition(project.methAnalysis, false);
+      selectionShading.sortOrder = 0;
+      shadingDefinitions.push(selectionShading);
+    }
     boundaryConfigurations.forEach(bc => {
       // just in case stuff was saved with a destination id
       bc.destinationBoundaryId = undefined;
