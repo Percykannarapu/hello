@@ -1,4 +1,6 @@
-import { isConvertibleToNumber } from './type-checks';
+import { isConvertibleToNumber, isNil } from './type-checks';
+
+export type SortCallback<T> = (a: T, b: T) => number;
 
 function matchingState(a: boolean, b: boolean) : boolean {
   return (a && b) || (!a && !b);
@@ -58,8 +60,10 @@ export class CommonSort {
   public static GenericBoolean = (a: boolean, b: boolean) => matchingState(a, b) ? 0 : a ? -1 : 1;
   public static GenericBooleanReverse = (a: boolean, b: boolean) => matchingState(a, b) ? 0 : b ? -1 : 1;
 
-  public static NullableSortWrapper<T>(a: T, b: T, nonNullSorter: (x: T, y: T) => number, nullSortsLast: boolean = true) {
-    const factor = nullSortsLast ? 1 : -1;
-    return (a == null ? (b == null ? 0 : 1 * factor) : (b == null ? 1 * factor : nonNullSorter(a, b)));
+  public static NullableSortWrapper<T>(a: T, b: T, nonNullSorter: SortCallback<T>, nullSortsLast: boolean = true) {
+    if (isNil(a) && isNil(b)) return 0;
+    if (isNil(a)) return nullSortsLast ? 1 : -1;
+    if (isNil(b)) return nullSortsLast ? -1 : 1;
+    return nonNullSorter(a, b);
   }
 }
