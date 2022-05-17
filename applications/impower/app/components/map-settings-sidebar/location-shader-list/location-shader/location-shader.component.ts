@@ -122,7 +122,8 @@ export class LocationShaderComponent implements OnDestroy {
         size: new FormControl(defaultLabelDefinition.size ?? 12, [Validators.required, ValassisValidators.numeric, Validators.min(6), Validators.max(48)]),
         color: new FormControl(defaultLabelDefinition.color),
         haloColor: new FormControl(defaultLabelDefinition.haloColor),
-        featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change', validators: [Validators.required] })
+        featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change', validators: [Validators.required] }),
+        forceLabelsVisible: new FormControl(defaultLabelDefinition.forceLabelsVisible ?? true)
       })
     };
     this.configForm = this.fb.group(formSetup);

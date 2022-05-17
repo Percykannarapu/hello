@@ -12,6 +12,7 @@ export interface LabelDefinition {
   featureAttribute?: string;
   customExpression?: string;
   where?: string;
+  forceLabelsVisible?: boolean;
 }
 
 export interface TradeAreaModel {

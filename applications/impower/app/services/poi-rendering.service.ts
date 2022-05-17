@@ -240,6 +240,7 @@ export class PoiRenderingService {
         isItalic: false,
         featureAttribute: 'locationNumber',
         customExpression: null,
+        forceLabelsVisible: true
       },
       symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations', outlineColor: [255, 255, 255, 1], size: 10 }
     }, {
@@ -266,6 +267,7 @@ export class PoiRenderingService {
         isItalic: false,
         featureAttribute: 'locationNumber',
         customExpression: null,
+        forceLabelsVisible: true
       },
       symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitors', outlineColor: [255, 255, 255, 1], size: 10 }
     }];

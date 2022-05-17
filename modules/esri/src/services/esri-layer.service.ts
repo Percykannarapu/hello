@@ -12,7 +12,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNotNil, UniversalCoordinates } from '@val/common';
-import { BehaviorSubject, combineLatest, from, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriUtils } from '../core/esri-utils';
@@ -77,7 +77,7 @@ export class EsriLayerService {
         expression: layerOptions.expression
       },
       symbol: textSymbol,
-      deconflictionStrategy: 'static'
+      deconflictionStrategy: 'none'
     })];
   }
 

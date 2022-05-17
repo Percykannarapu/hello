@@ -209,10 +209,18 @@ export class AppDataShimService {
       bc.portalId = this.appConfig.getRefreshedLayerId(bc.portalId);
       bc.centroidPortalId = this.appConfig.getRefreshedLayerId(bc.centroidPortalId);
       bc.simplifiedPortalId = this.appConfig.getRefreshedLayerId(bc.simplifiedPortalId);
+      bc.labelDefinition.forceLabelsVisible = bc.labelDefinition?.forceLabelsVisible ?? false;
+      if (isNotNil(bc.hhcLabelDefinition)) {
+        bc.hhcLabelDefinition.forceLabelsVisible = bc.labelDefinition.forceLabelsVisible ?? false;
+      }
+      if (isNotNil(bc.pobLabelDefinition)) {
+        bc.pobLabelDefinition.forceLabelsVisible = bc.pobLabelDefinition.forceLabelsVisible ?? false;
+      }
     });
     poiConfigurations.forEach(pc => {
       pc.featureLayerId = undefined;
       pc.refreshLegendOnRedraw = this.appConfig.isBatchMode;
+      pc.labelDefinition.forceLabelsVisible = pc.labelDefinition?.forceLabelsVisible ?? true;
     });
     this.esriService.loadInitialState(state, shadingDefinitions, poiConfigurations, boundaryConfigurations);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];

@@ -1,5 +1,3 @@
-import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
-import { isEmpty, UniversalCoordinates } from '@val/common';
 import Extent from '@arcgis/core/geometry/Extent';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -13,7 +11,9 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
+import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel';
+import { isEmpty } from '@val/common';
 import { defaultEsriAppSettings } from '../../settings';
 import { AutoCastColor, FillPattern, LineStyle, MarkerStyles } from '../models/esri-types';
 
@@ -111,14 +111,15 @@ export class EsriDomainFactory {
     return result;
   }
 
-  static createLabelClass(color: __esri.Color, expression: string) : __esri.LabelClass {
-    return this.createExtendedLabelClass(color, [255, 255, 255, 1], expression, this.createFont(12));
+  static createLabelClass(color: __esri.Color, expression: string, forceAllLabelsVisible: boolean) : __esri.LabelClass {
+    return this.createExtendedLabelClass(color, [255, 255, 255, 1], expression, forceAllLabelsVisible, this.createFont(12));
   }
 
   static createExtendedLabelClass(
     color: AutoCastColor,
     haloColor: AutoCastColor,
     expression: string,
+    forceAllLabelsVisible: boolean,
     font: __esri.Font,
     placement: __esri.LabelClassProperties['labelPlacement'] = 'below-center',
     additionalOptions?: __esri.LabelClassProperties
@@ -130,7 +131,7 @@ export class EsriDomainFactory {
       font
     });
     const labelSetup: __esri.LabelClassProperties = {
-      deconflictionStrategy: 'static',
+      deconflictionStrategy: forceAllLabelsVisible ? 'none' : 'static',
       symbol: textSymbol,
       labelPlacement: placement,
       labelExpressionInfo: {

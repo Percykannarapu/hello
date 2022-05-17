@@ -20,6 +20,9 @@
         <div *ngIf="configuration.showHouseholdCounts">
           (includes HH Counts)
         </div>
+        <div *ngIf="configuration.labelDefinition?.forceLabelsVisible">
+          * Labels forced on
+        </div>
         <div>
           <label>Font Size:</label>
           <strong>{{configuration.labelDefinition.size || 12}}pt</strong>
@@ -68,6 +71,9 @@
           <boolean-input labelText="Show HH Counts on Labels?" formControlName="showHouseholdCounts"></boolean-input>
         </ng-container>
         <ng-container formGroupName="labelDefinition">
+          <div class="p-pt-2 p-d-flex p-ai-end">
+            <boolean-input labelText="Force All Labels visible" formControlName="forceLabelsVisible"></boolean-input>
+          </div>
           <div class="p-pt-2 p-d-flex p-ai-end">
             <validated-text-input labelText="Font size (in points)" validationMessage="Font size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
             <span class="p-ml-2">Label Color:</span>

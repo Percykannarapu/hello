@@ -234,7 +234,7 @@ export class EsriBoundaryService {
     }
     const color = RgbTuple.withAlpha(currentDef.color, layerOpacity);
     const haloColor = RgbTuple.withAlpha(currentDef.haloColor, layerOpacity);
-    return EsriDomainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'always-horizontal', attributes);
+    return EsriDomainFactory.createExtendedLabelClass(color, haloColor, arcade, currentDef.forceLabelsVisible ?? false, font, 'always-horizontal', attributes);
   }
 
   private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {

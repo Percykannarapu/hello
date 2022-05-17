@@ -17,6 +17,9 @@
         <strong>Hidden</strong>
       </ng-container>
       <div *ngIf="configuration.showLabels === true" class="label-display">
+        <div *ngIf="configuration.labelDefinition?.forceLabelsVisible">
+          * Labels forced on
+        </div>
         <div>
           <label>Field:</label>
           <strong>{{getLabelDescription(configuration.labelDefinition)}}</strong>
@@ -63,6 +66,9 @@
 
       <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
       <div *ngIf="configForm.get('showLabels').value === true" formGroupName="labelDefinition" class="p-d-flex p-flex-column p-pl-5">
+        <div class="p-pt-2 p-d-flex p-ai-end">
+          <boolean-input labelText="Force All Labels visible" formControlName="forceLabelsVisible"></boolean-input>
+        </div>
         <div class="p-d-flex">
           <dropdown-input labelText="Label Field" formControlName="featureAttribute" [options]="labelChoices"></dropdown-input>
           <validated-text-input labelText="Font size (in points)" formControlName="size" validationMessage="Font size must be between 6 and 48 pts" class="p-ml-2"></validated-text-input>

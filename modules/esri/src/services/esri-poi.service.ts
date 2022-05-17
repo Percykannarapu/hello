@@ -1,14 +1,23 @@
 import { Injectable } from '@angular/core';
+import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync';
+import Graphic from '@arcgis/core/Graphic';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { filterArray, removeNonAlphaNumerics, toUniversalCoordinates } from '@val/common';
-import { BehaviorSubject, EMPTY, merge, Observable, from } from 'rxjs';
+import { BehaviorSubject, EMPTY, from, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
+import { EsriQuadTree } from '../core/esri-quad-tree';
 import { isFeatureLayer, isUniqueValueRenderer } from '../core/type-checks';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { MapSymbols, RgbTuple } from '../models/esri-types';
-import { PoiConfiguration, PoiConfigurationTypes, SimplePoiConfiguration, UniquePoiConfiguration, RadiiTradeAreaDrawDefinition } from '../models/poi-configuration';
+import {
+  PoiConfiguration,
+  PoiConfigurationTypes,
+  RadiiTradeAreaDrawDefinition,
+  SimplePoiConfiguration,
+  UniquePoiConfiguration
+} from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import {
@@ -28,9 +37,6 @@ import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
 import { LoggingService } from './logging.service';
-import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync';
-import { EsriQuadTree } from '../core/esri-quad-tree';
-import Graphic from '@arcgis/core/Graphic';
 
 @Injectable()
 export class EsriPoiService {
@@ -197,12 +203,13 @@ export class EsriPoiService {
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const color = !currentDef.usesStaticColor ? config.symbolDefinition.color : currentDef.color;
     const haloColor = !currentDef.usesStaticColor ? config.symbolDefinition.outlineColor : currentDef.haloColor;
+    const forceVisible = currentDef.forceLabelsVisible ?? true;
     if (config.isBatchMap && !config.showLabels){
       const where = `locationNumber = '${config.siteNumber}'`;
-      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', {where});
+      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, forceVisible, font, 'below-center', {where});
     }
     else{
-      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
+      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, forceVisible, font);
     }
 
   }
@@ -212,6 +219,7 @@ export class EsriPoiService {
     const currentDef = config.labelDefinition;
     const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
+    const forceVisible = currentDef.forceLabelsVisible ?? true;
     config.breakDefinitions.forEach(bd => {
       const escapedValue = bd.value.replace(/'/gi, `''`);
       let where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${escapedValue}'`;
@@ -220,7 +228,7 @@ export class EsriPoiService {
       if (config.isBatchMap && !config.showLabels){
         where = where + ` and locationNumber = '${config.siteNumber}'`;
       }
-      result.push(EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
+      result.push(EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, forceVisible, font, 'below-center', { where }));
     });
     return result;
   }
