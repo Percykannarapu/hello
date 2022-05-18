@@ -72,8 +72,8 @@ export class EsriQueryService {
       result: featureSet,
       next: null
     };
-    const nextStartRecord = (query.start ?? 0) + (query.num * maxStreams);
-    if (featureSet.exceededTransferLimit) {
+    const nextStartRecord = (query.start ?? 0) + ((query.num ?? 0) * (maxStreams ?? 1));
+    if (featureSet.exceededTransferLimit && nextStartRecord !== query.start) {
       const nextQuery = query.clone();
       nextQuery.num = query.num;
       nextQuery.start = nextStartRecord;
