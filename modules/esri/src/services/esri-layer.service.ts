@@ -12,7 +12,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNotNil, UniversalCoordinates } from '@val/common';
-import { BehaviorSubject, combineLatest, from, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriUtils } from '../core/esri-utils';
@@ -453,7 +453,10 @@ export class EsriLayerService {
     if (layers == null || layers.length === 0) {
       return false;
     } else {
-      return layers.some(layer => layer.visible);
+      return layers.some(layer => {
+        const layerIsInScale = layer.minScale === 0 ? true : this.mapService.mapView.scale <= layer.minScale;
+        return layer.visible && layerIsInScale;
+      });
     }
   }
 
