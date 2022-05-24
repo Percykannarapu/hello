@@ -66,6 +66,9 @@ export class AppConfig implements LoggingConfiguration {
   }
 
   public fixupPortalIdToLayerKey(portalId: string) : LayerKeys {
+    if (EnvironmentData.layerKeyFixup.has(portalId)) {
+      return EnvironmentData.layerKeyFixup.get(portalId);
+    }
     return null;
   }
 }
