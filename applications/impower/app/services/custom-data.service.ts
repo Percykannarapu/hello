@@ -4,14 +4,14 @@ import { arrayToSet, isConvertibleToNumber, isEmpty, isNotNil, isString, mapByEx
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
+import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
-import { AppConfig } from '../app.config';
 import { customAudienceFileParser, CustomDataRow } from '../common/file-parsing-rules';
+import { AudienceDataDefinition } from '../common/models/audience-data.model';
+import { createCustomAudienceInstance } from '../common/models/audience-factories';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { mergeCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.actions';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
-import { AudienceDataDefinition } from '../common/models/audience-data.model';
-import { createCustomAudienceInstance } from '../common/models/audience-factories';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService, ParseResponse } from '../val-modules/common/services/file.service';
@@ -24,9 +24,9 @@ import { UnifiedAudienceService } from './unified-audience.service';
 })
 export class CustomDataService {
 
-  constructor(private appConfig: AppConfig,
-              private logger: AppLoggingService,
+  constructor(private logger: AppLoggingService,
               private stateService: AppStateService,
+              private esriService: EsriConfigService,
               private esriQueryService: EsriQueryService,
               private store$: Store<FullAppState>,
               private audienceService: UnifiedAudienceService) { }
@@ -74,7 +74,7 @@ export class CustomDataService {
 
   private validateGeos(data: CustomDataRow[], header: string) : boolean {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const portalLayerId = this.esriService.getAnalysisBoundaryUrl(currentAnalysisLevel, false);
     const outfields = ['geocode'];
     const uniqueGeos = arrayToSet(data.map(d => d.geocode));
     if (uniqueGeos.size !== data.length) {

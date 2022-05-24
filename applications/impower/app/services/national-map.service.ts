@@ -3,7 +3,8 @@ import Query from '@arcgis/core/rest/support/Query';
 import { Store } from '@ngrx/store';
 import {
   collectStatistics,
-  CompleteCollectedStatistics, getCollectedStatistics,
+  CompleteCollectedStatistics,
+  getCollectedStatistics,
   getIntervalsFromCollectedStats,
   isConvertibleToNumber,
   isEmpty,
@@ -15,6 +16,7 @@ import {
 import {
   addLayerToLegend,
   ConfigurationTypes,
+  EsriConfigService,
   EsriDomainFactory,
   EsriLayerService,
   EsriQueryService,
@@ -28,6 +30,7 @@ import {
   getColorPalette,
   getFillPalette,
   isComplexShadingDefinition,
+  LayerTypes,
   nationalShadingSelectors,
   RampProperties,
   RgbTuple,
@@ -54,6 +57,7 @@ export class NationalMapService {
 
   constructor(private appStateService: AppStateService,
               private audienceFetch: AudienceFetchService,
+              private esriService: EsriConfigService,
               private layerService: EsriLayerService,
               private queryService: EsriQueryService,
               private shaderService: EsriShadingService,
@@ -127,7 +131,8 @@ export class NationalMapService {
 
   private createNationalLayer(config: ShadingDefinition, analysisLevel: string, audiences: Audience[]) : Observable<string> {
     const query = new Query({ returnGeometry: true, outFields: ['geocode'] });
-    const polygons$ = this.queryService.executeParallelQuery(config.sourcePortalId, query, 5000, 3).pipe(
+    const layerUrl = this.esriService.getLayerUrl(config.layerKey, LayerTypes.Polygon, true);
+    const polygons$ = this.queryService.executeParallelQuery(layerUrl, query, 5000, 3).pipe(
       map(fs => fs.features),
       reduceConcat()
     );

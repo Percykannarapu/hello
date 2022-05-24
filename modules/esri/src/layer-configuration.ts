@@ -4,8 +4,7 @@ export interface CustomPopUpDefinition {
 }
 
 interface LayerBase {
-  id: string;
-  simplifiedId: string;
+  key: string;
   name: string;
   defaultVisibility: boolean;
   sortOrder?: number;
@@ -40,18 +39,8 @@ export interface AllLayers {
   [key: string] : LayerGroupDefinition;
 }
 
-export interface LayerIdDefinition {
-  centroid: string;
-  boundary: string;
-  simplifiedBoundary: string;
-}
-
-export interface BasicLayerSetup extends LayerIdDefinition {
+export interface BasicLayerSetup {
   minScale: number;
   batchMinScale: number;
   defaultFontSize: number;
-}
-
-export interface AllLayerIds {
-  [key: string] : LayerIdDefinition;
 }

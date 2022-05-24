@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { getUuid, mapByExtended } from '@val/common';
-import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService, updateBoundaries } from '@val/esri';
-import { EnvironmentData } from 'environments/environment';
+import { getUuid, isNil, isNotNil, mapByExtended } from '@val/common';
+import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService, LayerKeys, updateBoundaries } from '@val/esri';
 import { distinctUntilChanged, filter, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
@@ -68,10 +67,11 @@ export class BoundaryRenderingService {
       filter(([al, isBatch]) => al != null && al.length > 0 && !isBatch),
       withLatestFrom(this.esriBoundaryService.allBoundaryConfigurations$)
     ).subscribe(([[analysis], configs]) => {
-      const analysisLevelLayers = new Set(['zip', 'atz', 'dtz', 'pcr']);
-      const idsToAdd = configs.filter(c => this.isLayerVisible(c.dataKey, analysis)).map(c => c.id);
-      const idsToRemove = configs.filter(c => analysisLevelLayers.has(c.dataKey) && c.visible).map(c => c.id);
-      const primaryMap = mapByExtended(configs, c => c.id, c => this.appConfig.analysisLevelToLayerKey(analysis) === c.dataKey);
+      const analysisLevelLayers = new Set<string>([LayerKeys.Zip, LayerKeys.ATZ, LayerKeys.DTZ, LayerKeys.PCR]);
+      const currentAnalysisKey = isNil(analysis) ? null : LayerKeys.parse(analysis);
+      const idsToAdd = configs.filter(c => c.layerKey === currentAnalysisKey || c.layerKey === LayerKeys.Zip).map(c => c.id);
+      const idsToRemove = configs.filter(c => analysisLevelLayers.has(c.layerKey) && c.visible).map(c => c.id);
+      const primaryMap = mapByExtended(configs, c => c.id, c => LayerKeys.parse(analysis) === c.layerKey);
       const addSet = new Set(idsToAdd);
       const removeSet = new Set(idsToRemove);
       const adds = idsToAdd.filter(id => !removeSet.has(id)).map(id => ({ id, changes: { visible: true, alwaysLoad: false, isPrimarySelectableLayer: primaryMap.get(id) } }));
@@ -102,15 +102,6 @@ export class BoundaryRenderingService {
         this.store$.dispatch(updateBoundaries({ boundaries: edits }));
       }
     });
-  }
-
-  public getDataKeyByBoundaryLayerId(layerId: string) : string {
-    const dataKey = Object.keys(EnvironmentData.layerIds).filter(key => EnvironmentData.layerIds[key].boundary === layerId || EnvironmentData.layerIds[key].simplifiedBoundary === layerId);
-    if (dataKey != null && dataKey.length > 0) {
-      return dataKey[0];
-    } else {
-      throw new Error(`Boundary layer '${layerId}' could not be found in the Environment Settings`);
-    }
   }
 
   public getLayerSetupInfo(key: string) : BasicLayerSetup {
@@ -157,8 +148,7 @@ export class BoundaryRenderingService {
       },
     };
     return {
-      ...scales[key],
-      ...EnvironmentData.layerIds[key]
+      ...scales[key]
     };
   }
 
@@ -180,14 +170,14 @@ export class BoundaryRenderingService {
     if (existingSetup == null) {
       result = defaultSetup;
     } else {
-      const defaultMap = mapByExtended(defaultSetup, b => b.dataKey);
+      const defaultMap = mapByExtended(defaultSetup, b => b.layerKey);
       // here we are fixing up any saved data with internal values that the users will never really modify
       // (arcade strings, popup definitions, etc...)
-      const existingIds = new Set<string>(existingSetup.map(b => b.dataKey));
-      const newConfigs = defaultSetup.filter(db => !existingIds.has(db.dataKey));
+      const existingIds = new Set<string>(existingSetup.map(b => b.layerKey));
+      const newConfigs = defaultSetup.filter(db => !existingIds.has(db.layerKey));
       existingSetup.forEach(b => {
-        if (defaultMap.has(b.dataKey)) {
-          const currentDefaults = defaultMap.get(b.dataKey);
+        if (defaultMap.has(b.layerKey)) {
+          const currentDefaults = defaultMap.get(b.layerKey);
           if (b.pobLabelDefinition != null && currentDefaults.pobLabelDefinition != null) {
             b.pobLabelDefinition.featureAttribute = currentDefaults.pobLabelDefinition.featureAttribute;
             b.pobLabelDefinition.customExpression = currentDefaults.pobLabelDefinition.customExpression;
@@ -222,7 +212,7 @@ export class BoundaryRenderingService {
     // const labelExpression = 'replace($feature.geocode, $feature.zip, "")'; new label - requires layer changes to work
     return [
       {
-        ...this.createBasicBoundaryDefinition('state', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.State, analysisLevel),
         sortOrder: 0,
         hasPOBs: false,
         groupName: 'States',
@@ -237,7 +227,7 @@ export class BoundaryRenderingService {
         popupDefinition: null
       },
       {
-        ...this.createBasicBoundaryDefinition('dma', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.DMA, analysisLevel),
         sortOrder: 1,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [139, 76, 178, 1], outlineWidth: 2.5 },
@@ -253,7 +243,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('counties', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.Counties, analysisLevel),
         sortOrder: 2,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 1], outlineWidth: 3 },
@@ -267,7 +257,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('wrap', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.Wrap, analysisLevel),
         sortOrder: 3,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
@@ -283,7 +273,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('zip', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.Zip, analysisLevel),
         sortOrder: 4,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [51, 59, 103, 1], outlineWidth: 2 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
@@ -299,7 +289,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('atz', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.ATZ, analysisLevel),
         sortOrder: 5,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
@@ -317,7 +307,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('dtz', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.DTZ, analysisLevel),
         sortOrder: 6,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
@@ -335,7 +325,7 @@ export class BoundaryRenderingService {
         },
       },
       {
-        ...this.createBasicBoundaryDefinition('pcr', analysisLevel),
+        ...this.createBasicBoundaryDefinition(LayerKeys.PCR, analysisLevel),
         sortOrder: 7,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [131, 134, 150, 1], outlineWidth: 0.5 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
@@ -355,20 +345,18 @@ export class BoundaryRenderingService {
     ];
   }
 
-  private createBasicBoundaryDefinition(key: string, analysisLevel: string) : BoundaryConfiguration {
-    const basicInfo = this.getLayerSetupInfo(key);
+  private createBasicBoundaryDefinition(layerKey: LayerKeys, analysisLevel: string) : BoundaryConfiguration {
+    const basicInfo = this.getLayerSetupInfo(layerKey);
+    const isPrimaryLayer = isNil(analysisLevel) ? false : LayerKeys.parse(analysisLevel) === layerKey;
     return {
       id: getUuid(),
-      dataKey: key,
-      groupName: `Valassis ${key.toUpperCase()}`,
-      centroidPortalId: basicInfo.centroid,
-      portalId: basicInfo.boundary,
-      simplifiedPortalId: basicInfo.simplifiedBoundary,
+      layerKey: layerKey,
+      groupName: `Valassis ${layerKey.toUpperCase()}`,
       minScale: basicInfo.minScale,
       simplifiedMinScale: basicInfo.batchMinScale,
-      layerName: `${key.toUpperCase()} Boundaries`,
+      layerName: `${layerKey.toUpperCase()} Boundaries`,
       opacity: 1,
-      visible: this.isLayerVisible(key, analysisLevel),
+      visible: isNotNil(analysisLevel) && (isPrimaryLayer || layerKey === LayerKeys.Zip),
       showCentroids: false,
       useSimplifiedInfo: this.appConfig.isBatchMode,
       showLabels: true,
@@ -376,15 +364,7 @@ export class BoundaryRenderingService {
       hasPOBs: true,
       showPopups: true,
       showHouseholdCounts: false,
-      isPrimarySelectableLayer: analysisLevel == null ? false : this.appConfig.analysisLevelToLayerKey(analysisLevel) === key,
+      isPrimarySelectableLayer: isPrimaryLayer,
     } as BoundaryConfiguration;
-  }
-
-  private isLayerVisible(layerId: string, analysisLevel: string) : boolean {
-    if (analysisLevel != null && analysisLevel.length > 0) {
-      const key = this.appConfig.analysisLevelToLayerKey(analysisLevel);
-      return layerId === 'zip' || layerId === key;
-    }
-    return false;
   }
 }

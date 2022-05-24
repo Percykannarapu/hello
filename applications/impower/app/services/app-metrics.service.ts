@@ -1,27 +1,23 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { isConvertibleToNumber, mapBy, mapByExtended } from '@val/common';
-import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { BehaviorSubject, combineLatest, from, Observable, of, Subject, Subscription } from 'rxjs';
-import { filter, map, switchMap, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { isConvertibleToNumber, mapBy } from '@val/common';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
+import { getMetricVars } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.selectors';
+import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { OfflineQuery } from '../../worker-shared/treeview-workers/dexie/offline-query';
 import { AppConfig } from '../app.config';
+import { createOfflineAudienceInstance } from '../common/models/audience-factories';
+import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { FullAppState } from '../state/app.interfaces';
 import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppStateService } from './app-state.service';
-import { WorkerFactory } from '../common/worker-factory';
 import { UserService } from './user.service';
-import { TreeviewPayload } from '../../worker-shared/treeview-workers/payloads';
-import { OfflineQuery } from '../../worker-shared/treeview-workers/dexie/offline-query';
-import { AudienceDataDefinition} from '../common/models/audience-data.model';
-import { createOfflineAudienceInstance } from '../common/models/audience-factories';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { geoTransactionId } from 'app/impower-datastore/state/transient/transactions/transactions.reducer';
-import { AudienceFetchService} from '../impower-datastore/services/audience-fetch.service';
-import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
-import { getMetricVars } from 'app/impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 
 const varPkMap = new Map<string, number>([
   ['cl2i00', 5020], ['cl0c00', 1001], ['cl2prh', 1086], ['city_name', 33013], ['cov_desc', 14001], ['dma_name', 40690], ['cov_frequency', 30534], ['owner_group_primary', 33024],

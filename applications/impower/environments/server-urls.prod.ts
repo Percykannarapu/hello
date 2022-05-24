@@ -1,4 +1,4 @@
 export const serverEnv = {
-  middlewareBase: 'https://impower.valassis.com/services/'
+  middlewareBase: 'https://impower.valassis.com/services/',
 };
 

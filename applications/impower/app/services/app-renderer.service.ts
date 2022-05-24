@@ -19,6 +19,7 @@ import {
   getFillPalette,
   isArcadeCapableShadingDefinition,
   isComplexShadingDefinition,
+  LayerKeys,
   RgbTuple,
   ShadingDefinition,
   shadingSelectors
@@ -389,7 +390,7 @@ export class AppRendererService {
       id: getUuid(),
       dataKey: 'selection-shading',
       sortOrder: 1,
-      sourcePortalId: null,
+      layerKey: LayerKeys.parse(analysisLevel),
       layerName: null,
       opacity: isAlsoShaded ? 1 : 0.25,
       visible: true,
@@ -414,7 +415,7 @@ export class AppRendererService {
       id: getUuid(),
       dataKey: projectVar.varPk.toString(),
       sortOrder: index,
-      sourcePortalId: null,
+      layerKey: LayerKeys.parse(analysisLevel),
       layerName: projectVar.fieldname,
       opacity: 0.5,
       visible: true,
@@ -437,11 +438,11 @@ export class AppRendererService {
   }
 
   updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string, isNewAnalysisLevel: boolean = false) : void {
-    const layerKey = this.config.analysisLevelToLayerKey(newAnalysisLevel);
+    const layerKey = LayerKeys.parse(newAnalysisLevel);
     const layerData = this.boundaryRenderingService.getLayerSetupInfo(layerKey);
     const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
-    if (definition.sourcePortalId == null || isNewAnalysisLevel) {
-      definition.sourcePortalId = definition.useLocalGeometry ? layerData.simplifiedBoundary : layerData.boundary;
+    if (definition.layerKey == null || isNewAnalysisLevel) {
+      definition.layerKey = layerKey;
       definition.minScale = layerData.batchMinScale;
     }
     if (definition.dataKey === 'selection-shading' && (definition.layerName == null || isNewAnalysisLevel)) {

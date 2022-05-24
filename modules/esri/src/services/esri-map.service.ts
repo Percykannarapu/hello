@@ -209,8 +209,7 @@ export class EsriMapService {
   }
 
   public bufferExtent(extent: __esri.Extent, distance: number) : Polygon  {
-    const bufferedPolygon: Polygon = <Polygon> geometryEngine.geodesicBuffer(extent, distance, 'miles');
-    return bufferedPolygon;
+    return <Polygon>geometryEngine.geodesicBuffer(extent, distance, 'miles');
   }
 
 }

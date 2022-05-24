@@ -24,7 +24,7 @@ export class GeoAttributesEffects {
   requestAttributes$ = this.actions$.pipe(
     ofType<GetLayerAttributes>(GeoAttributeActionTypes.GetLayerAttributes),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
-    switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geoLocations, boundaryAttributes).pipe(
+    switchMap(([action, layerUrl]) => this.featureLoaderService.loadAttributesFromFeatures(layerUrl, action.payload.geoLocations, boundaryAttributes).pipe(
       map(results => new GetLayerAttributesComplete({ geoAttributes: results })),
       catchError(err => of(new GetLayerAttributesFailure({ err })))
     ))

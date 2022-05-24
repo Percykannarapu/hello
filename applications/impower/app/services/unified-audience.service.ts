@@ -10,11 +10,12 @@ import { concatMap, debounceTime, filter, map, pairwise, startWith, switchMap, t
 import * as XLSX from 'xlsx';
 import { RestPayload } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
+import { AudienceDataDefinition, OnlineBulkDownloadDataResponse } from '../common/models/audience-data.model';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { AddAudience } from '../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import {
-  allAudiences, fetchableAudiences,
+  allAudiences,
   getAudiencesInExtract,
   getFetchableAudiencesInFootprint,
   getFetchableAudiencesInGrid,
@@ -27,11 +28,7 @@ import { ClearGeoVars, FetchGeoVars } from '../impower-datastore/state/transient
 import { ClearMapVars, FetchMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { CacheGeos, GeoTransactionType } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { geoTransactionId, mapTransactionId } from '../impower-datastore/state/transient/transactions/transactions.reducer';
-import {
-  getFetchableMappedAudiences,
-  getFirstTimeShadedAudiences
-} from '../impower-datastore/state/transient/transient.selectors';
-import { AudienceDataDefinition, OnlineBulkDownloadDataResponse } from '../common/models/audience-data.model';
+import { getFetchableMappedAudiences, getFirstTimeShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService } from '../val-modules/common/services/file.service';

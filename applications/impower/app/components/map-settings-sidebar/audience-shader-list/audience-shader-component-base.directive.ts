@@ -33,7 +33,7 @@ export abstract class AudienceShaderComponentBase<T extends ShadingDefinitionBas
   }
 
   ngOnInit() {
-    if (this.definition.sourcePortalId == null) {
+    if (this.definition.layerKey == null) {
       this.setupForm();
       this.isEditing = true;
     }
@@ -49,7 +49,7 @@ export abstract class AudienceShaderComponentBase<T extends ShadingDefinitionBas
   }
 
   public cancel() : void {
-    if (this.definition.sourcePortalId == null) {
+    if (this.definition.layerKey == null) {
       this.deleteShader.emit(this.definition);
     } else {
       this.isEditing = false;

@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { EsriService } from '@val/esri';
-import { EMPTY, of } from 'rxjs';
-import { AppConfig } from '../app.config';
 import { ErrorNotification } from '@val/messaging';
-import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
-import { AppActionTypes, ChangeAnalysisLevel } from './app.actions';
-import { AppStateService } from '../services/app-state.service';
+import { EMPTY, of } from 'rxjs';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
+import { AnalysisLevel } from '../common/models/ui-enums';
+import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
+import { AppStateService } from '../services/app-state.service';
+import { AppActionTypes, ChangeAnalysisLevel } from './app.actions';
 import { FullAppState } from './app.interfaces';
 
 @Injectable({ providedIn: 'root' })
@@ -25,7 +26,7 @@ export class AppEffects {
     ofType<ChangeAnalysisLevel>(AppActionTypes.ChangeAnalysisLevel),
     tap(() => this.store$.dispatch(clearTransientData({ fullEntityWipe: false }))),
     filter(action => action.payload.analysisLevel != null),
-    switchMap(action => of(this.config.getLayerIdForAnalysisLevel(action.payload.analysisLevel)).pipe(
+    switchMap(action => of(this.config.getAnalysisBoundaryUrl(AnalysisLevel.parse(action.payload.analysisLevel), false)).pipe(
       tap(layerId => this.esri.setSelectedLayer(layerId)),
       catchError(err => {
         this.store$.dispatch(ErrorNotification({ message: 'Could not set Layer Id based on Analysis Level', additionalErrorInfo: err }));
@@ -38,6 +39,6 @@ export class AppEffects {
               private store$: Store<FullAppState>,
               private esri: EsriService,
               private appStateService: AppStateService,
-              private config: AppConfig) { }
+              private config: EsriConfigService) { }
 
 }

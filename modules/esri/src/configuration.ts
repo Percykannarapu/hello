@@ -1,7 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { LogLevels } from '@val/common';
 
-
 export interface EsriConfigOptions extends Partial<__esri.config> {
   version: string;
 }
@@ -19,10 +18,10 @@ export interface EsriAppSettings {
   maxPointsPerBufferQuery: number;
   maxPointsPerAttributeQuery: number;
   maxPointsPerServiceQuery: number;
-  printServiceUrl: string;
   defaultMapParams: __esri.MapProperties;
   defaultViewParams: __esri.MapViewProperties;
   logLevel: LogLevels;
+  featureServiceRoot: string;
 }
 
 export const esriZoomLocalStorageKey = 'esri-map-use-alternate-zoom';

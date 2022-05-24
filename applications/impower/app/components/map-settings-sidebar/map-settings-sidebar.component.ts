@@ -5,7 +5,7 @@ import { BoundaryConfiguration, EsriBoundaryService, EsriPoiService, PoiConfigur
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { Observable } from 'rxjs';
-import { filter, tap } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Audience } from '../../impower-datastore/state/transient/audience/audience.model';
 import { FullAppState } from '../../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';

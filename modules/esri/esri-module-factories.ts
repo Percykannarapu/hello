@@ -41,6 +41,7 @@ export function provideEsriAppOptions(options?: ForRootOptions) : EsriAppSetting
   if (options != null) {
     result = {
       ...defaultEsriAppSettings,
+      featureServiceRoot: `${options.portalServerRootUrl}${defaultEsriUrlFragments.portalServer}${defaultEsriUrlFragments.hostedLayer}`,
       ...options.app
     };
   }

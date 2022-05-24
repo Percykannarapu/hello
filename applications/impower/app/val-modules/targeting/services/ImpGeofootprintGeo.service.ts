@@ -19,6 +19,7 @@ import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-v
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 import { asyncScheduler, BehaviorSubject, EMPTY, Observable, of, scheduled, throwError } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
+import { EsriConfigService } from '../../../../../../modules/esri/src/services/esri-config.service';
 import { WorkerResponse, WorkerResult } from '../../../../worker-shared/common/core-interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import {
@@ -27,6 +28,7 @@ import {
   WorkerProcessReturnType
 } from '../../../../worker-shared/export-workers/payloads';
 import { MustCoverDataRow, mustCoverFileParser } from '../../../common/file-parsing-rules';
+import { AnalysisLevel } from '../../../common/models/ui-enums';
 import { PrettyGeoSort, RankGeoSort } from '../../../common/valassis-sorters';
 import { WorkerFactory } from '../../../common/worker-factory';
 import { LocalAppState } from '../../../state/app.interfaces';
@@ -65,6 +67,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
                private appConfig: AppConfig,
+               private esriConfig: EsriConfigService,
                private esriQueryService: EsriQueryService,
                private store$: Store<LocalAppState>, logger: LoggingService)
    {
@@ -317,9 +320,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const queryResult = new Set<string>();
           const queryResultMap = new Map<string, {latitude: number, longitude: number}>();
           if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
-            const portalLayerId = fileAnalysisLevel === analysisLevel ? this.appConfig.getLayerIdForAnalysisLevel(analysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
+            const effectiveAnalysisLevel = AnalysisLevel.parse(fileAnalysisLevel ?? analysisLevel);
+            const layerUrl = this.esriConfig.getAnalysisBoundaryUrl(effectiveAnalysisLevel, false);
 
-            return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
+            return this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
                map(graphics => graphics.map(g => g.attributes)),
                reduce((acc, result) => acc.concat(result), []),
                map(attrs => {

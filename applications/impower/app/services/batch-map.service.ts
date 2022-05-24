@@ -14,14 +14,13 @@ import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
+import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../common/models/print-job.model';
+import { AnalysisLevel } from '../common/models/ui-enums';
 import { LocationBySiteNum } from '../common/valassis-sorters';
-import {
-  allCustomVarEntities,
-  allCustomVarIds,
-} from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
+import { allCustomVarEntities, allCustomVarIds, } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import {
   BatchMapPayload,
   CurrentPageBatchMapPayload,
@@ -50,6 +49,7 @@ export class BatchMapService {
   private geoQueryId: string;
 
   constructor(private geoService: ImpGeofootprintGeoService,
+              private esriConfig: EsriConfigService,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
               private esriLayerService: EsriLayerService,
@@ -406,9 +406,9 @@ export class BatchMapService {
       if (g.isActive)
         activeGeos.add(g.geocode);
     });
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true, true);
+    const layerUrl = this.esriConfig.getAnalysisBoundaryUrl(AnalysisLevel.parse(analysisLevel), false);
     if (activeGeos.size > 0) {
-      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'SHAPE__Area'], this.geoQueryId).pipe(
+      return this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'SHAPE__Area'], this.geoQueryId).pipe(
         map(graphics => {
           const points: number[][] = [];
           let largestArea = 0;

@@ -76,16 +76,10 @@ import { AppComponent } from './app.component';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
 import { allInterceptorProviders } from './common/interceptors';
-import { LocationListComponent } from './components/geo-location-panel/location-list-container/location-list/location-list.component';
-import { AddLocationsTabComponent } from './components/locations/add-locations-tab/add-locations-tab.component';
-import { ManualEntryComponent } from './components/locations/add-locations-tab/manual-entry/manual-entry.component';
-import { MarketLocationsComponent } from './components/locations/add-locations-tab/market-locations/market-locations.component';
-import { UploadLocationsComponent } from './components/locations/add-locations-tab/upload-locations/upload-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
-import { ColorBoxComponent } from './components/main/dashboard/color-box/color-box.component';
 import { AcsGrantDirective } from './components/common/acs-grant.directive';
 import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
 import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
@@ -108,48 +102,81 @@ import { SearchInputComponent } from './components/common/search-input/search-in
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { ValidatedTextInputComponent } from './components/common/validated-text-input/validated-text-input.component';
-import { DashboardComponent } from './components/main/dashboard/dashboard.component';
 import { BatchMapAdminComponent } from './components/dialogs/batch-map-admin/batch-map-admin.component';
 import { BatchMapRequestComponent } from './components/dialogs/batch-map-request/batch-map-request.component';
 import { BatchMapStatusComponent } from './components/dialogs/batch-map-status/batch-map-status.component';
 import { EditLocationsComponent } from './components/dialogs/edit-locations/edit-locations.component';
 import { ExistingProjectComponent } from './components/dialogs/existing-project/existing-project.component';
 import { ExportCrossbowSitesComponent } from './components/dialogs/export-crossbow-sites/export-crossbow-sites.component';
+import { ExportGeoGridComponent } from './components/dialogs/export-geo-grid/export-geo-grid.component';
 import { ImpowerHelpComponent } from './components/dialogs/impower-help/impower-help.component';
 import { ManualGeoDialogComponent } from './components/dialogs/manual-geo-dialog/manual-geo-dialog.component';
 import { SendSitesDigitalComponent } from './components/dialogs/send-sites-digital/send-sites-digital.component';
+import { GeoListContainerComponent } from './components/geo-location-panel/geo-list-container/geo-list-container.component';
+import { GeoListComponent } from './components/geo-location-panel/geo-list-container/geo-list/geo-list.component';
+import { GeoLocationPanelComponent } from './components/geo-location-panel/geo-location-panel.component';
+import { LocationListContainerComponent } from './components/geo-location-panel/location-list-container/location-list-container.component';
+import { LocationListComponent } from './components/geo-location-panel/location-list-container/location-list/location-list.component';
+import { AddLocationsTabComponent } from './components/locations/add-locations-tab/add-locations-tab.component';
+import { ManualEntryComponent } from './components/locations/add-locations-tab/manual-entry/manual-entry.component';
+import { MarketGeosComponent } from './components/locations/add-locations-tab/market-locations/market-geos/market-geos.component';
+import { MarketLocationsComponent } from './components/locations/add-locations-tab/market-locations/market-locations.component';
+import { UploadLocationsComponent } from './components/locations/add-locations-tab/upload-locations/upload-locations.component';
 import { FailedLocationsTabComponent } from './components/locations/failed-locations-tab/failed-locations-tab.component';
+import { LocationsComponent } from './components/locations/locations.component';
+import { DistanceTradeAreaComponent } from './components/locations/trade-area-tab/distance-trade-area/distance-trade-area.component';
+import { RadiusEntryComponent } from './components/locations/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
+import { TradeAreaTabComponent } from './components/locations/trade-area-tab/trade-area-tab.component';
+import { UploadMustCoverComponent } from './components/locations/trade-area-tab/upload-must-cover/upload-must-cover.component';
+import { UploadTradeAreasComponent } from './components/locations/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
+import { ColorBoxComponent } from './components/main/dashboard/color-box/color-box.component';
+import { DashboardComponent } from './components/main/dashboard/dashboard.component';
 import { AppFooterComponent } from './components/main/footer/app.footer.component';
 import { AppHeaderComponent } from './components/main/header/app.header.component';
-import { AppMenuComponent } from './components/main/menu/app.menu.component';
-import { GeoListComponent } from './components/geo-location-panel/geo-list-container/geo-list/geo-list.component';
-import { GeoListContainerComponent } from './components/geo-location-panel/geo-list-container/geo-list-container.component';
 import { ImpowerMainComponent } from './components/main/impower-main.component';
+import { AppMenuComponent } from './components/main/menu/app.menu.component';
+import { AddShaderButtonComponent } from './components/map-settings-sidebar/audience-shader-list/add-shader-button/add-shader-button.component';
+import { AudienceShaderListComponent } from './components/map-settings-sidebar/audience-shader-list/audience-shader-list.component';
+import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/audience-shader-list/owner-site-shader/owner-site-shader.component';
+import {
+  OwnerTradeAreaShaderComponent
+} from './components/map-settings-sidebar/audience-shader-list/owner-trade-area-shader/owner-trade-area-shader.component';
+import { SelectedGeoShaderComponent } from './components/map-settings-sidebar/audience-shader-list/selected-geo-shader/selected-geo-shader.component';
+import {
+  BreaksVariableShaderComponent
+} from './components/map-settings-sidebar/audience-shader-list/variable-shader/breaks-variable-shader/breaks-variable-shader.component';
+import {
+  DensityVariableShaderComponent
+} from './components/map-settings-sidebar/audience-shader-list/variable-shader/density-variable-shader/density-variable-shader.component';
+import {
+  RampVariableShaderComponent
+} from './components/map-settings-sidebar/audience-shader-list/variable-shader/ramp-variable-shader/ramp-variable-shader.component';
+import {
+  UniqueVariableShaderComponent
+} from './components/map-settings-sidebar/audience-shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
+import { VariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/variable-shader.component';
 import { BoundaryShaderListComponent } from './components/map-settings-sidebar/boundary-shader-list/boundary-shader-list.component';
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-shader-list/boundary-shader/boundary-shader.component';
 import { LocationShaderListComponent } from './components/map-settings-sidebar/location-shader-list/location-shader-list.component';
 import { LocationShaderComponent } from './components/map-settings-sidebar/location-shader-list/location-shader/location-shader.component';
-import { SimpleLocationShaderComponent } from './components/map-settings-sidebar/location-shader-list/location-shader/simple-location-shader/simple-location-shader.component';
-import { UniqueValueLocationShaderComponent } from './components/map-settings-sidebar/location-shader-list/location-shader/unique-value-location-shader/unique-value-location-shader.component';
+import {
+  SimpleLocationShaderComponent
+} from './components/map-settings-sidebar/location-shader-list/location-shader/simple-location-shader/simple-location-shader.component';
+import {
+  UniqueValueLocationShaderComponent
+} from './components/map-settings-sidebar/location-shader-list/location-shader/unique-value-location-shader/unique-value-location-shader.component';
 import { VisualRadiiComponent } from './components/map-settings-sidebar/location-shader-list/location-shader/visual-radii/visual-radii.component';
 import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
-import { AddShaderButtonComponent } from './components/map-settings-sidebar/audience-shader-list/add-shader-button/add-shader-button.component';
-import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/audience-shader-list/owner-site-shader/owner-site-shader.component';
-import { OwnerTradeAreaShaderComponent } from './components/map-settings-sidebar/audience-shader-list/owner-trade-area-shader/owner-trade-area-shader.component';
-import { SelectedGeoShaderComponent } from './components/map-settings-sidebar/audience-shader-list/selected-geo-shader/selected-geo-shader.component';
-import { AudienceShaderListComponent } from './components/map-settings-sidebar/audience-shader-list/audience-shader-list.component';
-import { BreaksVariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/breaks-variable-shader/breaks-variable-shader.component';
-import { DensityVariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/density-variable-shader/density-variable-shader.component';
-import { RampVariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/ramp-variable-shader/ramp-variable-shader.component';
-import { UniqueVariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
-import { VariableShaderComponent } from './components/map-settings-sidebar/audience-shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
-import { MarketGeosComponent } from './components/locations/add-locations-tab/market-locations/market-geos/market-geos.component';
 import { AudiencesCustomComponent } from './components/target-audience/audiences-custom/audiences-custom.component';
 import { CombinedAudienceComponent } from './components/target-audience/audiences-custom/combined-audience/combined-audience.component';
-import { EditCombinedAudiencesComponent } from './components/target-audience/audiences-custom/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
+import {
+  EditCombinedAudiencesComponent
+} from './components/target-audience/audiences-custom/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
 import { CompositeAudienceComponent } from './components/target-audience/audiences-custom/composite-audience/composite-audience.component';
-import { EditCompositeAudiencesComponent } from './components/target-audience/audiences-custom/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
+import {
+  EditCompositeAudiencesComponent
+} from './components/target-audience/audiences-custom/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
 import { CustomAudienceComponent } from './components/target-audience/audiences-custom/custom-audience/custom-audience.component';
 import { AudiencesOfflineComponent } from './components/target-audience/audiences-offline/audiences-offline.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/audiences-offline/offline-audience-tda/offline-audience-tda.component';
@@ -159,21 +186,12 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/audie
 import { OnlineAudienceVlhComponent } from './components/target-audience/audiences-online/online-audience-vlh/online-audience-vlh.component';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
-import { DistanceTradeAreaComponent } from './components/locations/trade-area-tab/distance-trade-area/distance-trade-area.component';
-import { RadiusEntryComponent } from './components/locations/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
-import { TradeAreaTabComponent } from './components/locations/trade-area-tab/trade-area-tab.component';
-import { UploadMustCoverComponent } from './components/locations/trade-area-tab/upload-must-cover/upload-must-cover.component';
-import { UploadTradeAreasComponent } from './components/locations/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
 import { AppMessagingService } from './services/app-messaging.service';
 import { appMetaReducers, appReducer } from './state/app.reducer';
 import { CustomSerializer } from './state/shared/router.serializer';
 import { StateModule } from './state/state.module';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
-import { LocationsComponent } from './components/locations/locations.component';
-import { ExportGeoGridComponent } from './components/dialogs/export-geo-grid/export-geo-grid.component';
-import { GeoLocationPanelComponent } from './components/geo-location-panel/geo-location-panel.component';
-import { LocationListContainerComponent } from './components/geo-location-panel/location-list-container/location-list-container.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -198,7 +216,6 @@ export function esriSetupFactory() : ForRootOptions {
       userName: EnvironmentData.esri.userName,
       password: EnvironmentData.esri.password
     }, app: {
-      printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
       logLevel: environment.logLevel
     }
   };

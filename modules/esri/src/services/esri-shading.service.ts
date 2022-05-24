@@ -6,6 +6,7 @@ import { reduceConcat } from '@val/common';
 import { Observable } from 'rxjs';
 import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
+import { LayerTypes } from '../core/esri.enums';
 import { isComplexRenderer, isFeatureLayer } from '../core/type-checks';
 import { FillSymbolDefinition } from '../models/common-configuration';
 import { ConfigurationTypes, RampProperties, ShadingDefinition } from '../models/shading-configuration';
@@ -23,6 +24,7 @@ import {
   upsertShadingDefinitions
 } from '../state/shading/esri.shading.actions';
 import { shadingSelectors } from '../state/shading/esri.shading.selectors';
+import { EsriConfigService } from './esri-config.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriQueryService } from './esri-query.service';
 
@@ -33,9 +35,16 @@ export class EsriShadingService {
 
   private layersInFlight = new Set<string>();
 
-  constructor(private layerService: EsriLayerService,
+  constructor(private esriConfig: EsriConfigService,
+              private layerService: EsriLayerService,
               private queryService: EsriQueryService,
               private store$: Store<AppState>) {}
+
+  private static createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
+    const currentDef: FillSymbolDefinition = { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 0], outlineWidth: 1, ...(def || {}) };
+    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
+    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
+  }
 
   initializeShadingWatchers() : void {
     this.setupLayerCreationWatcher();
@@ -193,17 +202,18 @@ export class EsriShadingService {
 
   private createFeatureLayerForShading(config: ShadingDefinition, layerProps: __esri.FeatureLayerProperties, groupName: string) : Observable<string> {
     let layerFactory$: Observable<__esri.FeatureLayer>;
+    const layerUrl = this.esriConfig.getLayerUrl(config.layerKey, LayerTypes.Polygon, true);
     if (config.useLocalGeometry) {
       this.layerService.longLayerLoadInProgress$.next(true);
       const query = new Query({ returnGeometry: true, outFields: ['geocode'] });
-      layerFactory$ = this.queryService.executeParallelQuery(config.sourcePortalId, query, 5000, 3).pipe(
+      layerFactory$ = this.queryService.executeParallelQuery(layerUrl, query, 5000, 3).pipe(
         map(fs => fs.features),
         reduceConcat(),
         map(features => this.layerService.createLocalPolygonLayer(features, layerProps)),
         tap(() => this.layerService.longLayerLoadInProgress$.next(false))
       );
     } else {
-      layerFactory$ = this.layerService.createPortalLayer(config.sourcePortalId, config.layerName, config.minScale, true, layerProps);
+      layerFactory$ = this.layerService.createPortalLayer(layerUrl, config.layerName, config.minScale, true, layerProps);
     }
     return layerFactory$.pipe(
       tap(layer => {
@@ -218,7 +228,7 @@ export class EsriShadingService {
   }
 
   private createGeneralizedRenderer(config: ShadingDefinition) : __esri.Renderer {
-    const defaultSymbol = this.createSymbolFromDefinition(config.defaultSymbolDefinition);
+    const defaultSymbol = EsriShadingService.createSymbolFromDefinition(config.defaultSymbolDefinition);
     const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
     switch (config.shadingType) {
       case ConfigurationTypes.ClassBreak:
@@ -226,7 +236,7 @@ export class EsriShadingService {
           minValue: d.minValue || Number.MIN_VALUE,
           maxValue: d.maxValue || Number.MAX_VALUE,
           label: d.legendName,
-          symbol: this.createSymbolFromDefinition(d)
+          symbol: EsriShadingService.createSymbolFromDefinition(d)
         }));
         classBreaks.reverse();
         const breaksRenderer = EsriDomainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
@@ -248,7 +258,7 @@ export class EsriShadingService {
         simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
-        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: EsriShadingService.createSymbolFromDefinition(u) }));
         const result = EsriDomainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
@@ -265,12 +275,6 @@ export class EsriShadingService {
       default:
         return null;
     }
-  }
-
-  private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
-    const currentDef: FillSymbolDefinition = { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 0], outlineWidth: 1, ...(def || {}) };
-    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
-    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private deleteRenderingLayers(ids: string[]) {

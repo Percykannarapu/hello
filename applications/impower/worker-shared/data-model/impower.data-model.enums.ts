@@ -1,3 +1,5 @@
+import { isString } from '@val/common';
+
 export enum DAOBaseStatus {
   UNCHANGED = 'UNCHANGED',
   UPDATE = 'UPDATE',
@@ -58,7 +60,7 @@ export namespace TradeAreaTypeCodes {
   export function parse(code: string) : TradeAreaTypeCodes {
     if (code == null) return null;
     for (const key of Object.keys(TradeAreaTypeCodes)) {
-      if (code.toUpperCase() === TradeAreaTypeCodes[key].toUpperCase()) return TradeAreaTypeCodes[key];
+      if (isString(TradeAreaTypeCodes[key]) && code.toUpperCase() === TradeAreaTypeCodes[key].toUpperCase()) return TradeAreaTypeCodes[key];
     }
     throw new Error('Invalid Trade Area Type Code');
   }

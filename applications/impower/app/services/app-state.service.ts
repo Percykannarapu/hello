@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { filterArray, isConvertibleToNumber, isNotNil } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import {
@@ -14,7 +13,6 @@ import {
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
-import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { getMetricVarEntities } from '../impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';

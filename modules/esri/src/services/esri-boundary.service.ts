@@ -4,10 +4,11 @@ import PopupTemplate from '@arcgis/core/PopupTemplate';
 import ActionButton from '@arcgis/core/support/actions/ActionButton';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { isNil } from '@val/common';
+import { isNil, isNotNil } from '@val/common';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
+import { LayerTypes } from '../core/esri.enums';
 import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
 import { RgbTuple } from '../models/esri-types';
@@ -15,9 +16,8 @@ import { loadBoundaries, updateBoundaries, updateBoundary, upsertBoundaries, ups
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
+import { EsriConfigService } from './esri-config.service';
 import { EsriLayerService } from './esri-layer.service';
-
-const requiredBoundaryAttributes = ['geocode', 'owner_group_primary', 'cov_frequency', 'pob', 'latitude', 'longitude', 'hhld_s', 'hhld_w'];
 
 @Injectable()
 export class EsriBoundaryService {
@@ -29,7 +29,8 @@ export class EsriBoundaryService {
   private _popupFactory: (feature: __esri.Feature, layerId: string, popupDefinition: PopupDefinition) => HTMLElement = null;
   private _popupThisContext: any = null;
 
-  constructor(private layerService: EsriLayerService,
+  constructor(private esriConfig: EsriConfigService,
+              private layerService: EsriLayerService,
               private store$: Store<AppState>) {
     this.store$.select(selectors.getMapReady).pipe(
       filter(ready => ready),
@@ -38,6 +39,26 @@ export class EsriBoundaryService {
       this.initializeSelectors();
       this.setupWatchers();
     });
+  }
+
+  private static createLabelFromDefinition(currentDef: LabelDefinition, layerOpacity: number) : __esri.LabelClass {
+    const weight = currentDef.isBold ? 'bold' : 'normal';
+    const style = currentDef.isItalic ? 'italic' : 'normal';
+    const font = EsriDomainFactory.createFont(currentDef.size, weight, style, currentDef.family);
+    const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
+    const attributes = {};
+    if (currentDef.where != null) {
+      attributes['where'] = currentDef.where;
+    }
+    const color = RgbTuple.withAlpha(currentDef.color, layerOpacity);
+    const haloColor = RgbTuple.withAlpha(currentDef.haloColor, layerOpacity);
+    return EsriDomainFactory.createExtendedLabelClass(color, haloColor, arcade, currentDef.forceLabelsVisible ?? false, font, 'always-horizontal', attributes);
+  }
+
+  private static createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
+    const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
+    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0], currentDef.outlineWidth);
+    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private initializeSelectors() : void {
@@ -94,10 +115,10 @@ export class EsriBoundaryService {
     const allObservables: Observable<Update<BoundaryConfiguration>>[] = [];
     configurations.forEach(config => {
       const group = this.layerService.createPortalGroup(config.groupName, true, config.sortOrder);
-      const layerId = config.useSimplifiedInfo && config.simplifiedPortalId != null ? config.simplifiedPortalId : config.portalId;
+      const layerUrl = this.esriConfig.getLayerUrl(config.layerKey, LayerTypes.Polygon, config.useSimplifiedInfo);
       const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
 
-      const layerPipeline = this.layerService.createPortalLayer(layerId, config.layerName, minScale, false, { legendEnabled: false }).pipe(
+      const layerPipeline = this.layerService.createPortalLayer(layerUrl, config.layerName, minScale, false, { legendEnabled: false }).pipe(
         tap(layer => group.add(layer)),
         map(layer => ({ id: config.id, changes: { destinationBoundaryId: layer.id } }))
       );
@@ -121,19 +142,28 @@ export class EsriBoundaryService {
     const boundaryUpdates: BoundaryConfiguration[] = [];
     const centroidCreates: BoundaryConfiguration[] = [];
     const centroidRemovals: BoundaryConfiguration[] = [];
+    const pobCreates: BoundaryConfiguration[] = [];
+    const pobRemovals: BoundaryConfiguration[] = [];
     configurations.forEach(config => {
-      if (config.destinationCentroidId == null && config.showCentroids) {
+      if (isNil(config.destinationCentroidId) && config.showCentroids) {
         centroidCreates.push(config);
-      } else {
-        if (config.destinationCentroidId != null && config.showCentroids === false) {
-          centroidRemovals.push(config);
-        }
-        boundaryUpdates.push(config);
       }
+      if (isNotNil(config.destinationCentroidId) && config.showCentroids === false) {
+        centroidRemovals.push(config);
+      }
+      if (isNil(config.destinationPOBId) && config.showPOBs) {
+        pobCreates.push(config);
+      }
+      if (isNotNil(config.destinationPOBId) && config.showPOBs === false) {
+        pobRemovals.push(config);
+      }
+      boundaryUpdates.push(config);
     });
 
-    if (centroidCreates.length > 0) this.createCentroids(centroidCreates);
-    if (centroidRemovals.length > 0) this.removeCentroids(centroidRemovals);
+    if (centroidCreates.length > 0) this.createPointLayer(centroidCreates, false);
+    if (centroidRemovals.length > 0) this.removePointLayer(centroidRemovals, false);
+    if (pobCreates.length > 0) this.createPointLayer(pobCreates, true);
+    if (pobRemovals.length > 0) this.removePointLayer(pobRemovals, true);
     if (boundaryUpdates.length > 0) this.updateLayers(boundaryUpdates);
   }
 
@@ -141,21 +171,15 @@ export class EsriBoundaryService {
     configurations.forEach(config => {
       const currentLayer = this.layerService.getLayerByUniqueId(config.destinationBoundaryId) as __esri.FeatureLayer;
       const currentCentroid = config.destinationCentroidId != null ? this.layerService.getLayerByUniqueId(config.destinationCentroidId) as __esri.FeatureLayer : null;
+      const currentPob = isNotNil(config.destinationPOBId) ? this.layerService.getLayerByUniqueId(config.destinationPOBId) as __esri.FeatureLayer : null;
       currentLayer.when(() => {
         const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
-        const defaultSymbol = this.createSymbolFromDefinition(config.symbolDefinition);
+        const defaultSymbol = EsriBoundaryService.createSymbolFromDefinition(config.symbolDefinition);
         const labels = [
           config.showHouseholdCounts && config.hhcLabelDefinition != null
-            ? this.createLabelFromDefinition(config.hhcLabelDefinition, config.opacity)
-            : this.createLabelFromDefinition(config.labelDefinition, config.opacity)
+            ? EsriBoundaryService.createLabelFromDefinition(config.hhcLabelDefinition, config.opacity)
+            : EsriBoundaryService.createLabelFromDefinition(config.labelDefinition, config.opacity)
         ];
-        // if (config.showPOBs && config.pobLabelDefinition != null) {
-        //   labels.push(this.createLabelFromDefinition(config.pobLabelDefinition));
-        // }
-        let layerQuery = null;
-        if (config.hasPOBs) {
-          layerQuery = config.showPOBs ? null : `COALESCE(pob, '') <> 'B'`;
-        }
         let popupDef = null;
         if (config.showPopups && config.popupDefinition != null) {
           popupDef = this.createPopupTemplate(currentLayer, config);
@@ -166,44 +190,53 @@ export class EsriBoundaryService {
           labelingInfo: labels,
           renderer: EsriDomainFactory.createSimpleRenderer(defaultSymbol),
           opacity: config.opacity,
-          definitionExpression: layerQuery,
           visible: config.visible,
           popupEnabled: config.showPopups && !config.useSimplifiedInfo,
           popupTemplate: popupDef,
           outFields: null
         };
-        if (config.isPrimarySelectableLayer) additionalAttributes.outFields = requiredBoundaryAttributes;
+        if (config.isPrimarySelectableLayer) additionalAttributes.outFields = ['*'];
         currentLayer.set(additionalAttributes);
-        if (currentCentroid != null) {
+        if (isNotNil(currentCentroid)) {
           currentCentroid.when(() => {
-            let centroidQuery = null;
-            if (config.hasPOBs && !config.useSimplifiedInfo) {
-              centroidQuery = config.showPOBs ? null : `is_pob_only = 0`;
-            }
             const centroidAttributes: Partial<__esri.FeatureLayer> = {
               opacity: config.opacity,
-              definitionExpression: centroidQuery
             };
             currentCentroid.set(centroidAttributes);
+          });
+        }
+        if (isNotNil(currentPob)) {
+          currentPob.when(() => {
+            let pobPopup = null;
+            if (config.showPopups && config.popupDefinition != null) {
+              pobPopup = this.createPopupTemplate(currentPob, config);
+            }
+            const pobAttributes: Partial<__esri.FeatureLayer> = {
+              opacity: config.opacity,
+              popupEnabled: config.showPopups && !config.useSimplifiedInfo,
+              popupTemplate: pobPopup,
+            };
+            currentPob.set(pobAttributes);
           });
         }
       });
     });
   }
 
-  private createCentroids(configurations: BoundaryConfiguration[]) : void {
+  private createPointLayer(configurations: BoundaryConfiguration[], isPob: boolean) : void {
     const allObservables: Observable<Update<BoundaryConfiguration>>[] = [];
     configurations.forEach(config => {
       const group = this.layerService.createPortalGroup(config.groupName, true, config.sortOrder);
       const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
-      const layerName = `${config.dataKey.toUpperCase()} Centroids`;
+      const layerName = `${config.layerKey.toUpperCase()} ${isPob ? 'POBs' : 'Centroids'}`;
+      const layerUrl = this.esriConfig.getLayerUrl(config.layerKey, LayerTypes.Point, isPob);
       const additionalAttributes: Partial<__esri.FeatureLayer> = {
         legendEnabled: false,
-        popupEnabled: false,
+        popupEnabled: isPob ? config.showPopups && ! config.useSimplifiedInfo : false,
       };
-      const layerPipeline = this.layerService.createPortalLayer(config.centroidPortalId, layerName, minScale, true, additionalAttributes).pipe(
+      const layerPipeline = this.layerService.createPortalLayer(layerUrl, layerName, minScale, true, additionalAttributes).pipe(
         tap(layer => group.add(layer, 1)),
-        map(layer => ({ id: config.id, changes: { destinationCentroidId: layer.id } }))
+        map(layer => ({ id: config.id, changes: isPob ? { destinationPOBId: layer.id } : { destinationCentroidId: layer.id } }))
       );
       allObservables.push(layerPipeline);
     });
@@ -213,34 +246,14 @@ export class EsriBoundaryService {
     ).subscribe(updates => this.store$.dispatch(updateBoundaries({ boundaries: updates })));
   }
 
-  private removeCentroids(configurations: BoundaryConfiguration[]) : void {
+  private removePointLayer(configurations: BoundaryConfiguration[], isPob: boolean) : void {
     const updatesForDispatch: Update<BoundaryConfiguration>[] = [];
     configurations.forEach(config => {
       const centroid = this.layerService.getLayerByUniqueId(config.destinationCentroidId);
       this.layerService.removeLayer(centroid);
-      updatesForDispatch.push({ id: config.id, changes: { destinationCentroidId: undefined }});
+      updatesForDispatch.push({ id: config.id, changes: isPob ? { destinationPOBId: undefined } : { destinationCentroidId: undefined }});
     });
     if (updatesForDispatch.length > 0) this.store$.dispatch(updateBoundaries({ boundaries: updatesForDispatch }));
-  }
-
-  private createLabelFromDefinition(currentDef: LabelDefinition, layerOpacity: number) : __esri.LabelClass {
-    const weight = currentDef.isBold ? 'bold' : 'normal';
-    const style = currentDef.isItalic ? 'italic' : 'normal';
-    const font = EsriDomainFactory.createFont(currentDef.size, weight, style, currentDef.family);
-    const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
-    const attributes = {};
-    if (currentDef.where != null) {
-      attributes['where'] = currentDef.where;
-    }
-    const color = RgbTuple.withAlpha(currentDef.color, layerOpacity);
-    const haloColor = RgbTuple.withAlpha(currentDef.haloColor, layerOpacity);
-    return EsriDomainFactory.createExtendedLabelClass(color, haloColor, arcade, currentDef.forceLabelsVisible ?? false, font, 'always-horizontal', attributes);
-  }
-
-  private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
-    const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
-    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0], currentDef.outlineWidth);
-    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private createPopupTemplate(target: __esri.FeatureLayer, config: BoundaryConfiguration) : __esri.PopupTemplate {
@@ -262,7 +275,7 @@ export class EsriBoundaryService {
       result.actions = [];
     }
     if (config.popupDefinition.useCustomPopup && this._popupFactory != null) {
-      result.content = (feature: __esri.Feature) => this._popupFactory.call(this._popupThisContext, feature, config.portalId, config.popupDefinition);
+      result.content = (feature: __esri.Feature) => this._popupFactory.call(this._popupThisContext, feature, config.layerKey, config.popupDefinition);
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }

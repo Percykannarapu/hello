@@ -25,7 +25,7 @@ const getNationalShadingDefsForCreate = createSelector(getEsriNationalShadingDef
 const getNationalShadingDefsForUpdate = createSelector(getEsriNationalShadingDefs, layers => layers.filter(l => l.destinationLayerUniqueId != null));
 
 function shadingDefinitionIsReady(def: ShadingDefinition) : boolean {
-  return !isNil(def.shadingType) && !isNil(def.sourcePortalId) && isNil(def.destinationLayerUniqueId);
+  return !isNil(def.shadingType) && !isNil(def.layerKey) && isNil(def.destinationLayerUniqueId);
 }
 
 export const shadingSelectors = {

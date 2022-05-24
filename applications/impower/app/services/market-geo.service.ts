@@ -3,7 +3,6 @@ import { Store } from '@ngrx/store';
 import { accumulateArrays, groupToEntity, isEmpty, mapByExtended } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { StartLiveIndicator, StopLiveIndicator, WarningNotification } from '@val/messaging';
-import { AppConfig } from 'app/app.config';
 import { AppLocationService } from 'app/services/app-location.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
@@ -19,6 +18,7 @@ import { finalize, map, reduce, switchMap, tap } from 'rxjs/operators';
 import { RestPayload, ServiceError } from 'worker-shared/data-model/core.interfaces';
 import { DAOBaseStatus, ImpClientLocationTypeCodes, TradeAreaTypeCodes } from 'worker-shared/data-model/impower.data-model.enums';
 import { ContainerPayload, ContainerValue, KeyedGeocodes } from 'worker-shared/data-model/other/market-geo.model';
+import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
@@ -56,10 +56,10 @@ export class MarketGeoService {
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
+              private esriService: EsriConfigService,
               private esriQueryService: EsriQueryService,
               private factoryService: ImpDomainFactoryService,
-              private locationService: AppLocationService,
-              private appConfig: AppConfig) { }
+              private locationService: AppLocationService) { }
 
   getContainerData(container: string, states?: string) : Observable<ContainerValue[]> {
     let gridKey: keyof ContainerPayload;
@@ -264,7 +264,7 @@ export class MarketGeoService {
   }
 
   private createTradeArea(market: ContainerValue, loc: ImpGeofootprintLocation, project: ImpProject) : Observable<ImpGeofootprintTradeArea> {
-    const layerId = this.appConfig.getLayerIdForAnalysisLevel(project.methAnalysis);
+    const layerId = this.esriService.getAnalysisBoundaryUrl(project.methAnalysis, false);
     const newTA = this.factoryService.createTradeArea(loc, TradeAreaTypeCodes.Custom);
     // We need to query for the latitude and longitude of the new geos so all downstream things will still work, like printing
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', market.geocodes, false, ['geocode', 'latitude', 'longitude']).pipe(

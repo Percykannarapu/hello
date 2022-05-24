@@ -3,8 +3,10 @@ import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './
 
 export const defaultEsriUrlFragments = {
   portal: 'arcgis/',
+  portalServer: 'arcgis-server/',
   tokenGenerator: 'sharing/rest/generateToken',
-  tokenServer: 'sharing/rest/portals'
+  tokenServer: 'sharing/rest/portals',
+  hostedLayer: 'rest/services/Hosted/'
 };
 
 export const defaultEsriConfig: EsriConfigOptions = {
@@ -30,7 +32,7 @@ export const defaultEsriAppSettings: EsriAppSettings = {
   maxPointsPerBufferQuery: 250,
   maxPointsPerAttributeQuery: 50,
   maxPointsPerServiceQuery: 5000,
-  printServiceUrl: null,
+  featureServiceRoot: null,
   defaultMapParams: {
     layers: []
   },

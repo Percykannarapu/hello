@@ -8,8 +8,10 @@ import { getTypedBatchQueryParams } from 'app/state/shared/router.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
+import { AnalysisLevel } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -57,6 +59,7 @@ export class AppTradeAreaService {
               private stateService: AppStateService,
               private appGeoService: AppGeoService,
               private appConfig: AppConfig,
+              private esriService: EsriConfigService,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
               private domainFactory: ImpDomainFactoryService,
@@ -261,12 +264,12 @@ export class AppTradeAreaService {
 
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 && geoCount <= this.appConfig.maxGeosForPrecisionZoom) {
       // analysisLevel exists - zoom to Trade Area
-      const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
-      if (layerId == null) return;
+      const layerUrl = this.esriService.getAnalysisBoundaryUrl(currentAnalysisLevel, true);
+      if (layerUrl == null) return;
       this.stateService.uniqueIdentifiedGeocodes$.pipe(
         filter(geos => geos != null && geos.length > 0),
         take(1),
-        switchMap(geos => this.esriQueryService.queryAttributeIn(layerId, 'geocode', geos, true)),
+        switchMap(geos => this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', geos, true)),
         reduce((a, c) => [...a, ...c], []),
         switchMap(polys => this.esriMapService.zoomToPolys(polys))
       ).subscribe();
@@ -351,8 +354,9 @@ export class AppTradeAreaService {
     const geos = new Set<string>();
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
 
-        const portalLayerId = fileAnalysisLevel == null ? this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
-        this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
+        const effectiveAnalysisLevel = AnalysisLevel.parse(fileAnalysisLevel ?? currentAnalysisLevel);
+        const layerUrl = this.esriService.getAnalysisBoundaryUrl(effectiveAnalysisLevel, true);
+        this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
           map(graphics => graphics.map(g => g.attributes)),
           map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
         ).subscribe(

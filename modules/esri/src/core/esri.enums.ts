@@ -1,3 +1,34 @@
+import { isNil, isNotNil, isString } from '@val/common';
+
+export enum LayerKeys {
+  State = 'state',
+  DMA = 'DMA',
+  Counties = 'IMP_COUNTIES',
+  Wrap = 'wrap',
+  Zip = 'zip',
+  ATZ = 'atz',
+  DTZ = 'dtz',
+  PCR = 'pcr'
+}
+
+export namespace LayerKeys {
+  export function parse(value: string) : LayerKeys {
+    let result: LayerKeys = value?.toLowerCase() === 'digital atz' ? LayerKeys.DTZ : LayerKeys[value];
+    if (isNil(result)) {
+      for (const key of Object.keys(LayerKeys)) {
+        if (isString(LayerKeys[key]) && value.toUpperCase() === LayerKeys[key].toUpperCase()) result = LayerKeys[key];
+      }
+    }
+    if (isNotNil(value) && isNil(result)) throw new Error(`Unknown LayerKey: ${value}`);
+    return result;
+  }
+}
+
+export enum LayerTypes {
+  Polygon,
+  Point
+}
+
 export enum EsriPopupTypeCodes {
   Standard,
   CustomGeography

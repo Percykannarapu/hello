@@ -48,14 +48,11 @@ export function applyPopupChanges(original: PopupDefinition, newValues: DeepPart
 
 export interface BoundaryConfiguration {
   id: string;
-  dataKey: string;
+  layerKey: string;
   sortOrder: number;
   visible: boolean;
   groupName: string;
-  portalId: string;
   useSimplifiedInfo: boolean;
-  simplifiedPortalId: string;
-  centroidPortalId: string;
   layerName: string;
   minScale: number;
   simplifiedMinScale: number;
@@ -74,6 +71,7 @@ export interface BoundaryConfiguration {
   popupDefinition: PopupDefinition;
   destinationBoundaryId?: string;
   destinationCentroidId?: string;
+  destinationPOBId?: string;
 }
 
 export function duplicateBoundaryConfig(config: BoundaryConfiguration) : BoundaryConfiguration {

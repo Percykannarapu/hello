@@ -31,6 +31,7 @@ export * from './src/services/esri-shading.service';
 export * from './src/services/esri-poi.service';
 export * from './src/services/esri-boundary.service';
 export * from './src/services/esri.service';
+export * from './src/services/esri-config.service';
 
 export * from './src/state/esri.actions';
 export { EsriState, AppState } from './src/state/esri.reducers';

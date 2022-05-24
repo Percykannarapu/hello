@@ -1,7 +1,7 @@
 import { ComponentFactoryResolver, ComponentRef, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isConvertibleToNumber, isEmpty, isNil, mapByExtended } from '@val/common';
-import { EsriGeographyPopupComponent, PopupDefinition, PopupTreeNodeData } from '@val/esri';
+import { EsriConfigService, EsriGeographyPopupComponent, PopupDefinition, PopupTreeNodeData } from '@val/esri';
 import { TreeNode } from 'primeng/api';
 import { of, Subscription } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
@@ -43,6 +43,7 @@ export class AppComponentGeneratorService {
               private appStateService: AppStateService,
               private audienceService: AudienceFetchService,
               private resolver: ComponentFactoryResolver,
+              private esriService: EsriConfigService,
               private injector: Injector,
               private logger: LoggingService,
               private store$: Store<FullAppState>,
@@ -50,19 +51,20 @@ export class AppComponentGeneratorService {
     // this.appStateService.refreshDynamicContent$.subscribe(() => this.updateDynamicComponents());
   }
 
-  public geographyPopupFactory(feature: __esri.Feature, layerId: string, popupDefinition: PopupDefinition) : HTMLElement {
+  public geographyPopupFactory(feature: __esri.Feature, layerKey: string, popupDefinition: PopupDefinition) : HTMLElement {
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    const analysisLayer = isEmpty(analysisLevel) ? null : this.config.getLayerIdForAnalysisLevel(analysisLevel);
+    const analysisLayer = isEmpty(analysisLevel) ? null : this.esriService.getAnalysisBoundaryUrl(analysisLevel, false);
+    const layerUrl = this.esriService.getAnalysisBoundaryUrl(layerKey, false);
     const requestedGeocode = feature.graphic.attributes.geocode;
-    this.logger.debug.log(`Building popup for geocode ${requestedGeocode} for layer id ${layerId}`);
-    const cacheKey = requestedGeocode + layerId;
+    this.logger.debug.log(`Building popup for geocode ${requestedGeocode} for layer ${layerKey}`);
+    const cacheKey = requestedGeocode + layerKey;
     if (!this.cachedGeoPopup.has(cacheKey)) {
-      const popup = this.createGeographyPopup(cacheKey, layerId);
+      const popup = this.createGeographyPopup(cacheKey, layerKey);
       popup.instance.loadingPrimaryData = true;
       popup.instance.geocode = requestedGeocode;
-      popup.instance.nodeExpandState = this.nodeOpenState.get(layerId) ?? {};
-      this.setupPopupData(requestedGeocode, layerId, popupDefinition, popup);
-      if (layerId === analysisLayer) {
+      popup.instance.nodeExpandState = this.nodeOpenState.get(layerKey) ?? {};
+      this.setupPopupData(requestedGeocode, layerUrl, popupDefinition, popup);
+      if (layerUrl === analysisLayer) {
         this.setupPopupAudienceData(requestedGeocode, analysisLevel, cacheKey, popup);
       } else {
         popup.instance.audienceTreeNodes = [];
@@ -93,23 +95,23 @@ export class AppComponentGeneratorService {
     this.cachedGeoPopup.clear();
   }
 
-  private createGeographyPopup(cacheKey: string, layerId: string) : ComponentRef<EsriGeographyPopupComponent> {
+  private createGeographyPopup(cacheKey: string, layerKey: string) : ComponentRef<EsriGeographyPopupComponent> {
     const factory = this.resolver.resolveComponentFactory(EsriGeographyPopupComponent);
     this.logger.debug.log('Instantiating new popup component');
     const result = factory.create(this.injector);
     this.cachedGeoPopup.set(cacheKey , result);
     const newListener = result.instance.needsRefresh.subscribe((state) => {
-      this.nodeOpenState.set(layerId, state);
+      this.nodeOpenState.set(layerKey, state);
       setTimeout(() => result.changeDetectorRef.detectChanges());
     });
     this.cachedEventSubs.set(cacheKey, newListener);
     return result;
   }
 
-  private setupPopupData(geocode: string, layerId: string, popupDefinition: PopupDefinition, component: ComponentRef<EsriGeographyPopupComponent>) : void {
+  private setupPopupData(geocode: string, layerUrl: string, popupDefinition: PopupDefinition, component: ComponentRef<EsriGeographyPopupComponent>) : void {
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    const analysisLayer = isEmpty(analysisLevel) ? null : this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const layerLevel = this.config.layerIdToAnalysisLevel(layerId);
+    const analysisLayer = isEmpty(analysisLevel) ? null : this.esriService.getAnalysisBoundaryUrl(analysisLevel, false);
+    const layerLevel = this.config.getAnalysisLevelFromLayerUrl(layerUrl);
     if (!isNil(layerLevel)) {
       const allPks = popupDefinition.customPopupPks.concat(popupDefinition.customSecondaryPopupPks).concat(30534); // including cov_frequency for Investment calc
       const dbQuery = new OfflineQuery();
@@ -122,7 +124,7 @@ export class AppComponentGeneratorService {
         ).subscribe(allNodes => {
           const rootIds = new Set(popupDefinition.customPopupPks);
           const rootNodes = allNodes.filter(n => rootIds.has(n.data.pk));
-          if (popupDefinition.includeInvestment && layerId === analysisLayer) {
+          if (popupDefinition.includeInvestment && layerUrl === analysisLayer) {
             const investmentNode = this.calcInvestment(allNodes, response, rootNodes.length);
             rootNodes.push(investmentNode);
           }

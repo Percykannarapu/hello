@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { LogLevels } from '@val/common';
-import { LayerIdDefinition } from '@val/esri';
+import { LayerKeys } from '@val/esri';
 import { environment, EnvironmentData } from '../environments/environment';
+import { AnalysisLevel } from './common/models/ui-enums';
 import { LoggingConfiguration } from './val-modules/common/services/logging.service';
 
 @Injectable({ providedIn: 'root' })
@@ -50,47 +51,21 @@ export class AppConfig implements LoggingConfiguration {
     pcr: 4
   };
 
-  public analysisLevelToLayerKey(analysisLevel: string) : string {
-    switch ((analysisLevel ?? '').toLowerCase()) {
-      case 'digital atz':
-        return 'dtz';
-      case '':
-        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::analysisLevelToLayerKey`);
-      default:
-        return analysisLevel.toLowerCase();
-    }
-  }
-
-  public getLayerConfigForAnalysisLevel(analysisLevel: string) : LayerIdDefinition {
-    const layerKey = this.analysisLevelToLayerKey(analysisLevel);
-    return EnvironmentData.layerIds[layerKey];
-  }
-
-  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true, forceFullDetail: boolean = false) : string {
-    const config = this.getLayerConfigForAnalysisLevel(analysisLevel);
-    return boundary
-      ? this.isBatchMode && !forceFullDetail ? config.simplifiedBoundary || config.boundary : config.boundary
-      : config.centroid || null;
-  }
-
-  public getRefreshedLayerId(existingId: string) : string {
-    if (existingId == null) return existingId;
-    const result = EnvironmentData.portalIdUpdates[existingId];
-    return result || existingId;
-  }
-
   public getNationalTxId(analysisLevel: string) : number {
-    const analysisKey = this.analysisLevelToLayerKey(analysisLevel);
+    const analysisKey = AnalysisLevel.parse(analysisLevel);
     return this.nationalTransactionIds[analysisKey];
   }
 
-  public layerIdToAnalysisLevel(boundaryLayerId: string) : string {
-    let result = null;
-    Object.keys(EnvironmentData.layerIds).forEach(k => {
-      if (EnvironmentData.layerIds[k].boundary === boundaryLayerId || EnvironmentData.layerIds[k].simplifiedBoundary === boundaryLayerId) {
-        result = k;
-      }
-    });
-    return result;
+  public getAnalysisLevelFromLayerUrl(layerUrl: string) : string {
+    const analysisLayerKeys = new Set([LayerKeys.Zip, LayerKeys.ATZ, LayerKeys.DTZ, LayerKeys.PCR]);
+    const urlParts = layerUrl.split('/');
+    const fullLayerName = urlParts.length > 1 ? urlParts[urlParts.length - 2] : '';
+    const layerParts = fullLayerName.split('_');
+    const layerLevel = layerParts.length > 1 ? layerParts[1] : null;
+    return analysisLayerKeys.has(LayerKeys.parse(layerLevel)) ? layerLevel : null;
+  }
+
+  public fixupPortalIdToLayerKey(portalId: string) : LayerKeys {
+    return null;
   }
 }

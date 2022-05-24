@@ -27,6 +27,7 @@ import { EsriMapComponent } from './src/components/esri-map-panel/esri-map/esri-
 import { EsriToolbarComponent } from './src/components/esri-map-panel/esri-toolbar/esri-toolbar.component';
 import { EsriAppSettingsToken, EsriAuthenticationToken, EsriLoaderToken } from './src/configuration';
 import { EsriBoundaryService } from './src/services/esri-boundary.service';
+import { EsriConfigService } from './src/services/esri-config.service';
 import { EsriGeoprocessorService } from './src/services/esri-geoprocessor.service';
 import { EsriLayerService } from './src/services/esri-layer.service';
 import { EsriMapInteractionService } from './src/services/esri-map-interaction.service';
@@ -96,6 +97,7 @@ export class EsriModule {
         { provide: EsriLoaderToken, useFactory: provideEsriLoaderOptions, deps: [forRootOptionsToken] },
         { provide: EsriAuthenticationToken, useFactory: provideEsriAuthOptions, deps: [forRootOptionsToken] },
         { provide: EsriAppSettingsToken, useFactory: provideEsriAppOptions, deps: [forRootOptionsToken] },
+        EsriConfigService,
         EsriService,
         EsriGeoprocessorService,
         EsriLayerService,

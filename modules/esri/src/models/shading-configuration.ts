@@ -30,7 +30,7 @@ export interface RampProperties extends __esri.ColorVariableProperties {
 export interface ShadingDefinitionBase {
   id: string;
   dataKey: string;
-  sourcePortalId: string;
+  layerKey: string;
   sortOrder: number;
   destinationLayerUniqueId?: string;
   layerName: string;

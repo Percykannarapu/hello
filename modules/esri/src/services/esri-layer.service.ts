@@ -154,14 +154,14 @@ export class EsriLayerService {
     return null;
   }
 
-  public getQueryLayer(portalId: string, queryId: string, hideQueryLayer: boolean) : __esri.FeatureLayer {
-    let result = this.getPortalLayerById(portalId);
+  public getQueryLayer(portalIdOrUrl: string, queryId: string, hideQueryLayer: boolean) : __esri.FeatureLayer {
+    let result = this.getPortalLayerById(portalIdOrUrl);
     if (result == null) {
       if (this.queryOnlyLayers.has(queryId)) {
         result = this.queryOnlyLayers.get(queryId);
       } else {
         this.logger.debug.log('Creating layer for transaction', queryId);
-        result = this.createQueryLayer(portalId, queryId, hideQueryLayer);
+        result = this.createQueryLayer(portalIdOrUrl, queryId, hideQueryLayer);
       }
     }
     return result;

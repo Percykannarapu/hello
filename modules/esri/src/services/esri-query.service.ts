@@ -72,10 +72,11 @@ export class EsriQueryService {
       result: featureSet,
       next: null
     };
-    const nextStartRecord = (query.start ?? 0) + ((query.num ?? 0) * (maxStreams ?? 1));
-    if (featureSet.exceededTransferLimit && nextStartRecord !== query.start) {
+    if (featureSet.exceededTransferLimit) {
+      const recordCount = featureSet.features.length - 1;
+      const nextStartRecord = (query.start ?? 0) + ((query.num ?? recordCount) * (maxStreams ?? 1));
       const nextQuery = query.clone();
-      nextQuery.num = query.num;
+      nextQuery.num = query.num ?? recordCount;
       nextQuery.start = nextStartRecord;
       result.next = nextQuery;
     }
@@ -111,77 +112,77 @@ export class EsriQueryService {
     });
   }
 
-  public queryPoint(layerId: string, points: pointInputs, returnGeometry?: boolean , outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
-    return this.queryPointWithBuffer(layerId, points, 0, returnGeometry, outFields, alternateTxId);
+  public queryPoint(layerUrl: string, points: pointInputs, returnGeometry?: boolean , outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
+    return this.queryPointWithBuffer(layerUrl, points, 0, returnGeometry, outFields, alternateTxId);
   }
 
-  public queryPointWithBuffer(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
+  public queryPointWithBuffer(layerUrl: string, points: pointInputs, bufferInMiles: number, returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
     const pointArray = Array.isArray(points) ? points : [points];
     const chunkSize = EsriQueryService.calculateChunkSize(pointArray.length, returnGeometry, bufferInMiles);
     const dataStreams: __esri.PointProperties[][] = chunkArray(pointArray, chunkSize);
     const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, bufferInMiles));
     const transactionId = alternateTxId || getUuid();
-    return this.query(layerId, queries, transactionId).pipe(
+    return this.query(layerUrl, queries, transactionId).pipe(
       finalize(() => {
         if (alternateTxId == null) this.finalizeQuery(transactionId);
       })
     );
   }
 
-  public queryAttributeIn(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
+  public queryAttributeIn(layerUrl: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
     const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
     const dataStreams = chunkArray<string, number>(queryData, chunkSize);
-    return this.queryAttributeChunksIn(layerId, queryField, dataStreams, returnGeometry, outFields, alternateTxId);
+    return this.queryAttributeChunksIn(layerUrl, queryField, dataStreams, returnGeometry, outFields, alternateTxId);
   }
 
-  public queryAttributeChunksIn(layerId: string, queryField: string, queryData: (string[] | number[])[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
+  public queryAttributeChunksIn(layerUrl: string, queryField: string, queryData: (string[] | number[])[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
     const queries: __esri.Query[] = queryData.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
     const transactionId = alternateTxId || getUuid();
-    return this.query(layerId, queries, transactionId).pipe(
+    return this.query(layerUrl, queries, transactionId).pipe(
       finalize(() => {
         if (alternateTxId == null) this.finalizeQuery(transactionId);
       })
     );
   }
 
-  public queryExtent(layerId: string, returnGeometry: boolean, extent?: __esri.Geometry, outFields: string[] = ['geocode', 'owner_group_primary', 'cov_frequency', 'pob', 'latitude', 'longitude', 'hhld_s', 'hhld_w']) : Observable<__esri.Graphic[]> {
+  public queryExtent(layerUrl: string, returnGeometry: boolean, extent?: __esri.Geometry, outFields: string[] = ['geocode', 'latitude', 'longitude', 'hhld_s', 'hhld_w']) : Observable<__esri.Graphic[]> {
     const specialTxId = 'primary-extent-id';
-    if (this.currentExtentLayerId !== layerId) {
+    if (this.currentExtentLayerId !== layerUrl) {
       if (this.currentExtentLayerId != null) this.finalizeQuery(specialTxId);
-      this.currentExtentLayerId = layerId;
+      this.currentExtentLayerId = layerUrl;
     }
     const query = new Query({
       geometry: extent ?? this.mapService.mapView.extent,
       returnGeometry,
       outFields
     });
-    return this.query(layerId, [query], specialTxId, true).pipe(
+    return this.query(layerUrl, [query], specialTxId, true).pipe(
       reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[])
     );
   }
 
-  public executeNativeQuery(layerId: string, query: __esri.Query, returnGeometry: boolean = false, outFields?: string[], alternateTxId?: string) : Observable<__esri.FeatureSet> {
+  public executeNativeQuery(layerUrl: string, query: __esri.Query, returnGeometry: boolean = false, outFields?: string[], alternateTxId?: string) : Observable<__esri.FeatureSet> {
     if (returnGeometry) query.returnGeometry = true;
     if (outFields != null) query.outFields = outFields;
     const transactionId = alternateTxId || getUuid();
-    return this.paginateEsriQuery(layerId, query, transactionId, false).pipe(
+    return this.paginateEsriQuery(layerUrl, query, transactionId, false).pipe(
       finalize(() => {
         if (alternateTxId == null) this.finalizeQuery(transactionId);
       })
     );
   }
 
-  public executeParallelQuery(layerId: string, baseQuery: __esri.Query, pageSize: number = 5000, streams: number = 5) : Observable<__esri.FeatureSet> {
+  public executeParallelQuery(layerUrl: string, baseQuery: __esri.Query, pageSize: number = 5000, streams: number = 5) : Observable<__esri.FeatureSet> {
     const txId = getUuid();
     const count$ = from(this.mapService.mapView.when()).pipe(
-      map(() => this.layerService.getQueryLayer(layerId, txId, true)),
+      map(() => this.layerService.getQueryLayer(layerUrl, txId, true)),
       switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
       switchMap(layer => layer.queryFeatureCount({ where: '1 = 1' })),
     );
     return count$.pipe(
       map(count => this.createParallelQueries(baseQuery, pageSize, count)),
       tap((q) => console.log(`Starting ${q.length} parallel queries`)),
-      switchMap(queries => merge(...(queries.map(q => this.executeFeatureQuery(layerId, q, txId, true))), streams)),
+      switchMap(queries => merge(...(queries.map(q => this.executeFeatureQuery(layerUrl, q, txId, true))), streams)),
       finalize(() => this.finalizeQuery(txId))
     );
   }
@@ -197,10 +198,10 @@ export class EsriQueryService {
     });
   }
 
-  private query(layerId: string, queries: __esri.Query[], transactionId: string, isLongLivedQueryLayer: boolean = false) : Observable<__esri.Graphic[]> {
+  private query(layerUrl: string, queries: __esri.Query[], transactionId: string, isLongLivedQueryLayer: boolean = false) : Observable<__esri.Graphic[]> {
     const observables: Observable<__esri.FeatureSet>[] = [];
     for (const query of queries) {
-      observables.push(this.paginateEsriQuery(layerId, query, transactionId, isLongLivedQueryLayer));
+      observables.push(this.paginateEsriQuery(layerUrl, query, transactionId, isLongLivedQueryLayer));
     }
     const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
     return result$.pipe(
@@ -209,19 +210,19 @@ export class EsriQueryService {
     );
   }
 
-  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean,  maxStreams: number = 1) : Observable<__esri.FeatureSet> {
-    const recursiveQuery$ = (id: string, q: __esri.Query) =>
-      this.executeFeatureQuery(id, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q, maxStreams)));
+  private paginateEsriQuery(layerUrl: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean,  maxStreams: number = 1) : Observable<__esri.FeatureSet> {
+    const recursiveQuery$ = (url: string, q: __esri.Query) =>
+      this.executeFeatureQuery(url, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q, maxStreams)));
 
-    return recursiveQuery$(layerId, query).pipe(
-      expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
+    return recursiveQuery$(layerUrl, query).pipe(
+      expand(({result, next}) => next ? recursiveQuery$(layerUrl, next) : EMPTY),
       map(({ result }) => result)
     );
   }
 
-  private executeFeatureQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
+  private executeFeatureQuery(layerUrl: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
     return from(this.mapService.mapView.when()).pipe(
-      map(() => this.layerService.getQueryLayer(layerId, transactionId, isLongLivedQueryLayer)),
+      map(() => this.layerService.getQueryLayer(layerUrl, transactionId, isLongLivedQueryLayer)),
       switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
       switchMap(layer => from(layer.queryFeatures(query)).pipe(retry(3))),
     );

@@ -24,7 +24,6 @@ import {
   MapViewPointerUpEvent,
   MapViewResizeEvent
 } from './esri-event-shims';
-import { isGroupLayer, isPortalFeatureLayer } from './type-checks';
 
 export interface TokenResponse {
   token: string;
@@ -170,15 +169,5 @@ export class EsriUtils {
         if (handle) handle.remove();
       };
     });
-  }
-
-  public static graphicBelongsToPortalLayer(graphic: __esri.Graphic, portalId: string) : boolean {
-    const owner = graphic.layer;
-    const ownerParent = owner['parent'];
-    if (isGroupLayer(ownerParent) && ownerParent.title.toLowerCase().includes('shading')) {
-      return false;
-    } else {
-      return isPortalFeatureLayer(owner) && owner.portalItem.id === portalId;
-    }
   }
 }

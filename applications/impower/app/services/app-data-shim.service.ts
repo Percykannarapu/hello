@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isEmpty, isNotNil, KeyedSet, mapArray, mapByExtended } from '@val/common';
-import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
+import { CommonSort, filterArray, groupBy, isEmpty, isNil, isNotNil, KeyedSet, mapArray, mapByExtended } from '@val/common';
+import { EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
@@ -184,14 +184,8 @@ export class AppDataShimService {
       if (projectVarMap.has(sd.dataKey)) {
         sd.isCustomAudienceShader = projectVarMap.get(sd.dataKey).isCustom;
       }
-      if (this.appConfig.isBatchMode) {
-        const newLayerSetup = this.getLayerSetupInfo(sd.sourcePortalId);
-        if (newLayerSetup != null) {
-          sd.sourcePortalId = newLayerSetup.simplifiedBoundary || newLayerSetup.boundary;
-          sd.minScale = newLayerSetup.batchMinScale || newLayerSetup.minScale;
-        }
-      } else {
-        sd.sourcePortalId = this.appConfig.getRefreshedLayerId(sd.sourcePortalId);
+      if (isNil(sd.layerKey) && isNotNil(sd['sourcePortalId'])) {
+        sd.layerKey = this.appConfig.fixupPortalIdToLayerKey(sd['sourcePortalId']);
       }
       sd.shaderNeedsDataFetched = false;
       if (sd.dataKey === 'selection-shading') hasSelectedGeoLayer = true;
@@ -205,10 +199,11 @@ export class AppDataShimService {
       // just in case stuff was saved with a destination id
       bc.destinationBoundaryId = undefined;
       bc.destinationCentroidId = undefined;
+      bc.destinationPOBId = undefined;
       bc.useSimplifiedInfo = this.appConfig.isBatchMode;
-      bc.portalId = this.appConfig.getRefreshedLayerId(bc.portalId);
-      bc.centroidPortalId = this.appConfig.getRefreshedLayerId(bc.centroidPortalId);
-      bc.simplifiedPortalId = this.appConfig.getRefreshedLayerId(bc.simplifiedPortalId);
+      if (isNil(bc.layerKey) && isNotNil(bc['portalId'])) {
+        bc.layerKey = this.appConfig.fixupPortalIdToLayerKey(bc['portalId']);
+      }
       bc.labelDefinition.forceLabelsVisible = bc.labelDefinition?.forceLabelsVisible ?? false;
       if (isNotNil(bc.hhcLabelDefinition)) {
         bc.hhcLabelDefinition.forceLabelsVisible = bc.labelDefinition.forceLabelsVisible ?? false;
@@ -388,17 +383,6 @@ export class AppDataShimService {
     }
     else
       this.store$.dispatch(SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
-  }
-
-  private getLayerSetupInfo(currentBoundaryId: string) : BasicLayerSetup {
-    try {
-      const updatedId = this.appConfig.getRefreshedLayerId(currentBoundaryId);
-      const dataKey = this.boundaryRenderingService.getDataKeyByBoundaryLayerId(updatedId);
-      return this.boundaryRenderingService.getLayerSetupInfo(dataKey);
-    } catch (e) {
-      this.logger.error.log(e);
-    }
-    return null;
   }
 
   private reloadMustCovers(project: ImpProject) : void {

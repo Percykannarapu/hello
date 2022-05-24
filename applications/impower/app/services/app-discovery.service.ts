@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterByFields, formatDateForFuse, mapArray, mapBy } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
+import { deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
+import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
 import { LocalAppState } from '../state/app.interfaces';
@@ -12,10 +16,6 @@ import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
-import { deleteCustomTa, projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {

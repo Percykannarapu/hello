@@ -31,7 +31,7 @@ export class BoundaryShaderListComponent implements OnDestroy {
   }
 
   getDefaultFontSize(boundary: BoundaryConfiguration) {
-    return this.appBoundaryService.getLayerSetupInfo(boundary.dataKey).defaultFontSize;
+    return this.appBoundaryService.getLayerSetupInfo(boundary.layerKey).defaultFontSize;
   }
 
   getDefaultColor(boundary: BoundaryConfiguration) {

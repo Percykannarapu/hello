@@ -7,7 +7,8 @@ import { distinctUntilChanged, filter, map, take, takeUntil } from 'rxjs/operato
 import {
   ImpClientLocationTypeCodes,
   SuccessfulLocationTypeCodes,
-  TradeAreaMergeTypeCodes, TradeAreaTypeCodes
+  TradeAreaMergeTypeCodes,
+  TradeAreaTypeCodes
 } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../../../app.config';
 import { AppProjectService } from '../../../services/app-project.service';
@@ -106,45 +107,12 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
   }
 
   private applyTradeAreaChanges(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) : void {
-    // always update the merge type - other code elsewhere deals with dupe notifications
     this.appProjectService.updateMergeType(newModel.mergeType, siteType);
-
     const tradeAreaModels = newModel.tradeAreas.filter(ta => isConvertibleToNumber(ta.radius) && Number(ta.radius) > 0);
-    if (tradeAreaModels.length === 0) return;
-
-    // decide which updates have to run
-    const currentTradeAreas = siteType === ImpClientLocationTypeCodes.Site ? this.siteTradeAreas$.getValue() : this.competitorTradeAreas$.getValue();
-    let fullUpdate = tradeAreaModels.every(ta => !ta.isActive);
-    let reshuffleOnly = false;
-    if (tradeAreaModels.length === currentTradeAreas.length) {
-      currentTradeAreas.forEach(ta => {
-        const currentFormValue = tradeAreaModels.filter(nm => nm.tradeAreaNumber === ta.taNumber)[0];
-        if (currentFormValue == null) {
-          // a trade area was deleted or re-numbered.
-          // this may only apply to legacy projects where trade areas could be created out of order
-          fullUpdate = true;
-        } else {
-          // if any of the radius values changed, then we do a full rebuild
-          if (currentFormValue.radius !== ta.taRadius) fullUpdate = true;
-          // if only the isActive flags have changed, then we're just re-arranging the geos
-          if (currentFormValue.isActive !== ta.isActive) reshuffleOnly = true;
-        }
-      });
-    } else {
-      // trade areas are a different length - burn it all and do a full rebuild
-      fullUpdate = true;
-    }
-
     const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.radius), selected: ta.isActive, taNumber: ta.tradeAreaNumber }));
-    if (fullUpdate) {
-      const metricText = tradeAreaModels.map(ta => `TA${ta.tradeAreaNumber} ${ta.radius} Miles`).join('~');
-      this.store$.dispatch(new CreateTradeAreaUsageMetric('radius', 'applied', metricText));
-      this.tradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
-    } else if (reshuffleOnly) {
-      this.tradeAreaService.reOrderGeosInTradeAreas(transformedAreas, siteType);
-    } else {
-      this.tradeAreaService.makeDirty();
-    }
+    const metricText = tradeAreaModels.map(ta => `TA${ta.tradeAreaNumber} ${ta.radius} Miles`).join('~');
+    this.store$.dispatch(new CreateTradeAreaUsageMetric('radius', 'applied', metricText));
+    this.tradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
   }
 
   isMustCover(event: any){

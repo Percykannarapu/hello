@@ -15,11 +15,11 @@ export class FeatureLoaderService {
   constructor(private queryService: EsriQueryService,
               private appConfig: AppConfig) { }
 
-  loadAttributesFromFeatures(layerId: string, geoLocations: { geocode: string, xcoord: number, ycoord: number }[], featureIds: string[]) : Observable<GeoAttribute[]> {
+  loadAttributesFromFeatures(layerUrl: string, geoLocations: { geocode: string, xcoord: number, ycoord: number }[], featureIds: string[]) : Observable<GeoAttribute[]> {
     if (!featureIds.includes('geocode')) featureIds.push('geocode');
     const partitionedGeos = quadPartitionGeos(geoLocations).map(chunk => chunk.map(c => c.geocode));
     const geoArray = partitionedGeos.flatMap(pg => pg);
-    return this.appConfig.isBatchMode ? EMPTY : this.queryService.queryAttributeChunksIn(layerId, 'geocode', partitionedGeos, false, featureIds).pipe(
+    return this.appConfig.isBatchMode ? EMPTY : this.queryService.queryAttributeChunksIn(layerUrl, 'geocode', partitionedGeos, false, featureIds).pipe(
       map(features => features.map(f => f.attributes as GeoAttribute)),
       reduce((acc, curr) => accumulateArrays(acc, curr), [] as GeoAttribute[]),
       // this code ensures we return an "empty" result for a geocode that was not found via the query
