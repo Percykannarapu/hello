@@ -3,7 +3,7 @@
     <div class="main-shader-menu">
       <button pButton type="button" class="p-button-text p-button-sm" (click)="edit()" label="edit"></button>
     </div>
-    <div *ngIf="configuration.centroidPortalId != null">
+    <div *ngIf="configuration.hasCentroids">
       <label>Centroids:</label>
       <strong>{{configuration.showCentroids === false ? 'Hidden' : 'Displayed'}}</strong>
     </div>
@@ -17,11 +17,11 @@
         <strong>Hidden</strong>
       </ng-container>
       <div *ngIf="configuration.showLabels === true" class="label-display">
-        <div *ngIf="configuration.showHouseholdCounts">
-          (includes HH Counts)
-        </div>
         <div *ngIf="configuration.labelDefinition?.forceLabelsVisible">
           * Labels forced on
+        </div>
+        <div *ngIf="configuration.showHouseholdCounts">
+          (includes HH Counts)
         </div>
         <div>
           <label>Font Size:</label>
@@ -53,7 +53,7 @@
   <div *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
       <div class="p-grid">
-        <div class="p-col-6" *ngIf="configuration.centroidPortalId != null">
+        <div class="p-col-6" *ngIf="configuration.hasCentroids">
           <boolean-input labelText="Show Centroids?" formControlName="showCentroids"></boolean-input>
         </div>
         <div class="p-col-6" *ngIf="configuration.hasPOBs">

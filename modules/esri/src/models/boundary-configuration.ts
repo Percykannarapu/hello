@@ -62,6 +62,7 @@ export interface BoundaryConfiguration {
   showCentroids: boolean;
   showPopups: boolean;
   hasPOBs: boolean;
+  hasCentroids: boolean;
   showHouseholdCounts: boolean;
   isPrimarySelectableLayer: boolean;
   labelDefinition: LabelDefinition;

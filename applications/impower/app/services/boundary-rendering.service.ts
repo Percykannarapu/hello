@@ -209,14 +209,12 @@ export class BoundaryRenderingService {
 
   private createDefaultConfigurations(analysisLevel: string, isSummer: boolean) : BoundaryConfiguration[] {
     const labelExpression = 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), " ")';
-    // const labelExpression = 'replace($feature.geocode, $feature.zip, "")'; new label - requires layer changes to work
     return [
       {
         ...this.createBasicBoundaryDefinition(LayerKeys.State, analysisLevel),
         sortOrder: 0,
         hasPOBs: false,
-        groupName: 'States',
-        layerName: 'State Boundaries',
+        hasCentroids: false,
         showLabels: false,
         showPopups: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [80, 80, 80, 1], outlineWidth: 1 },
@@ -230,6 +228,7 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition(LayerKeys.DMA, analysisLevel),
         sortOrder: 1,
         hasPOBs: false,
+        hasCentroids: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [139, 76, 178, 1], outlineWidth: 2.5 },
         labelDefinition: {
           haloColor: [255, 255, 255, 1], isBold: true, featureAttribute: 'dma_display_name', color: [139, 76, 178, 1],
@@ -246,6 +245,7 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition(LayerKeys.Counties, analysisLevel),
         sortOrder: 2,
         hasPOBs: false,
+        hasCentroids: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: this.getLayerSetupInfo('counties').defaultFontSize,
           customExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam' },
@@ -260,6 +260,7 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition(LayerKeys.Wrap, analysisLevel),
         sortOrder: 3,
         hasPOBs: false,
+        hasCentroids: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize, featureAttribute: 'wrap_name' },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize,
@@ -351,17 +352,18 @@ export class BoundaryRenderingService {
     return {
       id: getUuid(),
       layerKey: layerKey,
-      groupName: `Valassis ${layerKey.toUpperCase()}`,
+      groupName: `Valassis ${LayerKeys.friendlyName(layerKey)}`,
       minScale: basicInfo.minScale,
       simplifiedMinScale: basicInfo.batchMinScale,
-      layerName: `${layerKey.toUpperCase()} Boundaries`,
+      layerName: `${LayerKeys.friendlyName(layerKey)} Boundaries`,
       opacity: 1,
       visible: isNotNil(analysisLevel) && (isPrimaryLayer || layerKey === LayerKeys.Zip),
+      hasCentroids: true,
       showCentroids: false,
       useSimplifiedInfo: this.appConfig.isBatchMode,
       showLabels: true,
-      showPOBs: false,
       hasPOBs: true,
+      showPOBs: false,
       showPopups: true,
       showHouseholdCounts: false,
       isPrimarySelectableLayer: isPrimaryLayer,

@@ -12,6 +12,7 @@ export enum LayerKeys {
 }
 
 export namespace LayerKeys {
+
   export function parse(value: string) : LayerKeys {
     let result: LayerKeys = value?.toLowerCase() === 'digital atz' ? LayerKeys.DTZ : LayerKeys[value];
     if (isNil(result)) {
@@ -21,6 +22,21 @@ export namespace LayerKeys {
     }
     if (isNotNil(value) && isNil(result)) throw new Error(`Unknown LayerKey: ${value}`);
     return result;
+  }
+
+  export function friendlyName(key: LayerKeys) : string {
+    switch (key) {
+      case LayerKeys.State:
+        return 'State';
+      case LayerKeys.Counties:
+        return 'Counties';
+      case LayerKeys.Wrap:
+        return 'Wrap';
+      case LayerKeys.Zip:
+        return 'Zip';
+      default:
+        return key.toUpperCase();
+    }
   }
 }
 

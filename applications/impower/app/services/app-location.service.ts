@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import {
   CommonSort,
   filterArray,
+  getUuid,
   groupByExtended,
   isConvertibleToNumber,
   isEmpty,
@@ -15,16 +16,17 @@ import {
   toNullOrNumber,
   toUniversalCoordinates
 } from '@val/common';
-import { EsriLayerService, EsriMapService, EsriQueryService, LayerKeys } from '@val/esri';
+import { EsriConfigService, EsriLayerService, EsriMapService, EsriQueryService, LayerKeys } from '@val/esri';
 import { ErrorNotification, MessageBoxService, WarningNotification } from '@val/messaging';
 import { getBatchMode } from 'app/state/batch-map/batch-map.selectors';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { PrimeIcons, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, EMPTY, merge, Observable, of } from 'rxjs';
-import { distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
+import { distinctUntilChanged, filter, finalize, map, mergeMap, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { AnalysisLevel } from '../common/models/ui-enums';
 import { ValGeocodingRequest } from '../common/models/val-geocoding-request.model';
+import { quadPartitionLocations } from '../common/quad-tree';
 import { GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -863,40 +865,39 @@ export class AppLocationService {
   }
 
   pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr') : Observable<Map<ImpGeofootprintLocation, string>> {
-    return EMPTY;
-    // const queries: Observable<[ImpGeofootprintLocation, string][]>[] = [];
-    // const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    // const chunks = quadPartitionLocations(locations, analysisLevel);
-    // const pipTransaction = getUuid();
-    // chunks.forEach(chunk => {
-    //   if (chunk.length > 0) {
-    //     const points = toUniversalCoordinates(chunk);
-    //     queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'], pipTransaction).pipe(
-    //       reduceConcat(),
-    //       map(graphics => {
-    //         const result: [ImpGeofootprintLocation, string][] = [];
-    //         chunk.forEach(loc => {
-    //           for (const graphic of graphics) {
-    //             if (contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
-    //               result.push([loc, graphic.attributes['geocode']]);
-    //               break;
-    //             }
-    //           }
-    //         });
-    //         return result;
-    //       })
-    //     ));
-    //   }
-    // });
-    // return merge(...queries, 4).pipe(
-    //   reduceConcat(),
-    //   finalize(() => this.esriLayerService.removeQueryLayer(pipTransaction)),
-    //   map(result => {
-    //     const resultMapByLocation: Map<ImpGeofootprintLocation, string> = new Map(result);
-    //     this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapByLocation.values()).length} - total locations-${locations.length}`);
-    //     return resultMapByLocation;
-    //   })
-    // );
+    const queries: Observable<[ImpGeofootprintLocation, string][]>[] = [];
+    const layerId = this.esriConfig.getAnalysisBoundaryUrl(AnalysisLevel.parse(analysisLevel), false);
+    const chunks = quadPartitionLocations(locations, analysisLevel);
+    const pipTransaction = getUuid();
+    chunks.forEach(chunk => {
+      if (chunk.length > 0) {
+        const points = toUniversalCoordinates(chunk);
+        queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'], pipTransaction).pipe(
+          reduceConcat(),
+          map(graphics => {
+            const result: [ImpGeofootprintLocation, string][] = [];
+            chunk.forEach(loc => {
+              for (const graphic of graphics) {
+                if (contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
+                  result.push([loc, graphic.attributes['geocode']]);
+                  break;
+                }
+              }
+            });
+            return result;
+          })
+        ));
+      }
+    });
+    return merge(...queries, 4).pipe(
+      reduceConcat(),
+      finalize(() => this.esriLayerService.removeQueryLayer(pipTransaction)),
+      map(result => {
+        const resultMapByLocation: Map<ImpGeofootprintLocation, string> = new Map(result);
+        this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapByLocation.values()).length} - total locations-${locations.length}`);
+        return resultMapByLocation;
+      })
+    );
   }
 
 

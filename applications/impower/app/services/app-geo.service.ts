@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { arrayToSet, filterArray, groupByExtended, isEmpty, reduceConcat, simpleFlatten } from '@val/common';
+import { arrayToSet, filterArray, groupByExtended, isEmpty, mergeArrayMaps, reduceConcat, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriConfigService, EsriMapService, EsriQueryService, EsriUtils, LayerTypes } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { combineLatest, EMPTY, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { ProjectFilterChanged } from '../common/models/ui-enums';
+import { AnalysisLevel, ProjectFilterChanged } from '../common/models/ui-enums';
+import { quadPartitionLocations } from '../common/quad-tree';
 import {
   ClearGeoAttributes,
   DeleteGeoAttributes,
@@ -28,8 +29,6 @@ import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/servic
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService, Season } from './app-state.service';
-
-// const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
 interface AttributeDistance {
   attribute: any;
@@ -160,130 +159,132 @@ export class AppGeoService {
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season, analysisLevel: string) : void {
-    // const key = 'selectAndPersistRadiusGeos';
-    // this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
-    //
-    // const layerId = this.esriConfig.getAnalysisBoundaryUrl(this.appStateService.analysisLevel$.getValue(), true);
-    // this.logger.debug.log('Select and Persist Radius Geos', tradeAreas.length);
-    // const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
-    // const locationChunks = quadPartitionLocations(Array.from(allLocations), analysisLevel);
-    // const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
-    // const tradeAreaSet = new Set(tradeAreas);
-    // const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
-    // this.logger.debug.log('Total number of location slices to process', locationChunks.length);
-    // for (const currentChunk of locationChunks) {
-    //   const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
-    //   const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
-    //   queries.push(
-    //     this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(currentChunk), maxRadius, false, featureAttributes)
-    //       .pipe(map(selections => this.calculateDistances(currentChunk, tradeAreaSet, selections)))
-    //   );
-    // }
-    // merge(...queries, 4)
-    //   .subscribe(
-    //     currentMap => mergeArrayMaps(currentMap, locationDistanceMap),
-    //     err => {
-    //       this.logger.error.log(err);
-    //       this.store$.dispatch(new StopBusyIndicator({key}));
-    //     },
-    //     () => {
-    //
-    //       const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
-    //       this.impGeoService.add(geosToPersist);
-    //       this.finalizeTradeAreas(tradeAreas);
-    //       this.selectAndPersistHomeGeos(this.locationService.get(), analysisLevel, season);
-    //
-    //       // Check the geo filters
-    //       this.setupFilterGeosObservable();
-    //
-    //       // Add the must covers to geosToPersist
-    //       let mustCovers = [];
-    //       this.ensureMustCoversObs().subscribe(results => {
-    //           this.logger.debug.log('Adding ', results.length, ' must cover geos');
-    //           mustCovers = mustCovers.concat(results);
-    //         }
-    //         , err => {
-    //           this.logger.error.log('ERROR occurred ensuring must covers: ', err);
-    //         }
-    //         , () => {
-    //           this.impGeoService.add(mustCovers);
-    //           this.store$.dispatch(new StopBusyIndicator({key}));
-    //         });
-    //     });
+    const centroidAttrs = ['geocode', 'longitude', 'latitude', 'hhld_s', 'hhld_w'];
+    const key = 'selectAndPersistRadiusGeos';
+    this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
+
+    const layerUrl = this.esriConfig.getLayerUrl(this.appStateService.analysisLevel$.getValue(), LayerTypes.Point, false);
+    this.logger.debug.log('Select and Persist Radius Geos', tradeAreas.length);
+    const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
+    const locationChunks = quadPartitionLocations(Array.from(allLocations), analysisLevel);
+    const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
+    const tradeAreaSet = new Set(tradeAreas);
+    const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
+    this.logger.debug.log('Total number of location slices to process', locationChunks.length);
+    for (const currentChunk of locationChunks) {
+      const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
+      const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
+      queries.push(
+        this.queryService.queryPointWithBuffer(layerUrl, toUniversalCoordinates(currentChunk), maxRadius, false, centroidAttrs)
+          .pipe(map(selections => this.calculateDistances(currentChunk, tradeAreaSet, selections)))
+      );
+    }
+    merge(...queries, 4)
+      .subscribe(
+        currentMap => mergeArrayMaps(currentMap, locationDistanceMap),
+        err => {
+          this.logger.error.log(err);
+          this.store$.dispatch(new StopBusyIndicator({key}));
+        },
+        () => {
+
+          const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
+          this.impGeoService.add(geosToPersist);
+          this.finalizeTradeAreas(tradeAreas);
+          this.selectAndPersistHomeGeos(this.locationService.get(), analysisLevel, season);
+
+          // Check the geo filters
+          this.setupFilterGeosObservable();
+
+          // Add the must covers to geosToPersist
+          let mustCovers = [];
+          this.ensureMustCoversObs().subscribe(results => {
+              this.logger.debug.log('Adding ', results.length, ' must cover geos');
+              mustCovers = mustCovers.concat(results);
+            }
+            , err => {
+              this.logger.error.log('ERROR occurred ensuring must covers: ', err);
+            }
+            , () => {
+              this.impGeoService.add(mustCovers);
+              this.store$.dispatch(new StopBusyIndicator({key}));
+            });
+        });
   }
 
   public selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string, season: Season) : void {
-    // const key = 'selectAndPersistHomeGeos';
-    // this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${analysisLevel}s...`}));
-    //
-    // const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
-    // const locs = locations.filter(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
-    //     (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
-    //     loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
-    //     loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
-    //     loc.clientLocationTypeCode === 'Site');
-    //
-    // this.logger.debug.log('Firing home geo selection', locs.length);
-    // const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-    // const locationsWithHomeGeo: ImpGeofootprintLocation[] = [];
-    // const locationsMissingHomeGeo: ImpGeofootprintLocation[] = [];
-    // locs.forEach(loc => {
-    //   if (loc.homeGeocode == null || loc.homeGeocode.length === 0) {
-    //     locationsMissingHomeGeo.push(loc);
-    //   } else {
-    //     locationsWithHomeGeo.push(loc);
-    //   }
-    // });
-    // if (locationsWithHomeGeo.length > 0) {
-    //   const locationChunks = quadPartitionLocations(Array.from(locationsWithHomeGeo), analysisLevel);
-    //   const queries: Observable<HomeGeoProcessingResult>[] = [];
-    //   locationChunks.forEach(chunk => {
-    //     const currentQuery = this.queryService.queryAttributeIn(layerId, 'geocode', chunk.map(l => l.homeGeocode), false, featureAttributes).pipe(
-    //       reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[]),
-    //       map(graphics => this.createHomeGeos(graphics, chunk, season))
-    //     );
-    //     queries.push(currentQuery);
-    //   });
-    //   merge(...queries, 4).pipe(
-    //     reduce((acc, current) => ({
-    //         newGeos: [...acc.newGeos, ...current.newGeos],
-    //         newTradeAreas: [...acc.newTradeAreas, ...current.newTradeAreas],
-    //         invalidLocations: [...acc.invalidLocations, ...current.invalidLocations]
-    //       }), { newGeos: [], newTradeAreas: [], invalidLocations: [] } as HomeGeoProcessingResult)
-    //   ).subscribe(result => {
-    //     if (result.newGeos.length > 0) {
-    //       this.impGeoService.add(result.newGeos);
-    //       this.impGeoService.makeDirty();
-    //     }
-    //     if (result.newTradeAreas.length > 0) {
-    //       this.tradeAreaService.add(result.newTradeAreas);
-    //       this.tradeAreaService.makeDirty();
-    //     }
-    //     if (result.invalidLocations.length > 0) {
-    //       this.flagLocationsWithInvalidHomeGeos(result.invalidLocations);
-    //       const message = result.invalidLocations.length > 1
-    //         ? `There are ${result.invalidLocations.length} locations that have invalid Home Geocodes`
-    //         : `There is ${result.invalidLocations.length} location that has an invalid Home Geocode`;
-    //       this.store$.dispatch(ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
-    //     }
-    //     this.store$.dispatch(new StopBusyIndicator({key}));
-    //   }, err => {
-    //     this.store$.dispatch(ErrorNotification({
-    //       notificationTitle: 'Home Geocode Error',
-    //       message: 'There was a fatal error during home geocode processing. See console for more details.',
-    //       additionalErrorInfo: err
-    //     }));
-    //     this.store$.dispatch(new StopBusyIndicator({key}));
-    //   });
-    // }
-    // if (locationsMissingHomeGeo.length > 0) {
-    //   this.flagLocationsWithInvalidHomeGeos(locationsMissingHomeGeo);
-    //   const message = locationsMissingHomeGeo.length > 1
-    //     ? `There are ${locationsMissingHomeGeo.length} locations that have missing Home Geocodes`
-    //     : `There is ${locationsMissingHomeGeo.length} location that has a missing Home Geocode`;
-    //   this.store$.dispatch(ErrorNotification({notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: locationsMissingHomeGeo}));
-    // }
-    // if (locationsWithHomeGeo.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
+    const centroidAttrs = ['geocode', 'longitude', 'latitude', 'hhld_s', 'hhld_w'];
+    const key = 'selectAndPersistHomeGeos';
+    this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${analysisLevel}s...`}));
+
+    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
+    const locs = locations.filter(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
+        (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
+        loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
+        loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
+        loc.clientLocationTypeCode === 'Site');
+
+    this.logger.debug.log('Firing home geo selection', locs.length);
+    const layerUrl = this.esriConfig.getLayerUrl(AnalysisLevel.parse(analysisLevel), LayerTypes.Point, false);
+    const locationsWithHomeGeo: ImpGeofootprintLocation[] = [];
+    const locationsMissingHomeGeo: ImpGeofootprintLocation[] = [];
+    locs.forEach(loc => {
+      if (loc.homeGeocode == null || loc.homeGeocode.length === 0) {
+        locationsMissingHomeGeo.push(loc);
+      } else {
+        locationsWithHomeGeo.push(loc);
+      }
+    });
+    if (locationsWithHomeGeo.length > 0) {
+      const locationChunks = quadPartitionLocations(Array.from(locationsWithHomeGeo), analysisLevel);
+      const queries: Observable<HomeGeoProcessingResult>[] = [];
+      locationChunks.forEach(chunk => {
+        const currentQuery = this.queryService.queryAttributeIn(layerUrl, 'geocode', chunk.map(l => l.homeGeocode), false, centroidAttrs).pipe(
+          reduce((acc, result) => acc.concat(result), [] as __esri.Graphic[]),
+          map(graphics => this.createHomeGeos(graphics, chunk, season))
+        );
+        queries.push(currentQuery);
+      });
+      merge(...queries, 4).pipe(
+        reduce((acc, current) => ({
+            newGeos: [...acc.newGeos, ...current.newGeos],
+            newTradeAreas: [...acc.newTradeAreas, ...current.newTradeAreas],
+            invalidLocations: [...acc.invalidLocations, ...current.invalidLocations]
+          }), { newGeos: [], newTradeAreas: [], invalidLocations: [] } as HomeGeoProcessingResult)
+      ).subscribe(result => {
+        if (result.newGeos.length > 0) {
+          this.impGeoService.add(result.newGeos);
+          this.impGeoService.makeDirty();
+        }
+        if (result.newTradeAreas.length > 0) {
+          this.tradeAreaService.add(result.newTradeAreas);
+          this.tradeAreaService.makeDirty();
+        }
+        if (result.invalidLocations.length > 0) {
+          this.flagLocationsWithInvalidHomeGeos(result.invalidLocations);
+          const message = result.invalidLocations.length > 1
+            ? `There are ${result.invalidLocations.length} locations that have invalid Home Geocodes`
+            : `There is ${result.invalidLocations.length} location that has an invalid Home Geocode`;
+          this.store$.dispatch(ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
+        }
+        this.store$.dispatch(new StopBusyIndicator({key}));
+      }, err => {
+        this.store$.dispatch(ErrorNotification({
+          notificationTitle: 'Home Geocode Error',
+          message: 'There was a fatal error during home geocode processing. See console for more details.',
+          additionalErrorInfo: err
+        }));
+        this.store$.dispatch(new StopBusyIndicator({key}));
+      });
+    }
+    if (locationsMissingHomeGeo.length > 0) {
+      this.flagLocationsWithInvalidHomeGeos(locationsMissingHomeGeo);
+      const message = locationsMissingHomeGeo.length > 1
+        ? `There are ${locationsMissingHomeGeo.length} locations that have missing Home Geocodes`
+        : `There is ${locationsMissingHomeGeo.length} location that has a missing Home Geocode`;
+      this.store$.dispatch(ErrorNotification({notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: locationsMissingHomeGeo}));
+    }
+    if (locationsWithHomeGeo.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
