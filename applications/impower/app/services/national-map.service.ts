@@ -3,7 +3,8 @@ import Query from '@arcgis/core/rest/support/Query';
 import { Store } from '@ngrx/store';
 import {
   collectStatistics,
-  CompleteCollectedStatistics, getCollectedStatistics,
+  CompleteCollectedStatistics,
+  getCollectedStatistics,
   getIntervalsFromCollectedStats,
   isConvertibleToNumber,
   isEmpty,
@@ -117,6 +118,7 @@ export class NationalMapService {
           const layerProps: __esri.FeatureLayerProperties = {
             title: d.layerName,
             opacity: d.opacity,
+            visible: d.visible,
             renderer: newRenderer,
           };
           layer.set(layerProps);
