@@ -23,17 +23,21 @@
       </div>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
-      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="duplicateDefinition(def)"
+      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection"
+                               [definition]="duplicateDefinition(def)"
                                (applyShader)="applyDefinition($event)"></val-selected-geo-shader>
-      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="duplicateDefinition(def)"
+      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite"
+                             [definition]="duplicateDefinition(def)"
                              [labelChoices]="siteLabels$ | async"
                              (applyShader)="applyDefinition($event)"
                              (deleteShader)="deleteDefinition(null, $event)"></val-owner-site-shader>
-      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="duplicateDefinition(def)"
+      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA"
+                                   [definition]="duplicateDefinition(def)"
                                    (applyShader)="applyDefinition($event)"
                                    (deleteShader)="deleteDefinition(null, $event)"></val-owner-trade-area-shader>
-      <ng-container *ngIf="(audiences != null && audiences.length > 0) || shadingTypes.PcrIndicator">
-        <val-variable-shader *ngSwitchDefault [definition]="duplicateDefinition(def)" [audiences]="audiences"
+      <ng-container *ngSwitchDefault>
+        <val-variable-shader *ngIf="(audiences != null && audiences.length > 0) || shadingTypes.PcrIndicator"
+                             [definition]="duplicateDefinition(def)" [audiences]="audiences"
                              [currentAnalysisLevel]="currentAnalysisLevel"
                              (applyShader)="applyDefinition($event)"
                              (deleteShader)="deleteDefinition(null, $event)"

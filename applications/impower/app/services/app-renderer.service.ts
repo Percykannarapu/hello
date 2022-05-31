@@ -261,7 +261,8 @@ export class AppRendererService {
       map(aud => new Set(aud.map(a => a.audienceIdentifier)))
     );
     combineLatest([removedAudienceIdSet$, this.store$.select(shadingSelectors.allLayerDefs)]).pipe(
-      map(([removedIds, allShaders]) => allShaders.filter(s => removedIds.has(s.dataKey)))
+      map(([removedIds, allShaders]) => allShaders.filter(s => removedIds.has(s.dataKey))),
+      filter(shaders => (shaders ?? []).length > 0)
     ).subscribe(shadersToDelete => {
       this.esriShaderService.deleteShader(shadersToDelete);
     });

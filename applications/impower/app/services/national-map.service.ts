@@ -121,6 +121,7 @@ export class NationalMapService {
           const layerProps: __esri.FeatureLayerProperties = {
             title: d.layerName,
             opacity: d.opacity,
+            visible: d.visible,
             renderer: newRenderer,
           };
           layer.set(layerProps);
