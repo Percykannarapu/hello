@@ -9,7 +9,7 @@
   <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="currentOpenId === def.id" (selectedChange)="openDefinition(def)">
     <p-header class="p-col-12 p-col-nogutter" style="margin-right: -1.5rem">
       <div class="p-d-flex p-jc-between p-pr-5 p-ai-center">
-        <div *ngIf="def.sourcePortalId != null" class="p-col p-col-nogutter">
+        <div *ngIf="def.layerKey != null" class="p-col p-col-nogutter">
           <span class="pi" pTooltip="{{def.visible? 'Hide' : 'Show'}} this layer" tooltipPosition="left"
                 [ngClass]="{ 'pi-eye': def.visible, 'pi-eye-slash': !def.visible }" (click)="toggleVisibility($event, def)">
           </span>
@@ -17,7 +17,7 @@
             {{def.layerName}}<ng-container *ngIf="def.useLocalGeometry">&nbsp;National Map</ng-container><ng-container *ngIf="!def.visible">&nbsp;(hidden)</ng-container>
           </span>
         </div>
-        <div *ngIf="def.sourcePortalId == null" class="p-col p-col-nogutter">New {{def.layerName == null ? 'Variable' : def.layerName}}</div>
+        <div *ngIf="def.layerKey == null" class="p-col p-col-nogutter">New {{def.layerName == null ? 'Variable' : def.layerName}}</div>
         <button type="button" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-xs p-button-danger" title="Delete Layer"
                 (click)="deleteDefinition($event, def)" *ngIf="def.dataKey !== shadingTypes.Selection"></button>
       </div>

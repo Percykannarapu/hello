@@ -137,7 +137,7 @@ export class AppLayerService {
    public initializeGraphicGroup(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
      const layer = this.esriLayerService.getGraphicsLayer(layerName);
      if (layer == null) {
-       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, true, addToBottomOfList);
+       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, addToBottomOfList);
      } else {
        layer.graphics.removeAll();
        layer.graphics.addMany(graphics);

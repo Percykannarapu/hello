@@ -42,13 +42,11 @@ import { masterEsriReducer } from './src/state/esri.reducers';
 import { EsriInitEffects } from './src/state/init/esri.init.effects';
 import { EsriMapButtonEffects } from './src/state/map/esri.map-button.effects';
 import { EsriMapEffects } from './src/state/map/esri.map.effects';
-import { EsriShadingEffects } from './src/state/shading/esri.shading.effects';
 
 const allEffects = [
   EsriInitEffects,
   EsriMapEffects,
   EsriMapButtonEffects,
-  EsriShadingEffects,
 ];
 
 const PUBLIC_COMPONENTS = [

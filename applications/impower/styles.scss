@@ -216,10 +216,13 @@ tr {
 body {
   div.esri-ui {
     .esri-legend {
+      > div > .esri-legend__service {
+        padding: 0;
+      }
       .esri-legend__service {
         padding: 5px 8px;
         > h3 {
-          margin: 0;
+          display: none;
         }
         > .esri-legend__layer {
           overflow: unset;
@@ -229,6 +232,9 @@ body {
               margin-left: -7px;
               font-weight: 600;
             }
+          }
+          > .esri-legend__layer-table:nth-child(2) {
+            margin-top: -32px;
           }
         }
       }

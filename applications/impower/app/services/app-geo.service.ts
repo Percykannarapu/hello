@@ -1,6 +1,16 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { arrayToSet, filterArray, groupByExtended, isEmpty, mergeArrayMaps, reduceConcat, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import {
+  arrayToSet,
+  filterArray,
+  groupByExtended,
+  isEmpty,
+  isNil,
+  mergeArrayMaps,
+  reduceConcat,
+  simpleFlatten,
+  toUniversalCoordinates
+} from '@val/common';
 import { EsriConfigService, EsriMapService, EsriQueryService, EsriUtils, LayerTypes } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
@@ -323,24 +333,30 @@ export class AppGeoService {
   private calculateDistances(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, centroids: __esri.Graphic[]) : Map<ImpGeofootprintLocation, AttributeDistance[]> {
     const locationToCentroidMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
     const currentAttributes = centroids.map(c => c.attributes);
+    const attributeErrors: any[] = [];
     locations.forEach(loc => {
       const currentTas = loc.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta));
       const maxRadiusForLocation = Math.max(...currentTas.map(ta => ta.taRadius));
       currentAttributes.forEach(attributes => {
-        const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, loc.xcoord, loc.ycoord);
-        if (currentDistance <= maxRadiusForLocation) {
-          const result: AttributeDistance = {
-            attribute: attributes,
-            distance: currentDistance
-          };
-          if (locationToCentroidMap.has(loc)) {
-            locationToCentroidMap.get(loc).push(result);
-          } else {
-            locationToCentroidMap.set(loc, [result]);
+        if (isNil(attributes.longitude) || isNil(attributes.latitude)) {
+          attributeErrors.push(attributes);
+        } else {
+          const currentDistance = EsriUtils.getDistance(attributes.longitude, attributes.latitude, loc.xcoord, loc.ycoord);
+          if (currentDistance <= maxRadiusForLocation) {
+            const result: AttributeDistance = {
+              attribute: attributes,
+              distance: currentDistance
+            };
+            if (locationToCentroidMap.has(loc)) {
+              locationToCentroidMap.get(loc).push(result);
+            } else {
+              locationToCentroidMap.set(loc, [result]);
+            }
           }
         }
       });
     });
+    if (attributeErrors.length > 0) this.logger.warn.log('These layer attributes have errors:', attributeErrors);
     return locationToCentroidMap;
   }
 

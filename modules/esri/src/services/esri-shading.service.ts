@@ -7,12 +7,11 @@ import { Observable } from 'rxjs';
 import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { LayerTypes } from '../core/esri.enums';
-import { isComplexRenderer, isFeatureLayer } from '../core/type-checks';
+import { isFeatureLayer } from '../core/type-checks';
 import { FillSymbolDefinition } from '../models/common-configuration';
 import { ConfigurationTypes, RampProperties, ShadingDefinition } from '../models/shading-configuration';
 import { AppState } from '../state/esri.reducers';
 import {
-  addLayerToLegend,
   addShadingDefinition,
   addShadingDefinitions,
   deleteShadingDefinition,
@@ -27,8 +26,7 @@ import { shadingSelectors } from '../state/shading/esri.shading.selectors';
 import { EsriConfigService } from './esri-config.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriQueryService } from './esri-query.service';
-
-const hideLegendHeaderTypes = new Set<ConfigurationTypes>([ConfigurationTypes.Simple, ConfigurationTypes.DotDensity]);
+import { LoggingService } from './logging.service';
 
 @Injectable()
 export class EsriShadingService {
@@ -38,6 +36,7 @@ export class EsriShadingService {
   constructor(private esriConfig: EsriConfigService,
               private layerService: EsriLayerService,
               private queryService: EsriQueryService,
+              private logger: LoggingService,
               private store$: Store<AppState>) {}
 
   private static createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
@@ -84,10 +83,8 @@ export class EsriShadingService {
   deleteShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
     if (Array.isArray(shadingDefinition)) {
       this.store$.dispatch(deleteShadingDefinitions({ ids: shadingDefinition.map(s => s.id) }));
-      shadingDefinition.forEach(sd => this.layerService.removeLayerFromLegend(sd.destinationLayerUniqueId));
     } else {
       this.store$.dispatch(deleteShadingDefinition({ id: shadingDefinition.id }));
-      this.layerService.removeLayerFromLegend(shadingDefinition.destinationLayerUniqueId);
     }
   }
 
@@ -101,10 +98,10 @@ export class EsriShadingService {
           this.createGeneralizedShadingLayer(d, features).pipe(
             take(1)
           ).subscribe(id => {
-            const hideLegendHeader = hideLegendHeaderTypes.has(d.shadingType);
             this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
-            this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName, showDefaultSymbol: false }));
-            this.layersInFlight.delete(d.id);
+            setTimeout(() => {
+              this.layersInFlight.delete(d.id);
+            });
           });
         }
       });
@@ -167,16 +164,7 @@ export class EsriShadingService {
       } else {
         props.definitionExpression = null;
       }
-      layer.when().then(() => {
-        if (config.refreshLegendOnRedraw && isComplexRenderer(props.renderer)) {
-          this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
-          setTimeout(() => {
-            const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
-            this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, false);
-          }, 0);
-        }
-        layer.set(props);
-      });
+      layer.when().then(() => layer.set(props));
     }
   }
 
@@ -217,7 +205,7 @@ export class EsriShadingService {
     }
     return layerFactory$.pipe(
       tap(layer => {
-        console.log('Shading Layer Created', layer);
+        this.logger.debug.log('Shading Layer Created', layer);
         const group = this.layerService.createClientGroup(groupName, true, true);
         if (group) {
           group.layers.unshift(layer);
@@ -239,7 +227,8 @@ export class EsriShadingService {
           symbol: EsriShadingService.createSymbolFromDefinition(d)
         }));
         classBreaks.reverse();
-        const breaksRenderer = EsriDomainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
+        const breaksRenderer = EsriDomainFactory.createClassBreakRenderer(null, classBreaks);
+        breaksRenderer.valueExpressionTitle = config.layerName;
         breaksRenderer.valueExpression = config.arcadeExpression;
         return breaksRenderer;
       case ConfigurationTypes.DotDensity:
@@ -259,9 +248,10 @@ export class EsriShadingService {
         return simpleResult;
       case ConfigurationTypes.Unique:
         const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: EsriShadingService.createSymbolFromDefinition(u) }));
-        const result = EsriDomainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
+        const result = EsriDomainFactory.createUniqueValueRenderer(null, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
+        result.valueExpressionTitle = config.layerName;
         return result;
       case ConfigurationTypes.Ramp:
         const stops = (config.breakDefinitions || []).map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }));
@@ -269,9 +259,12 @@ export class EsriShadingService {
         const visVar: RampProperties = {
           type: 'color',
           valueExpression: config.arcadeExpression,
+          valueExpressionTitle: config.layerName,
           stops
         };
-        return EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
+        const rampRenderer = EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
+        rampRenderer.label = null;
+        return rampRenderer;
       default:
         return null;
     }

@@ -11,7 +11,7 @@ import Font from '@arcgis/core/symbols/Font';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
-import { isEmpty, isNotNil, UniversalCoordinates } from '@val/common';
+import { UniversalCoordinates } from '@val/common';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -23,15 +23,12 @@ import {
   isPortalFeatureLayer,
   isSimpleFillSymbol,
   isSimpleLineSymbol,
-  isSimpleRenderer,
-  isSymbolTableElement,
-  isSymbolTableElementInfo
+  isSimpleRenderer
 } from '../core/type-checks';
 import { MapSymbols } from '../models/esri-types';
 import { AppState } from '../state/esri.reducers';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
-import { addLayerToLegend } from '../state/shading/esri.shading.actions';
 import { EsriMapService } from './esri-map.service';
 import { LoggingService } from './logging.service';
 
@@ -42,11 +39,8 @@ export class EsriLayerService {
   private layerStatusSub: Subscription;
   private layerStatusTracker = new Map<string, Observable<boolean>>();
 
-  private legendShimmed: boolean = false;
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
-  private layerNamesShowingInLegend = new Map<string, string>();
   private queryOnlyLayers = new Map<string, __esri.FeatureLayer>();
-  private legendElementWatchHandles = new Map<string, IHandle>();
 
   public layersAreReady$: Observable<boolean> = this.layersAreReady.asObservable();
   public longLayerLoadInProgress$ = new BehaviorSubject<boolean>(false);
@@ -192,7 +186,6 @@ export class EsriLayerService {
   public removeLayer(layer: __esri.Layer) : void {
     if (layer != null) {
       const parent = (layer as any).parent;
-      this.removeLayerFromLegend(layer.id);
       if (isGroupLayer(parent)) {
         this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
@@ -324,12 +317,11 @@ export class EsriLayerService {
     return graphic;
   }
 
-  public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], addToLegend: boolean = false, bottom: boolean = false) : __esri.GraphicsLayer {
+  public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
     const group = this.createClientGroup(groupName, true, bottom);
     const layer: __esri.GraphicsLayer = new GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     layer.when().then(() => {
-      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, showDefaultSymbol: true }));
       setTimeout(() => this.trackLayerStatus(layer));
     });
     return layer;
@@ -337,26 +329,26 @@ export class EsriLayerService {
 
   public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string,
                            renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[],
-                           addToLegend: boolean = false, legendHeader: string = null) : __esri.FeatureLayer {
+                           addToLegend: boolean = false) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
     const group = this.createClientGroup(groupName, true);
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
     const layer = EsriDomainFactory.createFeatureLayer(sourceGraphics, oidFieldName, null);
-    const props = {
+    const props: __esri.FeatureLayerProperties = {
       popupEnabled: popupEnabled,
       popupTemplate: popupTemplate,
       title: layerName,
       renderer: renderer,
       labelsVisible: labelsVisible,
       labelingInfo: labelInfo,
+      legendEnabled: addToLegend
     };
     layer.set(props);
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
     layer.when().then(() => {
-      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader, showDefaultSymbol: isSimpleRenderer(renderer) }));
       setTimeout(() => this.trackLayerStatus(layer));
     });
     return layer;
@@ -380,62 +372,6 @@ export class EsriLayerService {
         currentLayer.labelsVisible = labelConfig.enabled;
       }
     });
-  }
-
-  addLayerToLegend(layerUniqueId: string, title: string, showDefaultSymbol: boolean) : void {
-    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    const layer = this.getLayerByUniqueId(layerUniqueId);
-
-    if (legendRef != null) {
-      if (this.legendShimmed === false) {
-        legendRef.activeLayerInfos.on('after-add', event => {
-          const ali = event.item;
-          const currentId = ali.layer.id;
-          if (this.layerNamesShowingInLegend.has(currentId)) {
-            ali.title = this.layerNamesShowingInLegend.get(currentId);
-          }
-          this.cleanupLegendWatch(currentId);
-          const handle = ali.watch('legendElements', (newValue: __esri.LegendElement[]) => {
-            newValue.forEach(le => {
-              le.title = null;
-              if (isSymbolTableElement(le)) {
-                le.infos = le.infos.filter(si => {
-                  return isSymbolTableElementInfo(si) && si.label != null && si.label !== '' && si.label !== 'others';
-                });
-              }
-            });
-          });
-          this.legendElementWatchHandles.set(currentId, handle);
-        });
-        this.legendShimmed = true;
-      }
-      if (layer != null && !this.layerNamesShowingInLegend.has(layerUniqueId)) {
-        // can't use .push() here - a new array instance is needed to trigger the
-        // internal mechanics to convert these to activeLayerInfos
-        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer, hideLayers: [], defaultSymbol: showDefaultSymbol } as any ];
-        this.layerNamesShowingInLegend.set(layerUniqueId, title);
-      }
-    }
-  }
-
-  removeLayerFromLegend(layerUniqueId: string) : void {
-    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    if (isNotNil(legendRef) && !isEmpty(layerUniqueId)) {
-      this.layerNamesShowingInLegend.delete(layerUniqueId);
-      this.cleanupLegendWatch(layerUniqueId);
-      legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);
-    }
-  }
-
-  removeLayerHeader(layerUniqueId: string) : void {
-    this.layerNamesShowingInLegend.delete(layerUniqueId);
-  }
-
-  private cleanupLegendWatch(layerUniqueId: string) : void {
-    if (this.legendElementWatchHandles.has(layerUniqueId)) {
-      this.legendElementWatchHandles.get(layerUniqueId).remove();
-      this.legendElementWatchHandles.delete(layerUniqueId);
-    }
   }
 
   public enableLatLongTool(action: CopyCoordinatesToClipboard) : void {

@@ -181,7 +181,7 @@ export class EsriQueryService {
     );
     return count$.pipe(
       map(count => this.createParallelQueries(baseQuery, pageSize, count)),
-      tap((q) => console.log(`Starting ${q.length} parallel queries`)),
+      tap((q) => this.logger.debug.log(`Starting ${q.length} parallel queries`)),
       switchMap(queries => merge(...(queries.map(q => this.executeFeatureQuery(layerUrl, q, txId, true))), streams)),
       finalize(() => this.finalizeQuery(txId))
     );

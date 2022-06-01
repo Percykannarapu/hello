@@ -2,11 +2,6 @@ import { Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
 import { ShadingDefinition } from '../../models/shading-configuration';
 
-export const addLayerToLegend = createAction(
-  '[Esri.Shading] Add Layer to Legend',
-  props<{ layerUniqueId: string, title: string, showDefaultSymbol: boolean }>()
-);
-
 export const setFeaturesOfInterest = createAction(
   '[Esri.Shading] Set Features of Interest',
   ({ features = [] }: { features: string[] }) => ({ features: features || [] })

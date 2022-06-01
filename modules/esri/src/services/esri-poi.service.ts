@@ -8,7 +8,7 @@ import { BehaviorSubject, EMPTY, from, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriQuadTree } from '../core/esri-quad-tree';
-import { isFeatureLayer, isUniqueValueRenderer } from '../core/type-checks';
+import { isFeatureLayer } from '../core/type-checks';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { MapSymbols, RgbTuple } from '../models/esri-types';
 import {
@@ -143,17 +143,7 @@ export class EsriPoiService {
           definitionExpression: config.isBatchMap && !config.showSymbols ? `locationNumber = '${config.siteNumber}'` : '',
           labelingInfo: this.createLabelFromDefinition(config)
         };
-        if (isUniqueValueRenderer(props.renderer)) {
-          this.layerService.removeLayerFromLegend(config.featureLayerId);
-          layer.set(props);
-          setTimeout(() => {
-            this.layerService.addLayerToLegend(config.featureLayerId, config.layerName, false);
-          }, 0);
-        } else {
-          layer.set(props);
-          this.layerService.removeLayerHeader(layer.id);
-          this.layerService.addLayerToLegend(layer.id, null, true);
-        }
+        layer.set(props);
       });
     }
     this.renderRadiiPoi(config.radiiTradeAreaDefinition || [], config.visibleRadius, config.groupName);
@@ -170,6 +160,7 @@ export class EsriPoiService {
         const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
         const uniqueRenderer = EsriDomainFactory.createUniqueValueRenderer(null, uniqueValues);
         uniqueRenderer.field = removeNonAlphaNumerics(config.featureAttribute);
+        uniqueRenderer.valueExpressionTitle = config.layerName;
         return uniqueRenderer;
     }
   }

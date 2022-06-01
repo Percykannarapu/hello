@@ -14,7 +14,6 @@ import {
   Statistics
 } from '@val/common';
 import {
-  addLayerToLegend,
   ConfigurationTypes,
   EsriConfigService,
   EsriDomainFactory,
@@ -97,7 +96,6 @@ export class NationalMapService {
             take(1)
           ).subscribe(id => {
             this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
-            this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: d.layerName, showDefaultSymbol: false }));
             setTimeout(() => {
               this.layersInFlight.delete(d.id);
               this.layerService.longLayerLoadInProgress$.next(false);

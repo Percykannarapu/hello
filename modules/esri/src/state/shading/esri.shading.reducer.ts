@@ -2,7 +2,6 @@ import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import { ShadingDefinition } from '../../models/shading-configuration';
 import { loadInitialState } from '../esri.actions';
-import { firstTimeShaderDataLoadComplete } from './esri.shading.actions';
 import * as ShadingActions from './esri.shading.actions';
 
 export interface EsriShadingState extends EntityState<ShadingDefinition> {

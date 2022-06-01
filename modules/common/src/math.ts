@@ -100,7 +100,11 @@ export function getCollectedStatistics(clearAfterGet: boolean) : Record<string |
         sortedValues: collector.sortedValues
       };
       result.distance = Math.abs(result.max - result.min);
-      result.variance = (collector.squareSum / n) - (collector.sum / n);
+      let varianceSum = 0;
+      for (let i = 0; i < n; ++i) {
+        varianceSum += (collector.sortedValues[i] - result.mean) ** 2;
+      }
+      result.variance = varianceSum / n;
       result.stdDeviation = Math.sqrt(result.variance);
     } else {
       const items = Array.from(collector.uniqueValues);
@@ -149,21 +153,18 @@ export function calculateStatistics(data: number[], intervalCount: number = 0) :
   const result: Statistics = getEmptyStatistic();
   const dataLength = sortedData.length;
   const lastIndex = dataLength - 1;
-  let meanSum = sortedData[0];
-  let varSum = 0;
-  for (let i = 1; i < dataLength; ++i) {
+  for (let i = 0; i < dataLength; ++i) {
     result.sum += sortedData[i];
-    result.min = data[i] < result.min ? data[i] : result.min;
-    const stepSum = sortedData[i] - meanSum;
-    const stepMean = ((i - 1) * stepSum) / i;
-    meanSum += stepMean;
-    varSum += stepMean * stepSum;
   }
   result.min = sortedData[0];
   result.max = sortedData[lastIndex];
   result.mean = result.sum / dataLength;
+  let varianceSum = 0;
+  for (let i = 0; i < dataLength; ++i) {
+    varianceSum += (sortedData[i] - result.mean) ** 2;
+  }
   if (dataLength > 1) {
-    result.variance = varSum / (dataLength - 1);
+    result.variance = varianceSum / dataLength;
     result.stdDeviation = Math.sqrt(result.variance);
     if (intervalCount > 0) {
       const interval = (result.max - result.min) / intervalCount;
