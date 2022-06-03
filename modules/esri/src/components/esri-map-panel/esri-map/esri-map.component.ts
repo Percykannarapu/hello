@@ -71,11 +71,5 @@ export class EsriMapComponent implements OnInit {
         });
       });
     });
-    /*
-    refresh token for every 50 min
-    */
-     window.setInterval(() => {
-      this.logger.debug.log('token refreshed: ', new Date().toLocaleTimeString());
-      this.store$.dispatch(new Authenticate()); }, 3000000);
   }
 }

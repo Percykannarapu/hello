@@ -1,4 +1,9 @@
 <div class="component-root">
+  <div class="p-d-flex p-jc-between p-ai-end">
+    <p-message severity="info" text="Your site upload includes radius values" class="p-mb-2"></p-message>
+    <button type="button" pButton label="Apply Uploaded Values" class="p-mb-2"></button>
+  </div>
+  <p-divider></p-divider>
   <form novalidate autocomplete="off" [formGroup]="radiusForm" (submit)="formSubmitted.emit(radiusForm.value)">
     <div class="p-d-flex p-flex-column p-ai-stretch">
       <p-message *ngIf="radiusForm.hasError('required', 'analysisLevel')" class="p-mb-2" severity="error"
@@ -18,7 +23,8 @@
         <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType" [tabindex]="maxTradeAreas"></p-selectButton>
       </div>
       <div class="p-col p-d-flex p-jc-end">
-        <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid" [tabIndex]="maxTradeAreas + 1"></button>
+        <p-splitButton label="Apply to All {{locationType}}s" [model]="tempOptions" icon="pi pi-plus" menuStyleClass="val-add-shader-menu"></p-splitButton>
+<!--        <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid" [tabIndex]="maxTradeAreas + 1"></button>-->
       </div>
     </div>
   </form>

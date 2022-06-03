@@ -1,17 +1,18 @@
-import { TokenResponse } from '../../core/esri-utils';
 import * as fromActions from './esri.init.actions';
 
 export interface EsriInitState {
   isInitialized: boolean;
   isAuthenticated: boolean;
   isAuthenticating: boolean;
-  tokenResponse: TokenResponse;
+  isRefreshing: boolean;
+  tokenResponse: __esri.IdentityManagerRegisterTokenProperties;
 }
 
 const initialState: EsriInitState = {
   isInitialized: false,
   isAuthenticated: false,
   isAuthenticating: false,
+  isRefreshing: false,
   tokenResponse: null
 };
 
@@ -24,19 +25,29 @@ export function initReducer(state = initialState, action: fromActions.EsriInitAc
       };
     case fromActions.EsriInitActionTypes.Authenticate:
       return { ...state, isAuthenticating: true };
-    case fromActions.EsriInitActionTypes.AuthenticateFailure:
-      return {
-        ...state,
-        isAuthenticating: false,
-        isAuthenticated: false,
-        tokenResponse: null
-      };
     case fromActions.EsriInitActionTypes.AuthenticateSuccess:
       return {
         ...state,
         isAuthenticating: false,
         isAuthenticated: true,
         tokenResponse: action.payload.tokenResponse
+      };
+    case fromActions.EsriInitActionTypes.TokenRefresh:
+      return { ...state, isRefreshing: true };
+    case fromActions.EsriInitActionTypes.RefreshSuccess:
+      return {
+        ...state,
+        isRefreshing: false,
+        tokenResponse: action.payload.tokenResponse
+      };
+    case fromActions.EsriInitActionTypes.AuthenticateFailure:
+    case fromActions.EsriInitActionTypes.RefreshFailure:
+      return {
+        ...state,
+        isAuthenticating: false,
+        isRefreshing: false,
+        isAuthenticated: false,
+        tokenResponse: null
       };
     default:
       return state;

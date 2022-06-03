@@ -10,7 +10,7 @@ import { CookieService } from 'ngx-cookie-service';
 
 import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
 import { from, Observable, throwError } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap, take, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -23,14 +23,7 @@ export class AuthService implements CanActivate{
               private store$: Store<LocalAppState>,
               private logger: LoggingService,
               private userService: UserService,
-              private cookieService: CookieService) {
-    this.manager.getUser().then(oidcUser => {
-      this.oidcUser = oidcUser;
-    });
-    this.manager.events.addAccessTokenExpiring(() => this.logger.debug.log('JWT is expiring soon'));
-    this.manager.events.addAccessTokenExpired(() => this.logger.error.log('JWT has expired'));
-    this.manager.events.addSilentRenewError(e => this.logger.error.log('Failed to renew JWT', e));
-  }
+              private cookieService: CookieService) {}
 
   public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) : Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     if (!this.isLoggedIn()) {
@@ -58,22 +51,36 @@ export class AuthService implements CanActivate{
   }
 
   startAuthentication() : Promise<boolean> {
-    return this.manager.signinRedirect().then(() => false);
+    return this.manager.signinRedirect().then(() => {
+      return false;
+    });
   }
 
   completeAuthentication() : Observable<User> {
     const callBack$ = from(this.manager.signinRedirectCallback());
     return callBack$.pipe(
-      tap(oidcUser => localStorage.setItem('id', oidcUser.id_token)),
-      tap(oidcUser => this.cookieService.set('id', oidcUser.id_token)),
-      tap(oidcUser => this.oidcUser = oidcUser),
-      switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
+      switchMap(oidcUser => this.completeUserSetup(oidcUser).pipe(
+        take(1),
         tap(appUser => {
           this.manager.startSilentRenew();
+          this.manager.events.addAccessTokenExpiring(() => console.warn('JWT is expiring soon'));
+          this.manager.events.addAccessTokenExpired(() => console.error('JWT has expired'));
+          this.manager.events.addSilentRenewError(e => console.error('Failed to renew JWT', e));
+          this.manager.events.addUserLoaded(newUser => {
+            this.logger.debug.log('OneLogin User record added or updated.', newUser);
+            this.completeUserSetup(newUser).pipe(take(1)).subscribe();
+          });
           this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', appUser.username + '~' + appUser.userId));
         })
       ))
     );
+  }
+
+  private completeUserSetup(oidcUser: OIDCUser) : Observable<User> {
+    localStorage.setItem('id', oidcUser.id_token);
+    this.cookieService.set('id', oidcUser.id_token);
+    this.oidcUser = oidcUser;
+    return this.setupAppUser(oidcUser);
   }
 
   private setupAppUser(oidcUser: OIDCUser) : Observable<User>{

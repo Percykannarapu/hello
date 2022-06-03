@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from 'app/services/auth.service';
 import { UserService } from 'app/services/user.service';
-import { Router } from '@angular/router';
-import { AppLoggingService } from 'app/services/app-logging.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from 'app/state/app.interfaces';
 import { environment } from '../../../environments/environment';
+
 declare let pendo: any;
 
 @Component({
@@ -15,16 +13,12 @@ declare let pendo: any;
 })
 export class AuthCallbackComponent implements OnInit {
 
-  public userData: any;
-
   constructor(private authService: AuthService,
               private router: Router,
-              private userService: UserService,
-              private logger: AppLoggingService,
-              private store: Store<LocalAppState>) { }
+              private userService: UserService) { }
 
   ngOnInit() {
-    this.authService.completeAuthentication().subscribe(user => {
+    this.authService.completeAuthentication().subscribe(() => {
       if (this.authService.isLoggedIn()) {
         //Initialize Pendo
         const email: string = this.userService.getUser().email;
@@ -46,9 +40,4 @@ export class AuthCallbackComponent implements OnInit {
       }
     });
   }
-
-  public getUserData() {
-    this.userData = this.authService.getClaims();
-  }
-
 }

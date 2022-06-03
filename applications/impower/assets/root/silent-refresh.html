@@ -5,8 +5,11 @@
 <script src="oidc-client.min.js"></script>
 <script>
   new Oidc.UserManager().signinSilentCallback()
-      .catch((err) => {
-          console.log(err);
-      });
+    .then(() => {
+      console.log('Silent refresh complete');
+    })
+    .catch((err) => {
+      console.error('There was an error during silent auth callback', err);
+    });
 </script>
 </body>

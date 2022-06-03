@@ -25,13 +25,6 @@ import {
   MapViewResizeEvent
 } from './esri-event-shims';
 
-export interface TokenResponse {
-  token: string;
-  expires: number;
-  ssl: boolean;
-  server: string;
-}
-
 export interface WatchResult<T extends __esri.Accessor, K extends keyof T> {
   newValue: T[K];
   oldValue: T[K];
