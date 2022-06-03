@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
 import { AppStateService } from 'app/services/app-state.service';
 import { LocalAppState } from 'app/state/app.interfaces';
-import { MenuItem, SelectItem } from 'primeng/api';
+import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
 import {
@@ -60,11 +60,6 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
 
   radiusForm: FormGroup;
   tradeAreaMergeTypes: SelectItem[];
-
-  tempOptions: MenuItem[] = [
-    { label: 'Apply to All', command: () => {} },
-    { label: 'Apply to Sites w/o Upload', command: () => {} },
-  ];
 
   private _analysisLevel: string;
   private _hasLocations: boolean;
