@@ -14,7 +14,12 @@ export enum LayerKeys {
 export namespace LayerKeys {
 
   export function parse(value: string) : LayerKeys {
-    let result: LayerKeys = value?.toLowerCase() === 'digital atz' ? LayerKeys.DTZ : LayerKeys[value];
+    let result: LayerKeys =
+      value?.toLowerCase() === 'digital atz'
+      ? LayerKeys.DTZ
+      : value?.toLowerCase() === 'counties'
+        ? LayerKeys.Counties
+        : LayerKeys[value];
     if (isNil(result)) {
       for (const key of Object.keys(LayerKeys)) {
         if (isString(LayerKeys[key]) && value.toUpperCase() === LayerKeys[key].toUpperCase()) result = LayerKeys[key];

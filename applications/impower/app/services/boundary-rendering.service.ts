@@ -153,9 +153,8 @@ export class BoundaryRenderingService {
   }
 
   public getConfigurations(project?: ImpProject) : BoundaryConfiguration[] {
-    let analysisLevel = null;
-    let existingSetup: BoundaryConfiguration[] = null;
-    let result: BoundaryConfiguration[];
+    let analysisLevel;
+    let existingSetup: BoundaryConfiguration[];
     let isSummer = BoundaryRenderingService.isSummer();
     if (project != null) {
       const newPref = this.appPrefService.getPrefVal('map-boundary-defs');
@@ -166,18 +165,22 @@ export class BoundaryRenderingService {
       isSummer = project.impGeofootprintMasters[0].methSeason.toUpperCase() === 'S';
     }
     const defaultSetup = this.createDefaultConfigurations(analysisLevel, isSummer);
+    const result = mapByExtended(defaultSetup, b => b.layerKey);
 
-    if (existingSetup == null) {
-      result = defaultSetup;
-    } else {
-      const defaultMap = mapByExtended(defaultSetup, b => b.layerKey);
+    if (isNotNil(existingSetup)) {
       // here we are fixing up any saved data with internal values that the users will never really modify
       // (arcade strings, popup definitions, etc...)
-      const existingIds = new Set<string>(existingSetup.map(b => b.layerKey));
-      const newConfigs = defaultSetup.filter(db => !existingIds.has(db.layerKey));
       existingSetup.forEach(b => {
-        if (defaultMap.has(b.layerKey)) {
-          const currentDefaults = defaultMap.get(b.layerKey);
+        // remove old portal ids and fixup new layerKey from old dataKey attribute
+        delete b['portalId'];
+        delete b['simplifiedPortalId'];
+        delete b['centroidPortalId'];
+        if (isNil(b.layerKey)) {
+          b.layerKey = LayerKeys.parse(b['dataKey']);
+          delete b['dataKey'];
+        }
+        if (result.has(b.layerKey)) {
+          const currentDefaults = result.get(b.layerKey);
           if (b.pobLabelDefinition != null && currentDefaults.pobLabelDefinition != null) {
             b.pobLabelDefinition.featureAttribute = currentDefaults.pobLabelDefinition.featureAttribute;
             b.pobLabelDefinition.customExpression = currentDefaults.pobLabelDefinition.customExpression;
@@ -196,15 +199,15 @@ export class BoundaryRenderingService {
           b.popupDefinition = currentDefaults.popupDefinition;
           b.isPrimarySelectableLayer = currentDefaults.isPrimarySelectableLayer;
           b.sortOrder = currentDefaults.sortOrder;
+          result.set(b.layerKey, b);
         }
       });
-      existingSetup.push(...newConfigs);
-      result = existingSetup;
     }
 
     this.esriBoundaryService.setDynamicPopupFactory(this.generator.geographyPopupFactory, this.generator);
-    this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(result), 'STRING', true);
-    return result;
+    const returnValue = Array.from(result.values());
+    this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(returnValue), 'STRING', true);
+    return returnValue;
   }
 
   private createDefaultConfigurations(analysisLevel: string, isSummer: boolean) : BoundaryConfiguration[] {

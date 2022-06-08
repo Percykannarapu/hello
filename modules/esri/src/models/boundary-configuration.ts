@@ -1,4 +1,5 @@
 import { DeepPartial, isNil } from '@val/common';
+import { LayerKeys } from '../core/esri.enums';
 import { applyFillChanges, applyLabelChanges, duplicateFill, duplicateLabel, FillSymbolDefinition, LabelDefinition } from './common-configuration';
 
 export interface PopupDefinition {
@@ -48,7 +49,7 @@ export function applyPopupChanges(original: PopupDefinition, newValues: DeepPart
 
 export interface BoundaryConfiguration {
   id: string;
-  layerKey: string;
+  layerKey: LayerKeys;
   sortOrder: number;
   visible: boolean;
   groupName: string;
