@@ -4,7 +4,7 @@ import PopupTemplate from '@arcgis/core/PopupTemplate';
 import ActionButton from '@arcgis/core/support/actions/ActionButton';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { isNil, isNotNil } from '@val/common';
+import { isNil, isNotNil, mergeEntityUpdatesById } from '@val/common';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -125,7 +125,8 @@ export class EsriBoundaryService {
       allObservables.push(layerPipeline);
     });
     return merge(...allObservables).pipe(
-      reduce((acc, result) => [...acc, result], [] as Update<BoundaryConfiguration>[])
+      reduce((acc, result) => [...acc, result], [] as Update<BoundaryConfiguration>[]),
+      map(allUpdates => mergeEntityUpdatesById(allUpdates)),
     );
   }
 
@@ -133,37 +134,29 @@ export class EsriBoundaryService {
     const updatesForDispatch: Update<BoundaryConfiguration>[] = [];
     configurations.forEach(config => {
       this.layerService.removeGroup(config.groupName);
-      updatesForDispatch.push({ id: config.id, changes: { destinationBoundaryId: undefined, destinationCentroidId: undefined }});
+      updatesForDispatch.push({ id: config.id, changes: { destinationBoundaryId: undefined, destinationCentroidId: undefined, destinationPOBId: undefined }});
     });
     if (updatesForDispatch.length > 0) this.store$.dispatch(updateBoundaries({ boundaries: updatesForDispatch }));
   }
 
   private routeLayerUpdates(configurations: BoundaryConfiguration[]) : void {
     const boundaryUpdates: BoundaryConfiguration[] = [];
-    const centroidCreates: BoundaryConfiguration[] = [];
-    const centroidRemovals: BoundaryConfiguration[] = [];
-    const pobCreates: BoundaryConfiguration[] = [];
-    const pobRemovals: BoundaryConfiguration[] = [];
+    const pointCreates: BoundaryConfiguration[] = [];
+    const pointRemovals: BoundaryConfiguration[] = [];
     configurations.forEach(config => {
-      if (isNil(config.destinationCentroidId) && config.showCentroids) {
-        centroidCreates.push(config);
+      if ((isNil(config.destinationCentroidId) && config.showCentroids) ||
+          (isNil(config.destinationPOBId) && config.showPOBs)) {
+        pointCreates.push(config);
       }
-      if (isNotNil(config.destinationCentroidId) && config.showCentroids === false) {
-        centroidRemovals.push(config);
-      }
-      if (isNil(config.destinationPOBId) && config.showPOBs) {
-        pobCreates.push(config);
-      }
-      if (isNotNil(config.destinationPOBId) && config.showPOBs === false) {
-        pobRemovals.push(config);
+      if ((isNotNil(config.destinationCentroidId) && config.showCentroids === false) ||
+          (isNotNil(config.destinationPOBId) && config.showPOBs === false)) {
+        pointRemovals.push(config);
       }
       boundaryUpdates.push(config);
     });
 
-    if (centroidCreates.length > 0) this.createPointLayer(centroidCreates, false);
-    if (centroidRemovals.length > 0) this.removePointLayer(centroidRemovals, false);
-    if (pobCreates.length > 0) this.createPointLayer(pobCreates, true);
-    if (pobRemovals.length > 0) this.removePointLayer(pobRemovals, true);
+    if (pointCreates.length > 0) this.createPointLayers(pointCreates);
+    if (pointRemovals.length > 0) this.removePointLayers(pointRemovals);
     if (boundaryUpdates.length > 0) this.updateLayers(boundaryUpdates);
   }
 
@@ -223,35 +216,53 @@ export class EsriBoundaryService {
     });
   }
 
-  private createPointLayer(configurations: BoundaryConfiguration[], isPob: boolean) : void {
+  private createPointLayers(configurations: BoundaryConfiguration[]) : void {
     const allObservables: Observable<Update<BoundaryConfiguration>>[] = [];
     configurations.forEach(config => {
-      const group = this.layerService.createPortalGroup(config.groupName, true, config.sortOrder);
-      const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
-      const layerName = `${config.layerKey.toUpperCase()} ${isPob ? 'POBs' : 'Centroids'}`;
-      const layerUrl = this.esriConfig.getLayerUrl(config.layerKey, LayerTypes.Point, isPob);
-      const additionalAttributes: Partial<__esri.FeatureLayer> = {
-        legendEnabled: false,
-        popupEnabled: isPob ? config.showPopups && ! config.useSimplifiedInfo : false,
-      };
-      const layerPipeline = this.layerService.createPortalLayer(layerUrl, layerName, minScale, true, additionalAttributes).pipe(
-        tap(layer => group.add(layer, 1)),
-        map(layer => ({ id: config.id, changes: isPob ? { destinationPOBId: layer.id } : { destinationCentroidId: layer.id } }))
-      );
-      allObservables.push(layerPipeline);
+      if (isNil(config.destinationCentroidId) && config.showCentroids) {
+        allObservables.push(this.generatePointLayer(config, false));
+      }
+      if (isNil(config.destinationPOBId) && config.showPOBs) {
+        allObservables.push(this.generatePointLayer(config, true));
+      }
     });
     merge(...allObservables).pipe(
       reduce((acc, result) => [...acc, result], [] as Update<BoundaryConfiguration>[]),
+      map(allUpdates => mergeEntityUpdatesById(allUpdates)),
       take(1)
     ).subscribe(updates => this.store$.dispatch(updateBoundaries({ boundaries: updates })));
   }
 
-  private removePointLayer(configurations: BoundaryConfiguration[], isPob: boolean) : void {
+  private generatePointLayer(config: BoundaryConfiguration, isPob: boolean) : Observable<Update<BoundaryConfiguration>> {
+    const group = this.layerService.createPortalGroup(config.groupName, true, config.sortOrder);
+    const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
+    const layerName = `${config.layerKey.toUpperCase()} ${isPob ? 'POBs' : 'Centroids'}`;
+    const layerUrl = this.esriConfig.getLayerUrl(config.layerKey, LayerTypes.Point, isPob);
+    const additionalAttributes: Partial<__esri.FeatureLayer> = {
+      legendEnabled: false,
+      popupEnabled: isPob ? config.showPopups && ! config.useSimplifiedInfo : false,
+    };
+    return this.layerService.createPortalLayer(layerUrl, layerName, minScale, true, additionalAttributes).pipe(
+      tap(layer => group.add(layer)),
+      map(layer => ({ id: config.id, changes: isPob ? { destinationPOBId: layer.id } : { destinationCentroidId: layer.id } }))
+    );
+  }
+
+  private removePointLayers(configurations: BoundaryConfiguration[]) : void {
     const updatesForDispatch: Update<BoundaryConfiguration>[] = [];
     configurations.forEach(config => {
-      const centroid = this.layerService.getLayerByUniqueId(config.destinationCentroidId);
-      this.layerService.removeLayer(centroid);
-      updatesForDispatch.push({ id: config.id, changes: isPob ? { destinationPOBId: undefined } : { destinationCentroidId: undefined }});
+      const changes: Partial<BoundaryConfiguration>[] = [];
+      if (isNotNil(config.destinationCentroidId) && config.showCentroids === false) {
+        const centroidLayer = this.layerService.getLayerByUniqueId(config.destinationCentroidId);
+        this.layerService.removeLayer(centroidLayer);
+        changes.push({ destinationCentroidId: undefined });
+      }
+      if (isNotNil(config.destinationPOBId) && config.showPOBs === false) {
+        const pobLayer = this.layerService.getLayerByUniqueId(config.destinationPOBId);
+        this.layerService.removeLayer(pobLayer);
+        changes.push({ destinationPOBId: undefined });
+      }
+      if (changes.length > 0) updatesForDispatch.push({ id: config.id, changes: Object.assign({}, ...changes)});
     });
     if (updatesForDispatch.length > 0) this.store$.dispatch(updateBoundaries({ boundaries: updatesForDispatch }));
   }

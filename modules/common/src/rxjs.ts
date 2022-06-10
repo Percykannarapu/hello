@@ -1,5 +1,7 @@
+import { Update } from '@ngrx/entity';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
+import { groupByExtended } from './array-utils';
 import { KeyedSet } from './keyed-set';
 
 export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
@@ -100,4 +102,13 @@ export function addedSincePrev<T, K>(entityKey?: (item: T) => K) : (source$: Obs
       return current.filter(id => !previousSet.has(id));
     })
   );
+}
+
+export function mergeEntityUpdatesById<T>(updates: Update<T>[]) : Update<T>[] {
+  const mappedChanges = groupByExtended(updates, u => u.id, u => u.changes);
+  const result: Update<T>[] = [];
+  mappedChanges.forEach((allChanges, id) => {
+    result.push({ id, changes: Object.assign({}, ...allChanges)} as Update<T>);
+  });
+  return result;
 }
