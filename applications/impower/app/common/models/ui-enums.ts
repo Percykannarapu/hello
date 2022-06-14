@@ -23,6 +23,7 @@ export enum AnalysisLevel {
 
 export namespace AnalysisLevel {
   export function parse(value: string) : AnalysisLevel {
+    if (isNil(value)) return null;
     let result: AnalysisLevel = value?.toLowerCase() === 'digital atz' ? AnalysisLevel.DTZ : AnalysisLevel[value];
     if (isNil(result)) {
       for (const key of Object.keys(AnalysisLevel)) {

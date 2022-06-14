@@ -425,14 +425,19 @@ export class AppLocationService {
   }
 
   public processHomeGeoAttributes(attributes: HomeGeoQueryResult[], locations: ImpGeofootprintLocation[]) : void {
+    const currentAnalysisLevel = AnalysisLevel.parse(this.appStateService.analysisLevel$.getValue());
     const attributesBySiteNumber: Map<string, HomeGeoQueryResult> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
-    let homeGeocodeIssue = 'N';
+    const ignoreForValidation = new Set(['homeDmaName']);
+    if (currentAnalysisLevel !== AnalysisLevel.DTZ) {
+      ignoreForValidation.add('homeDigitalAtz');
+    }
     let warningNotificationFlag = 'N';
     locations.forEach(loc => {
+      let homeGeocodeIssue = 'N';
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
       if (currentAttributes != null){
-        Object.keys(currentAttributes).filter(key => key.startsWith('home') && key !== 'homeDmaName' && key !== 'homeDigitalAtz').forEach(key => {
+        Object.keys(currentAttributes).filter(key => key.startsWith('home') && !ignoreForValidation.has(key)).forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             // the service might return multiple values for a home geo (in case of overlapping geos)
             // as csv. For now, we're only taking the first result.
@@ -460,7 +465,7 @@ export class AppLocationService {
             }
           }
         });
-        Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
+        Object.keys(currentAttributes).filter(key => ignoreForValidation.has(key)).forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
               const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
@@ -473,7 +478,6 @@ export class AppLocationService {
       }
       const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
       if (newAttribute1 != null) impAttributesToAdd.push(newAttribute1);
-      homeGeocodeIssue = 'N';
     });
 
     const homeDMAs = new Set(attributes.filter(a => a['homeDmaName'] == null || a['homeDmaName'] === '').map(a => a['homeDma']).filter(a => a != null && a !== ''));
@@ -792,7 +796,10 @@ export class AppLocationService {
                   result.forEach(record => {
                     if (!atzSet.has(record['ATZ'])){
                           atzSet.add(record['ATZ']);
-                          const DTZ = record['DTZ'] === record['ATZ'] ? record['ATZ'] : record['DTZ'] === record['ATZ'].substr(0, 5) ? record['DTZ'] : null ;
+                          const DTZ = record['DTZ'] === record['ATZ']
+                                      ? record['ATZ']
+                                      : record['DTZ'] === record['ATZ'].substr(0, 5)
+                                        ? record['DTZ'] : null ;
                           atzResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'homeDma': record['homeDma'], 'homeCounty': record['homeCounty']});
                     }
                   });

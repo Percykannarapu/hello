@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { isEmpty, isNil, isNotNil } from '@val/common';
 import { AppConfig } from 'app/app.config';
 import { ValGeocodingRequest } from 'app/common/models/val-geocoding-request.model';
 import {
@@ -7,8 +8,8 @@ import {
   ImpClientLocationTypeCodes,
   TradeAreaTypeCodes
 } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { ValGeocodingResponse } from '../../../common/models/val-geocoding-response.model';
+import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { UserService } from '../../../services/user.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
@@ -269,9 +270,14 @@ export class ImpDomainFactoryService {
     delete res['previousZip'];
     const uploadData = data.filter(val => val.number === res.Number);
     for (const [k, v] of Object.entries(res)) {
-      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name'
-          && uploadData[0]['Home DMA'] !== '' && uploadData[0]['Home DMA'] !== null && uploadData[0]['Home DMA'] !== undefined && !((/^\d{4}$/.test(uploadData[0]['Home DMA']) || /^\d{3}$/.test(uploadData[0]['Home DMA']))))) continue;
+      if (isEmpty(k) || isNil(v) || typeof v === 'function' || nonAttributeProps.has(k)
+          || (k.toLowerCase().startsWith('home') && isNil(uploadData[0][k]))
+          || (k === 'Home DMA Name' && !isEmpty(uploadData[0]['Home DMA'])
+             && !((/^\d{4}$/.test(uploadData[0]['Home DMA']) || /^\d{3}$/.test(uploadData[0]['Home DMA']))))) continue;
       this.createLocationAttribute(result, k, v);
+    }
+    if (isNotNil(res['Home Carrier Route'])) {
+      this.createLocationAttribute(result, 'Home Carrier Route', res['Home Carrier Route']);
     }
     return result;
   }

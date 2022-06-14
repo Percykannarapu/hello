@@ -81,7 +81,7 @@ interface TradeAreaDefinition {
   }
 
    private verifiedReCalcHomeGeos(payload: {locations: ImpGeofootprintLocation[], siteType: SuccessfulLocationTypeCodes, reCalculateHomeGeos: boolean, isLocationEdit: boolean}) {
-     const valGeosites: ValGeocodingRequest[] = [];
+     const sites: ValGeocodingRequest[] = [];
      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
      const locAttrs: ImpGeofootprintLocAttrib[] = [];
      payload.locations.forEach(loc => {
@@ -95,10 +95,8 @@ interface TradeAreaDefinition {
          loc.xcoord = null;
          loc.ycoord = null;
        }
-       valGeosites.push(new ValGeocodingRequest(loc, false, true));
+       sites.push(new ValGeocodingRequest(loc, false, true));
      });
-
-     const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
 
      this.impLocationService.remove(payload.locations);
      this.impLocAttributeService.remove(locAttrs);
