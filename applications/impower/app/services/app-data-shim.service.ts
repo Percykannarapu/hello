@@ -299,7 +299,7 @@ export class AppDataShimService {
    return this.metricService.getAudienceVariaables(audiences);
   }
 
-  fetchMatricVars(metricVars: DynamicVariable[]){
+  fetchMetricVars(metricVars: DynamicVariable[]){
     this.store$.dispatch(FromMetricVarActions.ClearMetricVars());
     this.store$.dispatch(FromMetricVarActions.FetchMetricVarsComplete({metricVars}));
   }

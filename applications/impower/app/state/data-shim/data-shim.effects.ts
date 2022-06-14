@@ -149,7 +149,7 @@ export class DataShimEffects {
     withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.appDataShimService.currentProject$),
     switchMap(([, , project]) => this.appDataShimService.getAudience()),
     switchMap(audience => this.appDataShimService.getAudienceVariables(audience)),
-    map(metricVars =>  this.appDataShimService.fetchMatricVars(metricVars) ));
+    map(metricVars =>  this.appDataShimService.fetchMetricVars(metricVars) ));
 
   @Effect({dispatch: false})
   processMetrics$ = this.actions$.pipe(

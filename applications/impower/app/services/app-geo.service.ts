@@ -364,8 +364,8 @@ export class AppGeoService {
     const hhcField = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const geosToSave: ImpGeofootprintGeo[] = [];
     const allAttributes: GeoAttribute[] = [];
-    const uniqueIdentifiedGeocodeSet = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
     locationMap.forEach((attributes, location) => {
+      const uniqueGeocodeSetForLocation = new Set(location.getImpGeofootprintGeos());
       const currentTas = location.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta)).sort((a, b) => a.taRadius - b.taRadius);
       for (let i = 0; i < currentTas.length; ++i) {
         const geoSet = new Set<string>();
@@ -375,7 +375,7 @@ export class AppGeoService {
           allAttributes.push(currentAttribute);
           const min = i === 0 ? -1 : currentTas[i - 1].taRadius;
           if (currentPoint.distance <= currentTas[i].taRadius && currentPoint.distance > min) {
-            if (!geoSet.has(currentAttribute.geocode) && !uniqueIdentifiedGeocodeSet.has(currentAttribute.geocode)) {
+            if (!geoSet.has(currentAttribute.geocode) && !uniqueGeocodeSetForLocation.has(currentAttribute.geocode)) {
               const newGeo = this.domainFactory.createGeo(currentTas[i], currentAttribute.geocode, currentAttribute.longitude, currentAttribute.latitude, currentPoint.distance);
               geoSet.add(currentAttribute.geocode);
               newGeo.hhc = currentHHC;
