@@ -304,6 +304,7 @@ export class EsriPoiService {
     if (result.length > 0) {
       return merge(...result).pipe(
         reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),
+        take(1),
         tap(layers => this.logger.debug.log('Generated Radii Layers', layers))
         //tap(layers => this.zoomToRadiiTradeArea(defs))
       ).subscribe();

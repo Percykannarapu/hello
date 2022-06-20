@@ -191,10 +191,17 @@ export class PoiRenderingService {
     const updatedSetups: PoiConfiguration[] = [];
     renderingSetups.forEach(config => {
       if (config.poiType === PoiConfigurationTypes.Unique) {
-        const currentPois = poisByFeatureId[config.featureLayerId];
-        const existingFeatures = new Set<string>(currentPois.map(poi => poi.attributes[removeNonAlphaNumerics(config.featureAttribute)]));
-        config.breakDefinitions.forEach(b => b.isHidden = !existingFeatures.has(b.value));
-        updatedSetups.push(duplicatePoiConfiguration(config));
+        const currentConfig = duplicatePoiConfiguration(config);
+        const currentPois = poisByFeatureId[currentConfig.featureLayerId];
+        const existingFeatures = new Set<string>(currentPois.map(poi => poi.attributes[removeNonAlphaNumerics(currentConfig.featureAttribute)]));
+        let hasChange = false;
+        currentConfig.breakDefinitions.forEach(b => {
+          if (b.isHidden !== !existingFeatures.has(b.value)) {
+            b.isHidden = !existingFeatures.has(b.value);
+            hasChange = true;
+          }
+        });
+        if (hasChange) updatedSetups.push(currentConfig);
       }
     });
     if (updatedSetups.length > 0) {
