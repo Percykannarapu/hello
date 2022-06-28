@@ -20,7 +20,9 @@ export class EsriConfigService {
     let fullLayerName: string;
     if (isNil(usableLayerKey)) return null;
     if (usableLayerKey === LayerKeys.State) {
-      return `https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0`;
+      // this is the portal id for the Living Atlas entry on our local ArcGIS server, which has the destination url on the esri server.
+      // e.g. our local server acts as a redirect to the esri asset. This is a necessity since esri has renamed this asset at least once.
+      return '99fd67933e754a1181cc755146be21ca';
     } else if (usableLayerKey === LayerKeys.Wrap) {
       fullLayerName = `impower_${usableLayerKey}_boundary${simplifiedOrPOB ? '_simplified' : ''}`;
     } else if (analysisLayerKeys.has(usableLayerKey)) {

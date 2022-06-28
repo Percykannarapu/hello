@@ -3,6 +3,7 @@ import { select, Store } from '@ngrx/store';
 import {
   arrayToSet,
   filterArray,
+  getUuid,
   groupByExtended,
   isEmpty,
   isNil,
@@ -180,12 +181,13 @@ export class AppGeoService {
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
+    const transactionId = getUuid();
     this.logger.debug.log('Total number of location slices to process', locationChunks.length);
     for (const currentChunk of locationChunks) {
       const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
       const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
       queries.push(
-        this.queryService.queryPointWithBuffer(layerUrl, toUniversalCoordinates(currentChunk), maxRadius, false, centroidAttrs)
+        this.queryService.queryPointWithBuffer(layerUrl, toUniversalCoordinates(currentChunk), maxRadius, false, centroidAttrs, transactionId)
           .pipe(map(selections => this.calculateDistances(currentChunk, tradeAreaSet, selections)))
       );
     }
@@ -197,7 +199,7 @@ export class AppGeoService {
           this.store$.dispatch(new StopBusyIndicator({key}));
         },
         () => {
-
+          this.queryService.finalizeQuery(transactionId);
           const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
           this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);

@@ -228,7 +228,7 @@ export class EsriQueryService {
     );
   }
 
-  private finalizeQuery(transactionId: string) : void {
+  public finalizeQuery(transactionId: string) : void {
     this.layerService.removeQueryLayer(transactionId);
   }
 }
