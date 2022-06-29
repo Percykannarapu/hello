@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import Multipoint from '@arcgis/core/geometry/Multipoint';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
-import { chunkArray, getUuid, isNumberArray, isStringArray } from '@val/common';
+import { chunkArray, getUuid, isEmpty, isNil, isNumberArray, isStringArray } from '@val/common';
 import { EMPTY, from, merge, Observable } from 'rxjs';
 import { expand, filter, finalize, map, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
@@ -67,18 +67,22 @@ export class EsriQueryService {
     return result;
   }
 
-  private static getNextQuery(featureSet: __esri.FeatureSet, query: __esri.Query, maxStreams: number) : { result: __esri.FeatureSet, next: __esri.Query } {
+  private static getNextQuery(featureSet: __esri.FeatureSet, prevQuery: __esri.Query) : { result: __esri.FeatureSet, next: __esri.Query } {
     const result = {
       result: featureSet,
       next: null
     };
     if (featureSet.exceededTransferLimit) {
-      const recordCount = featureSet.features.length - 1;
-      const nextStartRecord = (query.start ?? 0) + ((query.num ?? recordCount) * (maxStreams ?? 1));
-      const nextQuery = query.clone();
-      nextQuery.num = query.num ?? recordCount;
-      nextQuery.start = nextStartRecord;
-      result.next = nextQuery;
+      const recordOffset = featureSet.features.length - 1;
+      const fetchCount = isNil(prevQuery.num) ? null : prevQuery.num - recordOffset;
+      if (fetchCount > 0) {
+        const nextQuery = prevQuery.clone();
+        nextQuery.num = fetchCount;
+        nextQuery.start = (prevQuery.start ?? 0) + recordOffset;
+        result.next = nextQuery;
+      } else {
+        console.warn('Exceeded transfer limit, but fetch count was 0');
+      }
     }
     return result;
   }
@@ -204,19 +208,20 @@ export class EsriQueryService {
       observables.push(this.paginateEsriQuery(layerUrl, query, transactionId, isLongLivedQueryLayer));
     }
     const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
-    return result$.pipe(
-      map(fs => fs.features),
-      tap(graphics => this.logger.debug.log(`Query returned ${graphics.length} results`))
-    );
+    return result$.pipe(map(fs => fs.features));
   }
 
-  private paginateEsriQuery(layerUrl: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean,  maxStreams: number = 1) : Observable<__esri.FeatureSet> {
+  private paginateEsriQuery(layerUrl: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
+    const usableQuery = query.clone();
+    usableQuery.returnExceededLimitFeatures = false;
+    if (isEmpty(usableQuery.orderByFields)) usableQuery.orderByFields = [ usableQuery.outFields[0] ?? 'geocode' ];
     const recursiveQuery$ = (url: string, q: __esri.Query) =>
-      this.executeFeatureQuery(url, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q, maxStreams)));
+      this.executeFeatureQuery(url, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
 
-    return recursiveQuery$(layerUrl, query).pipe(
+    return recursiveQuery$(layerUrl, usableQuery).pipe(
       expand(({result, next}) => next ? recursiveQuery$(layerUrl, next) : EMPTY),
-      map(({ result }) => result)
+      map(({ result }) => result),
+      tap(result => this.logger.debug.log(`Feature Query Complete with ${result.features.length} features returned.`))
     );
   }
 

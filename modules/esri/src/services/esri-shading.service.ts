@@ -217,7 +217,7 @@ export class EsriShadingService {
 
   private createGeneralizedRenderer(config: ShadingDefinition) : __esri.Renderer {
     const defaultSymbol = EsriShadingService.createSymbolFromDefinition(config.defaultSymbolDefinition);
-    const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
+    const defaultLabel = config.defaultSymbolDefinition?.legendName ?? '';
     switch (config.shadingType) {
       case ConfigurationTypes.ClassBreak:
         const classBreaks: __esri.ClassBreakInfoProperties[] = config.breakDefinitions.map(d => ({
@@ -262,6 +262,7 @@ export class EsriShadingService {
           valueExpressionTitle: config.layerName,
           stops
         };
+        defaultSymbol.color = null;
         const rampRenderer = EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
         rampRenderer.label = null;
         return rampRenderer;

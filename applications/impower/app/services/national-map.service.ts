@@ -39,6 +39,7 @@ import {
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { NationalAudienceModel } from '../common/models/audience-data.model';
+import { AnalysisLevel } from '../common/models/ui-enums';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { allAudiences } from '../impower-datastore/state/transient/audience/audience.selectors';
@@ -128,10 +129,12 @@ export class NationalMapService {
     });
   }
 
-  private createNationalLayer(config: ShadingDefinition, analysisLevel: string, audiences: Audience[]) : Observable<string> {
+  private createNationalLayer(config: ShadingDefinition, analysisLevelValue: string, audiences: Audience[]) : Observable<string> {
+    const analysisLevel = AnalysisLevel.parse(analysisLevelValue);
     const query = new Query({ returnGeometry: true, outFields: ['geocode'] });
     const layerUrl = this.esriService.getLayerUrl(config.layerKey, LayerTypes.Polygon, true);
-    const polygons$ = this.queryService.executeParallelQuery(layerUrl, query, 5000, 3).pipe(
+    const pageSize = analysisLevel === AnalysisLevel.PCR ? 2000 : 5000;
+    const polygons$ = this.queryService.executeParallelQuery(layerUrl, query, pageSize, 3).pipe(
       map(fs => fs.features),
       reduceConcat()
     );
@@ -147,7 +150,7 @@ export class NationalMapService {
     );
   }
 
-  private getAudienceData(config: ShadingDefinition, audiences: Audience[], analysisLevel: string) : Observable<NationalAudienceModel> {
+  private getAudienceData(config: ShadingDefinition, audiences: Audience[], analysisLevel: AnalysisLevel) : Observable<NationalAudienceModel> {
     const requestedAudiences = audiences.filter(a => a.audienceIdentifier === config.dataKey);
     const fetchableAudiences = audiences.filter(a => a.audienceSourceType !== 'Custom');
     if (requestedAudiences.some(a => a.audienceSourceType === 'Custom')) {
@@ -191,7 +194,7 @@ export class NationalMapService {
     copyrightToday.setDate(copyrightToday.getDate() + 14);
     const newRenderer = this.createNationalRenderer(config, varPk, currentStats);
     const layerProps: __esri.FeatureLayerProperties = {
-      fields: [{ name: 'esri_oid', alias: 'ObjectId', type: 'oid' }, { name: 'geocode', alias: 'Geocode', type: 'string' }, { name: `${varPk}`, alias: 'RenderData', type: dataType }],
+      fields: [{ name: 'esri_oid', alias: 'ObjectId', type: 'oid' }, { name: 'geocode', alias: 'Geocode', type: 'string' }, { name: `${varPk}`, alias: `${config.layerName}`, type: dataType }],
       title: config.layerName,
       copyright: varPk > 100 ? `Portions © 2006-${copyrightToday.getFullYear()} TomTom and Valassis DirectMail, Inc.` : null,
       popupEnabled: false,
@@ -263,7 +266,10 @@ export class NationalMapService {
           field: `${varPk}`,
           stops
         };
-        return EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
+        defaultSymbol.color = null;
+        const rampRenderer = EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
+        rampRenderer.label = null;
+        return rampRenderer;
       default:
         return null;
     }
