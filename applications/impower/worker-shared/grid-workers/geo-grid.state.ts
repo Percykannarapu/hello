@@ -230,10 +230,6 @@ export class GeoGridState {
     const currentAttribute = this.currentDataState.geoAttributes?.[currentGeo.geocode] ?? {};
     const currentVar = this.currentDataState.geoVars?.[currentGeo.geocode] ?? {};
     const cityAttr = `${currentAttribute[varPkMap.get('city_name')] ?? ''}`;
-    let cityName = '';
-    if (!isEmpty(cityAttr)) {
-      cityName = cityAttr.substring(0, 1).toUpperCase() + cityAttr.substring(1, cityAttr.length - 3).toLowerCase() + ' ' + cityAttr.substring(cityAttr.length - 2);
-    }
     const cpm = getCpmForGeo(currentAttribute, this.currentDataState.project);
     const isAllocated = currentGeo.isDeduped === 1;
     const audienceData = this.additionalAudienceColumns.reduce((acc, curr) => {
@@ -266,7 +262,7 @@ export class GeoGridState {
       distance: currentGeo.distance,
       geocode: currentGeo.geocode,
       geocodeTooltip,
-      geoName: cityName,
+      geoName: cityAttr,
       hhc: currentGeo.hhc,
       hhcAllocated: isAllocated ? currentGeo.hhc : 0,
       cpm: cpm,
