@@ -11,7 +11,7 @@
   </button>
   <div *ngIf="isToggle || isSelect" class="p-d-flex">
     <dropdown-input labelText="Client Locations" [options]="locationChoices" [includeUnselected]="false" [(ngModel)]="selectedLocation"></dropdown-input>
-    <button type="button" pButton label="Assign all geos to this Site" icon="pi pi-chevron-right" iconPos="right" (click)="selectParent(selectedLocation, true)">
+    <button type="button" pButton label="Assign {{hasMultipleTargets ? 'all geos' : 'this geo'}} to this Site" icon="pi pi-chevron-right" iconPos="right" (click)="selectParent(selectedLocation, true)">
     </button>
   </div>
   <button type="button" pButton label="Assign each Geo to nearest Site" icon="pi pi-check-circle"

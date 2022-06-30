@@ -67,18 +67,20 @@ export class ManualGeoService {
         geoLocationMap.set(closestSite, (geoLocationMap.get(closestSite) ?? []).concat([f]));
       });
     }
-    this.addGeosToManualTradeArea(geoLocationMap, currentProject);         // this will ignore existing features
-    this.setExistingGeoActiveFlag(features, currentProject, alwaysActive); // this will ignore new features
+    const newGeos = this.addGeosToManualTradeArea(geoLocationMap, currentProject);         // this will ignore existing features
+    this.setExistingGeoActiveFlag(features, currentProject, alwaysActive, newGeos);       // this will ignore new features
   }
 
-  public setExistingGeoActiveFlag(features: __esri.Graphic[], currentProject: ImpProject, isSelect: boolean) : void {
+  public setExistingGeoActiveFlag(features: __esri.Graphic[], currentProject: ImpProject, isSelect: boolean, newGeos?: string[]) : void {
     const geocodesToUse = features.filter(f => geoPassesFilter(f, currentProject)).map(f => f.attributes['geocode'] as string);
     const geoMap = groupByExtended(this.geoService.get(), g => g.geocode);
     if (isNil(isSelect)) {
       this.logger.debug.log(`Toggling ${geocodesToUse.length} geo isActive flags.`);
-      geocodesToUse.forEach(gc => {
-        geoMap.get(gc)?.forEach(geo => geo.isActive = !geo.isActive);
-      });
+       if(isEmpty(newGeos)){    // deselecting geos from Add/Remove Single geo tool
+          geocodesToUse.forEach(gc => {
+              geoMap.get(gc)?.forEach(geo => geo.isActive = !geo.isActive);
+          });
+       }
     } else {
       this.logger.debug.log(`Setting ${geocodesToUse.length} geo isActive flags to ${isSelect ? 'true' : 'false'}.`);
       geocodesToUse.forEach(gc => {
@@ -88,10 +90,11 @@ export class ManualGeoService {
     this.geoService.makeDirty();
   }
 
-  private addGeosToManualTradeArea(geoLocations: Map<ImpGeofootprintLocation, __esri.Graphic[]>, currentProject: ImpProject) : void {
+  private addGeosToManualTradeArea(geoLocations: Map<ImpGeofootprintLocation, __esri.Graphic[]>, currentProject: ImpProject) : string[] {
     const hhcField = `hhld_${currentProject.impGeofootprintMasters[0].methSeason?.toLowerCase() ?? 's'}`;
     const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
     const geosToAdd: ImpGeofootprintGeo[] = [];
+    const newlyAddedGeos: string[] = [];
     geoLocations.forEach((features, closestLocation) => {
       if (closestLocation != null) {
         const currentGeos = new Set(closestLocation.getImpGeofootprintGeos().map(geo => geo.geocode));
@@ -108,6 +111,7 @@ export class ManualGeoService {
             const newGeo = this.domainFactory.createGeo(tradeArea, feature.attributes['geocode'], featurePoint.x, featurePoint.y, distance, isAllowed);
             newGeo.hhc = toNullOrNumber(feature.attributes[hhcField]);
             geosToAdd.push(newGeo);
+            newlyAddedGeos.push(newGeo.geocode);
           }
         });
       }
@@ -117,6 +121,7 @@ export class ManualGeoService {
       this.logger.debug.log(`Adding ${geosToAdd.length} geos to manual trade area.`);
       this.geoService.add(geosToAdd);
     }
+    return newlyAddedGeos;
   }
 
   public setupManualGeoSelections(project$: Observable<ImpProject>, activeClients$: Observable<ImpGeofootprintLocation[]>, geos$: Observable<ImpGeofootprintGeo[]>) : Observable<DialogConfigData> {
