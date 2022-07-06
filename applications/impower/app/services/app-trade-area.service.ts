@@ -260,13 +260,13 @@ export class AppTradeAreaService {
 
   public zoomToTradeArea() {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const geoCount = this.stateService.uniqueIdentifiedGeocodes$.getValue().length;
+    const geoCount = this.stateService.uniqueSelectedGeocodes$.getValue().length;
 
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 && geoCount <= this.appConfig.maxGeosForPrecisionZoom) {
       // analysisLevel exists - zoom to Trade Area
       const layerUrl = this.esriService.getAnalysisBoundaryUrl(currentAnalysisLevel, true);
       if (layerUrl == null) return;
-      this.stateService.uniqueIdentifiedGeocodes$.pipe(
+      this.stateService.uniqueSelectedGeocodes$.pipe(
         filter(geos => geos != null && geos.length > 0),
         take(1),
         switchMap(geos => this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', geos, true)),
