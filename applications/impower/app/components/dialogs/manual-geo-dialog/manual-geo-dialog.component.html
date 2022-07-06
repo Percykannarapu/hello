@@ -3,10 +3,10 @@
   </p-message>
   <p-message text="Some of the selected geos do not conform to the filters set in Campaign Details" severity="warn" *ngIf="hasSomeFilterViolations">
   </p-message>
-  <button type="button" pButton label="Reselect all existing geos" icon="pi pi-check-circle"
+  <button type="button" pButton label="Reselect {{hasMultipleTargets ? 'all existing geos' : 'this existing geo'}} " icon="pi pi-check-circle"
           *ngIf="(isToggle || isSelect) && selectableTargetsExist" (click)="existingGeos(true)">
   </button>
-  <button type="button" pButton label="Deselect all existing geos" icon="pi pi-times-circle"
+  <button type="button" pButton label="Deselect {{hasMultipleTargets ? 'all existing geos' : 'this existing geo'}}" icon="pi pi-times-circle"
           *ngIf="(isToggle || !isSelect) && deSelectableTargetsExist" (click)="existingGeos(false)">
   </button>
   <div *ngIf="isToggle || isSelect" class="p-d-flex">
