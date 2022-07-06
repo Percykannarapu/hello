@@ -22,7 +22,7 @@ export enum AnalysisLevel {
 }
 
 export namespace AnalysisLevel {
-  export function parse(value: string) : AnalysisLevel {
+  export function parse(value: string, throwIfNotParsable: boolean = true) : AnalysisLevel {
     if (isNil(value)) return null;
     let result: AnalysisLevel = value?.toLowerCase() === 'digital atz' ? AnalysisLevel.DTZ : AnalysisLevel[value];
     if (isNil(result)) {
@@ -30,7 +30,7 @@ export namespace AnalysisLevel {
         if (isString(AnalysisLevel[key]) && value.toUpperCase() === AnalysisLevel[key].toUpperCase()) result = AnalysisLevel[key];
       }
     }
-    if (isNotNil(value) && isNil(result)) throw new Error(`Unknown Analysis Level: ${value}`);
+    if (isNotNil(value) && isNil(result) && throwIfNotParsable) throw new Error(`Unknown Analysis Level: ${value}`);
     return result;
   }
 }

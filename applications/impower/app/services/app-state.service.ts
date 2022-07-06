@@ -11,6 +11,7 @@ import {
   TradeAreaTypeCodes
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
+import { AnalysisLevel } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMetricVarEntities } from '../impower-datastore/state/transient/metric-vars/metric-vars.selectors';
@@ -48,6 +49,7 @@ export class AppStateService {
   public currentProject$: CachedObservable<ImpProject> = new BehaviorSubject<ImpProject>(null);
   public currentMaster$: CachedObservable<ImpGeofootprintMaster> = new BehaviorSubject<ImpGeofootprintMaster>(null);
   public analysisLevel$: CachedObservable<string> = new BehaviorSubject<string>(null);
+  public analysisLevelEnum$: CachedObservable<AnalysisLevel> = new BehaviorSubject<AnalysisLevel>(null);
   public taSiteMergeType$: CachedObservable<TradeAreaMergeTypeCodes> = new BehaviorSubject<TradeAreaMergeTypeCodes>(TradeAreaMergeTypeCodes.MergeEach);
   public taCompetitorMergeType$: CachedObservable<TradeAreaMergeTypeCodes> = new BehaviorSubject<TradeAreaMergeTypeCodes>(TradeAreaMergeTypeCodes.MergeEach);
   public projectId$: CachedObservable<number> = new BehaviorSubject<number>(null);
@@ -152,12 +154,19 @@ export class AppStateService {
       map(project => project.impGeofootprintMasters[0]),
     ).subscribe(this.currentMaster$ as BehaviorSubject<ImpGeofootprintMaster>);
 
-    this.projectService.currentNullableProject$.pipe(
+    const projectAnalysisString$ = this.projectService.currentNullableProject$.pipe(
       map(project => project == null ? null : project.methAnalysis),
-      distinctUntilChanged(),
+      distinctUntilChanged()
+    );
+
+    projectAnalysisString$.pipe(
       filter(analysisLevel => analysisLevel != null && analysisLevel.length > 0),
-      tap(analysisLevel => this.store$.dispatch(new ChangeAnalysisLevel({analysisLevel: analysisLevel})))
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
+
+    projectAnalysisString$.pipe(
+      map(als => AnalysisLevel.parse(als, false)),
+      tap(analysisLevel => this.store$.dispatch(ChangeAnalysisLevel({ analysisLevel: analysisLevel })))
+    ).subscribe(this.analysisLevelEnum$ as BehaviorSubject<AnalysisLevel>);
 
     // Setup trade area merge type subscriptions
     this.currentProject$.pipe(

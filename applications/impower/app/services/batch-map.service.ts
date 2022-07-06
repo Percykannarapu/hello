@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
 import { getUuid, groupByExtended, isConvertibleToNumber, isEmpty, isNil, UniversalCoordinates } from '@val/common';
-import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriConfigService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/common/models/User';
 import { ForceMapUpdate, MapViewUpdating, ResetForceMapUpdate, SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -14,7 +14,6 @@ import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
-import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { PrintJobAdminRequest, PrintJobAdminResponse, PrintJobPayload } from '../common/models/print-job.model';
