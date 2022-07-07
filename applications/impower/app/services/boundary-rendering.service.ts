@@ -199,6 +199,8 @@ export class BoundaryRenderingService {
           b.popupDefinition = currentDefaults.popupDefinition;
           b.isPrimarySelectableLayer = currentDefaults.isPrimarySelectableLayer;
           b.sortOrder = currentDefaults.sortOrder;
+          b.hasCentroids = currentDefaults.hasCentroids;
+          b.hasPOBs = currentDefaults.hasPOBs;
           result.set(b.layerKey, b);
         }
       });
