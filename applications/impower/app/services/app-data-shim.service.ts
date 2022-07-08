@@ -19,7 +19,7 @@ import {
 } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { createExistingAudienceInstance } from '../common/models/audience-factories';
-import { ProjectFilterChanged } from '../common/models/ui-enums';
+import { AnalysisLevel, ProjectFilterChanged } from '../common/models/ui-enums';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
@@ -191,7 +191,7 @@ export class AppDataShimService {
       if (sd.dataKey === 'selection-shading') hasSelectedGeoLayer = true;
     });
     if (!hasSelectedGeoLayer) {
-      const selectionShading = this.appRendererService.createSelectionShadingDefinition(project.methAnalysis, false);
+      const selectionShading = this.appRendererService.createSelectionShadingDefinition(AnalysisLevel.parse(project.methAnalysis), false);
       selectionShading.sortOrder = 0;
       shadingDefinitions.push(selectionShading);
     }

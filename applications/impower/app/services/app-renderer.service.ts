@@ -29,7 +29,7 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { TradeAreaTypeCodes } from 'worker-shared/data-model/impower.data-model.enums';
-import { GfpShaderKeys } from '../common/models/ui-enums';
+import { AnalysisLevel, GfpShaderKeys } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
@@ -123,20 +123,21 @@ export class AppRendererService {
   }
 
   private setupAnalysisLevelWatcher() : void {
-    this.appStateService.analysisLevel$.pipe(
+    this.appStateService.analysisLevelEnum$.pipe(
       withLatestFrom(this.appStateService.applicationIsReady$, this.store$.select(getBatchMode)),
-      filter(([al, ready, isBatchMode]) => al != null && ready && !isBatchMode),
+      filter(([al, ready, isBatchMode]) => isNotNil(al) && ready && !isBatchMode),
       map(([al]) => al),
       distinctUntilChanged(),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([al, project]) => {
       const shadingDefinitions = this.getShadingDefinitions(project);
       shadingDefinitions.forEach(sd => {
-        if (al !== 'PCR' && sd.dataKey === GfpShaderKeys.PcrIndicator){
+        if (sd.useLocalGeometry) return;
+        if (al !== AnalysisLevel.PCR && sd.dataKey === GfpShaderKeys.PcrIndicator) {
           this.esriShaderService.deleteShader(sd);
-        }else
+        } else {
           this.updateForAnalysisLevel(sd, al, true);
-
+        }
       });
       if (shadingDefinitions.length === 0) {
         shadingDefinitions.push(this.createSelectionShadingDefinition(al, false));
@@ -374,19 +375,20 @@ export class AppRendererService {
     const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.getVal() === 'Selected Geos only').length > 0;
     const paletteKey = legacyPrefs.filter(p => p.pref === 'Theme')[0];
     const legacyTheme = paletteKey != null ? ColorPalette[paletteKey.getVal()] : ColorPalette.EsriPurple;
-    const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
+    const currentAnalysisEnum = AnalysisLevel.parse(project.methAnalysis);
+    const selectionDefinition = this.createSelectionShadingDefinition(currentAnalysisEnum, shadingData.length > 0);
     let indexOffset = 1;
     if (shadingData.length === 0 || !isFiltered) {
       result.push(selectionDefinition);
       indexOffset = 2;
     }
     shadingData.forEach((sd, index) => {
-      result.push(this.createVariableShadingDefinition(sd, project.methAnalysis, isFiltered, index + indexOffset, legacyTheme));
+      result.push(this.createVariableShadingDefinition(sd, currentAnalysisEnum, isFiltered, index + indexOffset, legacyTheme));
     });
     return result;
   }
 
-  public createSelectionShadingDefinition(analysisLevel: string, isAlsoShaded: boolean) : ShadingDefinition {
+  public createSelectionShadingDefinition(analysisLevel: AnalysisLevel, isAlsoShaded: boolean) : ShadingDefinition {
     const result: ShadingDefinition = {
       id: getUuid(),
       dataKey: 'selection-shading',
@@ -410,7 +412,7 @@ export class AppRendererService {
     return result;
   }
 
-  private createVariableShadingDefinition(projectVar: ImpProjectVar, analysisLevel: string, isFiltered: boolean, index: number, theme: ColorPalette) : ShadingDefinition {
+  private createVariableShadingDefinition(projectVar: ImpProjectVar, analysisLevel: AnalysisLevel, isFiltered: boolean, index: number, theme: ColorPalette) : ShadingDefinition {
     const isNumeric = projectVar.fieldconte !== 'CHAR';
     const result: Partial<ShadingDefinition> = {
       id: getUuid(),
@@ -438,10 +440,10 @@ export class AppRendererService {
     return result as ShadingDefinition;
   }
 
-  updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string, isNewAnalysisLevel: boolean = false) : void {
+  updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: AnalysisLevel, isNewAnalysisLevel: boolean = false) : void {
     const layerKey = LayerKeys.parse(newAnalysisLevel);
     const layerData = this.boundaryRenderingService.getLayerSetupInfo(layerKey);
-    const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
+    const newSelectedLayerName = `Selected ${AnalysisLevel.friendlyName(newAnalysisLevel)}s`;
     if (definition.layerKey == null || isNewAnalysisLevel) {
       definition.layerKey = layerKey;
       definition.minScale = layerData.batchMinScale;
