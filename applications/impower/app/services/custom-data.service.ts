@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { arrayToSet, isConvertibleToNumber, isEmpty, isNotNil, isString, mapByExtended } from '@val/common';
-import { EsriQueryService } from '@val/esri';
+import { EsriConfigService, EsriQueryService, LayerTypes } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
-import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { customAudienceFileParser, CustomDataRow } from '../common/file-parsing-rules';
 import { AudienceDataDefinition } from '../common/models/audience-data.model';
@@ -73,8 +72,8 @@ export class CustomDataService {
   }
 
   private validateGeos(data: CustomDataRow[], header: string) : boolean {
-    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const portalLayerId = this.esriService.getAnalysisBoundaryUrl(currentAnalysisLevel, false);
+    const currentAnalysisLevel = this.stateService.analysisLevelEnum$.getValue();
+    const portalLayerId = this.esriService.getLayerUrl(currentAnalysisLevel, LayerTypes.Point);
     const outfields = ['geocode'];
     const uniqueGeos = arrayToSet(data.map(d => d.geocode));
     if (uniqueGeos.size !== data.length) {

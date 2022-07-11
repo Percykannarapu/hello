@@ -10,7 +10,7 @@ import { Injectable } from '@angular/core';
 import { Dictionary } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNil, isString } from '@val/common';
-import { EsriQueryService } from '@val/esri';
+import { EsriConfigService, EsriQueryService, LayerTypes } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
@@ -19,7 +19,6 @@ import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-v
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 import { asyncScheduler, BehaviorSubject, EMPTY, Observable, of, scheduled, throwError } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
-import { EsriConfigService } from '../../../../../../modules/esri/src/services/esri-config.service';
 import { WorkerResponse, WorkerResult } from '../../../../worker-shared/common/core-interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import {
@@ -321,7 +320,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const queryResultMap = new Map<string, {latitude: number, longitude: number}>();
           if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
             const effectiveAnalysisLevel = AnalysisLevel.parse(fileAnalysisLevel ?? analysisLevel);
-            const layerUrl = this.esriConfig.getAnalysisBoundaryUrl(effectiveAnalysisLevel, false);
+            const layerUrl = this.esriConfig.getLayerUrl(effectiveAnalysisLevel, LayerTypes.Point);
 
             return this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
                map(graphics => graphics.map(g => g.attributes)),

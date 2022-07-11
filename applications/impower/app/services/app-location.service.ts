@@ -16,7 +16,7 @@ import {
   toNullOrNumber,
   toUniversalCoordinates
 } from '@val/common';
-import { EsriConfigService, EsriLayerService, EsriMapService, EsriQueryService, LayerKeys } from '@val/esri';
+import { EsriConfigService, EsriLayerService, EsriMapService, EsriQueryService, LayerKeys, LayerTypes } from '@val/esri';
 import { ErrorNotification, MessageBoxService, WarningNotification } from '@val/messaging';
 import { getBatchMode } from 'app/state/batch-map/batch-map.selectors';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -398,7 +398,7 @@ export class AppLocationService {
       const requestToCall: Array<Observable<__esri.Graphic[]>> = [];
       let call: Observable<__esri.Graphic[]>;
       editedTags.forEach((tag) => {
-        const currentUrl = this.esriConfig.getAnalysisBoundaryUrl(tag, true);
+        const currentUrl = this.esriConfig.getLayerUrl(tag, LayerTypes.Point);
         call = this.queryService.queryAttributeIn(currentUrl, 'geocode', [attributes[0][tagToFieldName[tag]]], false, ['geocode']);
         requestToCall.push(call);
       });

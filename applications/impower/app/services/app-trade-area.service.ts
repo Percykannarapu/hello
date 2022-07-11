@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, toNullOrNumber, toUniversalCoordinates } from '@val/common';
-import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriConfigService, EsriMapService, EsriQueryService, EsriUtils, LayerTypes } from '@val/esri';
 import { getBatchMode } from 'app/state/batch-map/batch-map.selectors';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { getTypedBatchQueryParams } from 'app/state/shared/router.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
-import { EsriConfigService } from '../../../../modules/esri/src/services/esri-config.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { AnalysisLevel } from '../common/models/ui-enums';
@@ -355,7 +354,7 @@ export class AppTradeAreaService {
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
 
         const effectiveAnalysisLevel = AnalysisLevel.parse(fileAnalysisLevel ?? currentAnalysisLevel);
-        const layerUrl = this.esriService.getAnalysisBoundaryUrl(effectiveAnalysisLevel, true);
+        const layerUrl = this.esriService.getLayerUrl(effectiveAnalysisLevel, LayerTypes.Point);
         this.esriQueryService.queryAttributeIn(layerUrl, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
           map(graphics => graphics.map(g => g.attributes)),
           map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
