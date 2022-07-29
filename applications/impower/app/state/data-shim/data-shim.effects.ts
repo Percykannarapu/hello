@@ -168,7 +168,7 @@ export class DataShimEffects {
     ofType<TradeAreaRollDownGeos>(DataShimActionTypes.TradeAreaRollDownGeos),
     switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
       map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.matchedTradeAreas, action.payload.fileAnalysisLevel)),
-      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos, action.payload.siteType)),
+      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos, action.payload.siteType, action.payload.isResubmit)),
       map(failedGeos => new RollDownGeosComplete({failedGeos : failedGeos, isResubmit: action.payload.isResubmit, rollDownType: 'TRADEAREA'}))
     ))
   );
