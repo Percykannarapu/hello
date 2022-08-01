@@ -315,7 +315,7 @@ export class BatchMapRequestComponent implements OnInit {
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
       this.currentProjectName = p.projectName;
-      this.batchMapForm.patchValue({titleInput: this.currentProjectName});
+      // this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
     });
     this.appLocationService.siteLabelOptions$.subscribe( (list: SelectItem[]) => {
