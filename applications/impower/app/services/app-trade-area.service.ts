@@ -471,12 +471,15 @@ export class AppTradeAreaService {
     return { failedGeos, payload };
   }
 
-  public persistRolldownTAGeos(payload: any[], failedGeos: any[], siteType: SuccessfulLocationTypeCodes){
+  public persistRolldownTAGeos(payload: any[], failedGeos: any[], siteType: SuccessfulLocationTypeCodes, isResubmit?: boolean){
     const geosToAdd: ImpGeofootprintGeo[] = [];
+    let geosToDelete: ImpGeofootprintGeo[] = [];
     const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get().filter(site => site.clientLocationTypeCode === siteType);
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
-    const geosToDelete = Array.from(this.impGeoService.get());
+    if(!isResubmit){
+      geosToDelete = Array.from(this.impGeoService.get());
+    }
     const customTAGeoMap = new Map<string, Set<string>>();
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
