@@ -245,7 +245,7 @@ export class AppDataShimService {
       const extent = (project.impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0];
       if (extent != null) {
         const parsedJson = JSON.parse(extent.largeVal || extent.val);
-        this.mapService.mapView.extent = Extent.fromJSON(parsedJson);
+        this.mapService.moveToExtent(Extent.fromJSON(parsedJson));
       } else {
         this.appTradeAreaService.zoomToTradeArea();
       }

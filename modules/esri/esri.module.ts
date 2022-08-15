@@ -4,6 +4,7 @@ import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
+import { BlockUIModule } from 'primeng/blockui';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
@@ -21,6 +22,7 @@ import {
   provideEsriLoaderOptions
 } from './esri-module-factories';
 import { EsriGeographyPopupComponent } from './src/components/esri-geography-popup/esri-geography-popup.component';
+import { EsriInvalidOverlayComponent } from './src/components/esri-invalid-overlay/esri-invalid-overlay.component';
 import { EsriLabelConfigComponent } from './src/components/esri-map-panel/esri-label-config/esri-label-config.component';
 import { EsriMapPanelComponent } from './src/components/esri-map-panel/esri-map-panel.component';
 import { EsriMapComponent } from './src/components/esri-map-panel/esri-map/esri-map.component';
@@ -52,26 +54,28 @@ const allEffects = [
 const PUBLIC_COMPONENTS = [
   EsriMapComponent,
   EsriMapPanelComponent,
-  EsriGeographyPopupComponent
+  EsriGeographyPopupComponent,
+  EsriInvalidOverlayComponent,
 ];
 
 @NgModule({
-    imports: [
-        StoreModule.forFeature('esri', masterEsriReducer),
-        CommonModule,
-        HttpClientModule,
-        TreeTableModule,
-        ToolbarModule,
-        OverlayPanelModule,
-        ButtonModule,
-        DropdownModule,
-        InputSwitchModule,
-        FormsModule,
-        EffectsModule.forFeature(allEffects),
-        TooltipModule,
-        ProgressSpinnerModule,
-        ProgressBarModule,
-    ],
+  imports: [
+    StoreModule.forFeature('esri', masterEsriReducer),
+    CommonModule,
+    HttpClientModule,
+    TreeTableModule,
+    ToolbarModule,
+    OverlayPanelModule,
+    ButtonModule,
+    DropdownModule,
+    InputSwitchModule,
+    FormsModule,
+    EffectsModule.forFeature(allEffects),
+    TooltipModule,
+    ProgressSpinnerModule,
+    ProgressBarModule,
+    BlockUIModule,
+  ],
   declarations: [
     EsriToolbarComponent,
     EsriLabelConfigComponent,

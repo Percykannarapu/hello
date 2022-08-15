@@ -39,14 +39,14 @@ export class AppMapService {
       this.mapService.mapView.ui.remove('zoom');
       return;
     }
-    // setup the map widgets
+    // set up the map widgets
     this.mapService.createBasicWidget(Home, { viewpoint: homeView });
     this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'map-ui' });
     const source = EsriDomainFactory.createPortalBasemapSource(this.config.portalBaseMapNames);
     this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'map-ui' }, 'bottom-left');
     this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-    EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
+    EsriUtils.setupWatch(this.mapService.map, 'basemap').subscribe(val => this.zone.run(() => {
       this.appProjectPrefService.createPref('esri', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
     }));
     EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => this.zone.run(() => {
