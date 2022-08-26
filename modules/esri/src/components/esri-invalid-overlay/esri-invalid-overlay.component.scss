@@ -1,0 +1,9 @@
+@import "~assets/esri-variables";
+
+.gl-error {
+  color: $esriGlErrorTextColor;
+}
+.button-container {
+  display: flex;
+  justify-content: center;
+}

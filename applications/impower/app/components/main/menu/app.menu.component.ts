@@ -2,6 +2,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isNotNil, isString } from '@val/common';
+import { EsriMapService } from '@val/esri';
 import { ErrorNotification, MessageBoxService, SuccessNotification } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
@@ -21,7 +22,8 @@ import {
   ExportGeofootprint,
   ExportLocations,
   ExportToValassisDigital,
-  SaveAndReloadProject, SaveThenLoadProject
+  SaveAndReloadProject,
+  SaveThenLoadProject
 } from '../../../state/menu/menu.actions';
 import { ImpProject } from '../../../val-modules/targeting/models/ImpProject';
 import { BatchMapAdminComponent } from '../../dialogs/batch-map-admin/batch-map-admin.component';
@@ -52,6 +54,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               private dialogService: DialogService,
               private messageService: MessageBoxService,
               private batchService: BatchMapService,
+              private esriMapService: EsriMapService,
               private projectPrefService: AppProjectPrefService) {
   }
 
@@ -148,6 +151,12 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           icon   : PrimeIcons.INFO_CIRCLE,
           command: () => this.getBatchMapAdminStats(),
           visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'])
+        },
+        {
+          label  : 'Force Invalid Map',
+          icon   : PrimeIcons.EXCLAMATION_CIRCLE,
+          command: () => this.esriMapService.forceDetachError(),
+          visible: false
         }
       ];
       this.isLoggedIn = true;

@@ -76,8 +76,8 @@ export class EsriLayerService {
   }
 
   public clearClientLayers(groupName: string) : void {
-    if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
-    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    if (this.mapService.mapView == null || this.mapService.map == null || this.mapService.map.layers == null) return;
+    const group = this.mapService.map.layers.find(l => l.title === groupName);
     this.logger.debug.log('Clearing', groupName, 'layer');
     if (isGroupLayer(group)) {
       this.logger.info.log('Group found, removing layers');
@@ -86,22 +86,22 @@ export class EsriLayerService {
       });
       this.refreshLayerTracker();
       group.layers.removeAll();
-      this.mapService.mapView.map.layers.remove(group);
+      this.mapService.map.layers.remove(group);
     }
   }
 
   public groupExists(groupName: string) : boolean {
-    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    const group = this.mapService.map.layers.find(l => l.title === groupName);
     return isGroupLayer(group);
   }
 
   public portalGroupExists(groupName: string) : boolean {
-    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
+    const group = this.mapService.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
     return isGroupLayer(group);
   }
 
   public getGroup(groupName: string) : __esri.GroupLayer {
-    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    const group = this.mapService.map.layers.find(l => l.title === groupName);
     if (isGroupLayer(group)) {
       return group;
     }
@@ -109,7 +109,7 @@ export class EsriLayerService {
   }
 
   public getPortalGroup(groupName: string) : __esri.GroupLayer {
-    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
+    const group = this.mapService.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
     if (isGroupLayer(group)) {
       return group;
     }
@@ -117,15 +117,15 @@ export class EsriLayerService {
   }
 
   public getLayer(layerName: string) : __esri.Layer {
-    return this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+    return this.mapService.map.allLayers.find(l => l.title === layerName);
   }
 
   public getLayerByUniqueId(layerUniqueId: string) : __esri.Layer {
-    return this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
+    return this.mapService.map.allLayers.find(l => l.id === layerUniqueId);
   }
 
   public getFeatureLayerByUniqueId(layerUniqueId: string) : __esri.FeatureLayer {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
+    const layer = this.mapService.map.allLayers.find(l => l.id === layerUniqueId);
     if (isFeatureLayer(layer)) {
       return layer;
     }
@@ -133,7 +133,7 @@ export class EsriLayerService {
   }
 
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+    const layer = this.mapService.map.allLayers.find(l => l.title === layerName);
     if (isFeatureLayer(layer)) {
       return layer;
     }
@@ -174,7 +174,7 @@ export class EsriLayerService {
 
   public getPortalLayersById(portalId: string) : __esri.FeatureLayer[] {
     const result = [];
-    for (const l of this.mapService.mapView.map.allLayers.toArray()) {
+    for (const l of this.mapService.map.allLayers.toArray()) {
       if (isFeatureLayer(l)) {
         if (isPortalFeatureLayer(l) && l.portalItem.id === portalId && !l.title.startsWith('Query Layer')) result.push(l);
         if (l.url != null && l.url.startsWith(portalId) && !l.title.startsWith('Query Layer')) result.push(l);
@@ -190,7 +190,7 @@ export class EsriLayerService {
         this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
-        this.mapService.mapView.map.layers.remove(layer);
+        this.mapService.map.layers.remove(layer);
       }
       this.layerStatusTracker.delete(layer.id);
       this.refreshLayerTracker();
@@ -206,7 +206,7 @@ export class EsriLayerService {
         });
         this.refreshLayerTracker();
       }
-      this.mapService.mapView.map.layers.remove(currentGroup);
+      this.mapService.map.layers.remove(currentGroup);
     }
   }
 
@@ -227,7 +227,7 @@ export class EsriLayerService {
       listMode: 'show',
       visible: isVisible
     });
-    this.mapService.mapView.map.layers.add(group, sortOrder);
+    this.mapService.map.layers.add(group, sortOrder);
     return group;
   }
 
@@ -240,9 +240,9 @@ export class EsriLayerService {
 
     });
     if (bottom) {
-      this.mapService.mapView.map.layers.unshift(group);
+      this.mapService.map.layers.unshift(group);
     } else {
-      this.mapService.mapView.map.layers.add(group);
+      this.mapService.map.layers.add(group);
     }
     return group;
   }
@@ -410,12 +410,12 @@ export class EsriLayerService {
     this.logger.debug.log('Query Layer Attributes:', attributes);
     const result = new FeatureLayer(attributes);
     this.queryOnlyLayers.set(queryId, result);
-    this.mapService.mapView.map.add(result);
+    this.mapService.map.add(result);
     return result;
   }
 
   private trackLayerStatus(layer: __esri.Layer) : void {
-    if (this.mapService.mapView.map.allLayers.includes(layer)) {
+    if (this.mapService.map.allLayers.includes(layer)) {
       this.mapService.mapView.whenLayerView(layer).then(view => {
           if (view != null) {
             const watch$ = EsriUtils.setupWatch(view, 'updating', true).pipe(

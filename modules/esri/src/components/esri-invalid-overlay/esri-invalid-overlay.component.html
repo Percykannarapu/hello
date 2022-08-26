@@ -1,0 +1,10 @@
+<p-blockUI [blocked]="isInvalid$ | async">
+  <div>
+    <h3 class="gl-error">
+      ImPower has encountered an internal error.
+    </h3>
+    <div class="button-container">
+      <p-button id="btn-gl-context-recover" label="Click Here to Recover" (onClick)="recover()"></p-button>
+    </div>
+  </div>
+</p-blockUI>

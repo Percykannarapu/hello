@@ -66,7 +66,7 @@ export class EsriService {
         newBoundaries.forEach(b => {
           if (!completedGroups.has(b)) {
             const group = this.layerService.getGroup(b);
-            this.mapService.mapView.map.layers.reorder(group, sortOrder++);
+            this.mapService.map.layers.reorder(group, sortOrder++);
             completedGroups.add(b);
           }
         });
@@ -74,7 +74,7 @@ export class EsriService {
         newPois.forEach(p => {
           if (!completedGroups.has(p)) {
             const group = this.layerService.getGroup(p);
-            this.mapService.mapView.map.layers.reorder(group, sortOrder++);
+            this.mapService.map.layers.reorder(group, sortOrder++);
             completedGroups.add(p);
           }
         });

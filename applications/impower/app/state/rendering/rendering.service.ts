@@ -63,7 +63,7 @@ export class RenderingService {
   }
 
   clearTradeAreas() : void {
-    const layersToRemove = this.esriMapService.mapView.map.allLayers.toArray()
+    const layersToRemove = this.esriMapService.map.allLayers.toArray()
       .filter(l => l.title !== null && (l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius')));
     this.renderedDefinitionMap.clear();
     this.logger.debug.log('Removing', layersToRemove.length, 'layers');

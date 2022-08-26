@@ -234,7 +234,7 @@ export class BatchMapService {
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const locations = [ ...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Site) ];
+    const locations = [ ...project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site) ];
     locations.sort(LocationBySiteNum);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
     const result = { siteNum: locations[locations.length - 1].locationNumber, isLastSite: true };
@@ -245,7 +245,7 @@ export class BatchMapService {
   }
 
   zoomToCurrentView(project: ImpProject, params: BatchMapQueryParams){
-    const locations = [ ...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Site) ];
+    const locations = [ ...project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site) ];
     locations.sort(LocationBySiteNum);
     const extent: ExtentPayload = {
       spatialReference: {
@@ -256,11 +256,8 @@ export class BatchMapService {
       xmax: Number(params.xmax),
       ymax: Number(params.ymax)
     };
-    this.esriMapService.mapView.extent = Extent.fromJSON(extent);
-    // const coords = {x: Extent.fromJSON(extent).center.x, y: Extent.fromJSON(extent).center.y};
-    // this.esriMapService.zoomToPoints([coords]);
-    // this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
-    this.esriMapService.mapView.zoom =  this.esriMapService.mapView.zoom + 1 ;
+    this.esriMapService.moveToExtent(Extent.fromJSON(extent));
+    this.esriMapService.zoomIn();
     this.store$.dispatch(new ForceMapUpdate());
     return of({ siteNum: locations[locations.length - 1].locationNumber, isLastSite: true });
   }
@@ -291,7 +288,7 @@ export class BatchMapService {
         currentSiteForZoom = currentSite;
         currentGeosForZoom = currentSite.getImpGeofootprintGeos();
         if (params.hideNeighboringSites) {
-          const renderLocs = [...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Competitor)];
+          const renderLocs = [...project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Competitor)];
           renderLocs.push(currentSite);
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));

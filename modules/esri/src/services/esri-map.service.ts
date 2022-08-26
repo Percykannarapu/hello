@@ -10,8 +10,8 @@ import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import Expand from '@arcgis/core/widgets/Expand';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
-import { BehaviorSubject, combineLatest, from, Observable, of, throwError } from 'rxjs';
+import { calculateStatistics, expandRange, isNil, isNotNil, Statistics, UniversalCoordinates } from '@val/common';
+import { BehaviorSubject, combineLatest, from, Observable, of, Subject, Subscription, throwError } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken, esriZoomLocalStorageKey } from '../configuration';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -32,11 +32,19 @@ function calculateExpandedStats(xData: number[], yData: number[], expansionAmoun
 @Injectable()
 export class EsriMapService {
 
+  public contextLost$ = new BehaviorSubject<boolean>(false);
   public mapIsStationary$: Observable<boolean> = new BehaviorSubject<boolean>(false);
   public viewsCanBeQueried$: Observable<boolean> = new BehaviorSubject<boolean>(false);
 
+  public map: __esri.Map;
   public mapView: __esri.MapView;
   public widgetMap: Map<string, __esri.Widget> = new Map<string, __esri.Widget>();
+
+  private primaryContainer: ElementRef;
+  private detachedViewLocation: __esri.Extent;
+  private mapViewSubscriptions: Subscription;
+
+  private forceDetachError$ = new Subject<void>();
 
   constructor(private logger: LoggingService,
               private store$: Store<AppState>,
@@ -46,38 +54,92 @@ export class EsriMapService {
     try {
       const newMapParams = Object.assign({}, this.config.defaultMapParams);
       newMapParams.basemap = Basemap.fromId(baseMapId);
-      const mapInstance = new EsriMap(newMapParams);
-      const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
-      newMapViewProps.container = container.nativeElement;
-      newMapViewProps.map = mapInstance;
-      newMapViewProps.resizeAlign = 'top-left';
-      const useShiftZoom = JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
-      newMapViewProps.navigation = {
-        mouseWheelZoomEnabled: !useShiftZoom
-      };
-      const mapView = new MapView(newMapViewProps);
-      return from(mapView.when()).pipe(
-        tap(() => {
-          this.mapView = mapView;
-          this.setupMapSubscriptions();
-        })
-      );
+      this.map = new EsriMap(newMapParams);
+      this.primaryContainer = container;
+      return this.attachMap(container);
     } catch (e) {
       this.logger.error.log('Map Initialization encountered an error', e);
       return throwError(e);
     }
   }
 
+  attachMap(container?: ElementRef) : Observable<void> {
+    const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
+    newMapViewProps.container = (container ?? this.primaryContainer).nativeElement ;
+    newMapViewProps.map = this.map;
+    newMapViewProps.resizeAlign = 'top-left';
+    const useShiftZoom = JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
+    newMapViewProps.navigation = {
+      mouseWheelZoomEnabled: !useShiftZoom
+    };
+    if (isNotNil(this.detachedViewLocation)) {
+      newMapViewProps.center = null;
+      newMapViewProps.zoom = null;
+      newMapViewProps.extent = this.detachedViewLocation.clone();
+      this.detachedViewLocation = null;
+    }
+    const mapView = new MapView(newMapViewProps);
+    return from(mapView.when()).pipe(
+      tap(() => {
+        this.mapView = mapView;
+        this.contextLost$.next(false);
+        this.setupMapSubscriptions();
+      })
+    );
+  }
+
+  detachMap() : void {
+    if (isNotNil(this.mapView)) {
+      this.mapView.when().then(() => {
+        this.detachedViewLocation = this.mapView.extent.clone();
+        this.mapView.map = null;
+        this.mapView.destroy();
+      });
+    }
+  }
+
+  forceDetachError() : void {
+    this.forceDetachError$.next();
+  }
+
   private setupMapSubscriptions() : void {
-    this.watchMapViewProperty('stationary').pipe(
+    let errorCount = 0;
+    if (this.mapViewSubscriptions) this.mapViewSubscriptions.unsubscribe();
+    this.mapViewSubscriptions = this.watchMapViewProperty('stationary').pipe(
       debounceTime(500),
       map(result => result.newValue)
     ).subscribe(this.mapIsStationary$ as BehaviorSubject<boolean>);
 
     const selectedLayerIsReady$ = this.store$.select(selectors.getEsriSelectedLayer).pipe(distinctUntilChanged());
-    combineLatest([this.mapIsStationary$, selectedLayerIsReady$]).pipe(
-      map(([ready, layerId]) => ready && (layerId != null))
-    ).subscribe(this.viewsCanBeQueried$ as BehaviorSubject<boolean>);
+    this.mapViewSubscriptions.add(
+      combineLatest([this.mapIsStationary$, selectedLayerIsReady$]).pipe(
+        map(([ready, layerId]) => ready && (layerId != null))
+      ).subscribe(this.viewsCanBeQueried$ as BehaviorSubject<boolean>)
+    );
+
+    this.mapViewSubscriptions.add(
+      this.watchMapViewProperty('fatalError').pipe(
+        debounceTime(500),
+        tap(error => {
+          if (error) errorCount++;
+        })
+      ).subscribe(error => {
+        if (error) {
+          if (errorCount < 3) {
+            this.mapView.tryFatalErrorRecovery();
+          } else {
+            this.contextLost$.next(true);
+            this.detachMap();
+          }
+        }
+      })
+    );
+    this.mapViewSubscriptions.add(
+      this.forceDetachError$.subscribe(() => {
+        this.contextLost$.next(true);
+        this.detachMap();
+      })
+    );
   }
 
   zoomToPolys(polys: __esri.Graphic[], bufferPercent: number = 0.1) : Observable<void> {
@@ -105,6 +167,12 @@ export class EsriMapService {
     return this.zoomOnMap(xStats, yStats, points.length);
   }
 
+  moveToExtent(extent: __esri.Extent) : void {
+    if (isNotNil(this.mapView)) {
+      this.mapView.when().then(() => this.mapView.extent = extent);
+    }
+  }
+
   setBasemap(basemap: Basemap) : void {
     this.mapView.map.basemap = basemap;
   }
@@ -128,8 +196,14 @@ export class EsriMapService {
     }
   }
 
-  public zoomOut(){
-    this.mapView.zoom =  this.mapView.zoom - 2 ;
+  public zoomOut() : void {
+    if (isNil(this.mapView)) return;
+    this.mapView.zoom =  this.mapView.zoom - 1;
+  }
+
+  public zoomIn() : void {
+    if (isNil(this.mapView)) return;
+    this.mapView.zoom =  this.mapView.zoom + 1;
   }
 
   clearGraphics() : void {
