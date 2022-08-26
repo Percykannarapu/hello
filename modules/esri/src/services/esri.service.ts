@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import Basemap from '@arcgis/core/Basemap';
 import { Store } from '@ngrx/store';
-import { isString, mapArray } from '@val/common';
+import { isNotNil, isString, mapArray } from '@val/common';
 import { BehaviorSubject, combineLatest, of, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { BoundaryConfiguration } from '../models/boundary-configuration';
@@ -49,7 +49,7 @@ export class EsriService {
       this.mapService.viewsCanBeQueried$.pipe(
         filter(ready => ready),
         withLatestFrom(selectedLayerIsReady$),
-        switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId, false) : of([]))
+        switchMap(([, layerId]) => isNotNil(layerId) ? this.queryService.queryExtent(layerId, false) : of([]))
       ).subscribe(this.visibleFeatures$);
       const poiGroups$ = this.poiService.allPoiConfigurations$.pipe(
         filter(p => p != null && p.length > 0),
