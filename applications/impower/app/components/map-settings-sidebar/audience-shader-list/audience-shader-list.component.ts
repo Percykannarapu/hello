@@ -5,9 +5,9 @@ import { duplicateShadingDefinition, EsriShadingService, isArcadeCapableShadingD
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { FieldContentTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { createOfflineAudienceInstance } from '../../../common/models/audience-factories';
-import { GfpShaderKeys } from '../../../common/models/ui-enums';
+import { AnalysisLevel, GfpShaderKeys } from '../../../common/models/ui-enums';
+import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { UnifiedAudienceService } from '../../../services/unified-audience.service';
@@ -90,7 +90,8 @@ export class AudienceShaderListComponent implements OnInit, OnDestroy {
 
   applyDefinition(definition: ShadingDefinition) : void {
     const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
-    this.appRenderService.updateForAnalysisLevel(newDef, this.currentAnalysisLevel);
+    const analysisEnum = AnalysisLevel.parse(this.currentAnalysisLevel);
+    this.appRenderService.updateForAnalysisLevel(newDef, analysisEnum);
     const dedupedGeos = this.geos.filter(g => g.isDeduped === 1);
     switch (newDef.dataKey) {
       case GfpShaderKeys.Selection:

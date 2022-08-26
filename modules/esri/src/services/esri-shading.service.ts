@@ -271,7 +271,7 @@ export class EsriShadingService {
     }
   }
 
-  private deleteRenderingLayers(ids: string[]) {
+  public deleteRenderingLayers(ids: string[]) {
     ids.forEach(id => {
       const layer = this.layerService.getLayerByUniqueId(id);
       if (layer != null) this.layerService.removeLayer(layer);

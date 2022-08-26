@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import Query from '@arcgis/core/rest/support/Query';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import {
   collectStatistics,
@@ -9,6 +10,7 @@ import {
   isConvertibleToNumber,
   isEmpty,
   isNil,
+  isNotNil,
   reduceConcat,
   skipUntilFalseBecomesTrue,
   Statistics
@@ -34,10 +36,12 @@ import {
   RampProperties,
   RgbTuple,
   ShadingDefinition,
-  updateShadingDefinition
+  updateShadingDefinition,
+  updateShadingDefinitions
 } from '@val/esri';
+import { WarningNotification } from '@val/messaging';
 import { combineLatest, Observable } from 'rxjs';
-import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { NationalAudienceModel } from '../common/models/audience-data.model';
 import { AnalysisLevel } from '../common/models/ui-enums';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
@@ -79,13 +83,14 @@ export class NationalMapService {
   private initialize() : void {
     this.setupLayerCreationWatcher();
     this.setupLayerUpdateWatcher();
+    this.setupAnalysisLevelWatcher();
   }
 
   private setupLayerCreationWatcher() : void {
     const nationalDefs$ = this.store$.select(nationalShadingSelectors.layerDefsToCreate).pipe(
       filter(nationalDefs => nationalDefs.length > 0)
     );
-    const validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => !isEmpty(al)));
+    const validAnalysisLevel$ = this.appStateService.analysisLevelEnum$.pipe(filter(al => isNotNil(al)));
     nationalDefs$.pipe(
       withLatestFrom(validAnalysisLevel$, this.store$.select(allAudiences))
     ).subscribe(([defs, analysisLevel, audiences]) => {
@@ -129,8 +134,33 @@ export class NationalMapService {
     });
   }
 
-  private createNationalLayer(config: ShadingDefinition, analysisLevelValue: string, audiences: Audience[]) : Observable<string> {
-    const analysisLevel = AnalysisLevel.parse(analysisLevelValue);
+  private setupAnalysisLevelWatcher() : void {
+    const validDefinitions$ = this.store$.select(nationalShadingSelectors.layerDefsForUpdate);
+    this.appStateService.analysisLevelEnum$.pipe(
+      distinctUntilChanged(),
+      withLatestFrom(validDefinitions$),
+      filter(([al, defs]) => isNotNil(al) && !isEmpty(defs))
+    ).subscribe(([newAnalysisLevel, defs]) => {
+      const layerIds: string[] = [];
+      const updates: Update<ShadingDefinition>[] = [];
+      defs.forEach(d => {
+        this.layerStats.delete(d.destinationLayerUniqueId);
+        layerIds.push(d.destinationLayerUniqueId);
+        updates.push({ id: d.id, changes: { destinationLayerUniqueId: null }});
+      });
+      if (!isEmpty(layerIds)) this.shaderService.deleteRenderingLayers(layerIds);
+      if (newAnalysisLevel === AnalysisLevel.DTZ || newAnalysisLevel === AnalysisLevel.PCR) {
+        this.store$.dispatch(WarningNotification({ message: `National Map layers cannot be created at ${AnalysisLevel.friendlyName(newAnalysisLevel)} level`}));
+        this.shaderService.deleteShader(defs);
+      } else {
+        if (!isEmpty(updates)) {
+          this.store$.dispatch(updateShadingDefinitions({ shadingDefinitions: updates }));
+        }
+      }
+    });
+  }
+
+  private createNationalLayer(config: ShadingDefinition, analysisLevel: AnalysisLevel, audiences: Audience[]) : Observable<string> {
     const query = new Query({ returnGeometry: true, outFields: ['geocode'] });
     const layerUrl = this.esriService.getLayerUrl(config.layerKey, LayerTypes.Polygon, true);
     const pageSize = analysisLevel === AnalysisLevel.PCR ? 2000 : 5000;
