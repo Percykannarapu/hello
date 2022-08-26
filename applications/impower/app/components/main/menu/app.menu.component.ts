@@ -180,30 +180,38 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private openExistingProject() {
-    const ref = this.dialogService.open(ExistingProjectComponent, {
-      header: 'Existing Projects',
-      width: '90vw',
-      data: {
-        user: this.userService.getUser(),
-        hasExistingData: this.stateService.currentProject$.getValue().getImpGeofootprintLocations().length > 0
-      }
-    });
-    ref.onClose.pipe(take(1)).subscribe((result: ExistingProjectResponse) => {
-      if (isNotNil(result)) {
-        if (result.saveFirst) {
-          this.store$.dispatch(new SaveThenLoadProject({ projectToLoad: result.projectToLoad }));
-        } else {
-          this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: result.projectToLoad }));
+    if (this.stateService.networkIsOnline$.getValue()) {
+      const ref = this.dialogService.open(ExistingProjectComponent, {
+        header: 'Existing Projects',
+        width: '90vw',
+        data: {
+          user: this.userService.getUser(),
+          hasExistingData: this.stateService.currentProject$.getValue().getImpGeofootprintLocations().length > 0
         }
-      }
-    });
+      });
+      ref.onClose.pipe(take(1)).subscribe((result: ExistingProjectResponse) => {
+        if (isNotNil(result)) {
+          if (result.saveFirst) {
+            this.store$.dispatch(new SaveThenLoadProject({ projectToLoad: result.projectToLoad }));
+          } else {
+            this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: result.projectToLoad }));
+          }
+        }
+      });
+    } else {
+      this.store$.dispatch(ErrorNotification({ message: 'Projects cannot be loaded at this time', notificationTitle: 'ImPower is Offline'}));
+    }
   }
 
   private saveProject() {
     this.stateService.closeOverlays();
-    setTimeout(() => {
-      this.store$.dispatch(new SaveAndReloadProject());
-    }, 500);
+    if (this.stateService.networkIsOnline$.getValue()) {
+      setTimeout(() => {
+        this.store$.dispatch(new SaveAndReloadProject());
+      }, 500);
+    } else {
+      this.store$.dispatch(ErrorNotification({ message: 'Projects cannot be saved at this time', notificationTitle: 'ImPower is Offline'}));
+    }
   }
 
   private exportGeofootprint(selectedOnly: boolean) {
@@ -220,29 +228,37 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   private exportToValassisDigital() {
     const currentProject = this.stateService.currentProject$.getValue();
-    const ref = this.dialogService.open(SendSitesDigitalComponent, {
-      header: 'Send Sites to Valassis Digital',
-      width : '33vw',
-      data  : {
-        project: currentProject
-      }
-    });
-    ref.onClose.subscribe((result: boolean | string) => {
-      if (isString(result)) currentProject.clientIdentifierName = result;
-      if (result) {
-        this.store$.dispatch(new ExportToValassisDigital());
-      }
-    });
+    if (this.stateService.networkIsOnline$.getValue()) {
+      const ref = this.dialogService.open(SendSitesDigitalComponent, {
+        header: 'Send Sites to Valassis Digital',
+        width : '33vw',
+        data  : {
+          project: currentProject
+        }
+      });
+      ref.onClose.subscribe((result: boolean | string) => {
+        if (isString(result)) currentProject.clientIdentifierName = result;
+        if (result) {
+          this.store$.dispatch(new ExportToValassisDigital());
+        }
+      });
+    } else {
+      this.store$.dispatch(ErrorNotification({ message: 'Digital export cannot be completed at this time', notificationTitle: 'ImPower is Offline'}));
+    }
   }
 
   private exportCrossbowSites() {
-    this.dialogService.open(ExportCrossbowSitesComponent, {
-      header: 'Export Crossbow Site List',
-      width : '50vw',
-      data  : {
-        user: this.userService.getUser()
-      }
-    });
+    if (this.stateService.networkIsOnline$.getValue()) {
+      this.dialogService.open(ExportCrossbowSitesComponent, {
+        header: 'Export Crossbow Site List',
+        width : '50vw',
+        data  : {
+          user: this.userService.getUser()
+        }
+      });
+    } else {
+      this.store$.dispatch(ErrorNotification({ message: 'Crossbow export cannot be completed at this time', notificationTitle: 'ImPower is Offline'}));
+    }
   }
 
   private createBatchMap() {

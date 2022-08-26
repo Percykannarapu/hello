@@ -1,16 +1,17 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNil } from '@val/common';
+import { ErrorNotification } from '@val/messaging';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 import { ObservableWorker } from '../../../../worker-shared/common/core-interfaces';
 import { ValassisTreeNode } from '../../../../worker-shared/data-model/custom/treeview';
 import { TreeviewPayload, TreeViewResponse } from '../../../../worker-shared/treeview-workers/payloads';
+import { AudienceDataDefinition } from '../../../common/models/audience-data.model';
+import { User } from '../../../common/models/User';
 import { isValidChange } from '../../../common/ui-helpers';
 import { DeleteAudience } from '../../../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
-import { AudienceDataDefinition } from '../../../common/models/audience-data.model';
-import { User } from '../../../common/models/User';
 import { AppStateService } from '../../../services/app-state.service';
 import { UnifiedAudienceService } from '../../../services/unified-audience.service';
 import { UserService } from '../../../services/user.service';
@@ -114,16 +115,20 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public forceRefresh() : void {
-    this.loading = true;
-    this.currentNodes = [];
-    this.searchInput.reset();
-    this.includeFolder$.next(false);
-    this.nodeMap = {};
-    this.brokerResultMap = {};
-    const payload = this.createWorkerPayload(null, false, null, true);
-    this.brokers.forEach(broker => {
-      broker.sendNewMessage(payload);
-    });
+    if (this.appStateService.networkIsOnline$.getValue()) {
+      this.loading = true;
+      this.currentNodes = [];
+      this.searchInput.reset();
+      this.includeFolder$.next(false);
+      this.nodeMap = {};
+      this.brokerResultMap = {};
+      const payload = this.createWorkerPayload(null, false, null, true);
+      this.brokers.forEach(broker => {
+        broker.sendNewMessage(payload);
+      });
+    } else {
+      this.store$.dispatch(ErrorNotification({ message: 'You cannot refresh the audience lists at this time', notificationTitle: 'ImPower is Offline'}));
+    }
   }
 
   public nodeSelect(event: ValassisTreeNode) {

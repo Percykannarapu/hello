@@ -255,6 +255,12 @@ form.ng-touched {
       }
     }
   }
+  .p-datatable-scrollable-header-box {
+    padding-right: unset !important;
+  }
+  .p-datatable-scrollable-footer-box {
+    padding-right: unset !important;
+  }
 }
 
 .p-tree {

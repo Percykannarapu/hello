@@ -8,7 +8,7 @@ import { EsriMapService } from '../../../services/esri-map.service';
 import { LoggingService } from '../../../services/logging.service';
 import { AppState } from '../../../state/esri.reducers';
 import { selectors } from '../../../state/esri.selectors';
-import { Authenticate } from '../../../state/init/esri.init.actions';
+import { authenticate } from '../../../state/init/esri.init.actions';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
 
 @Component({
@@ -38,7 +38,7 @@ export class EsriMapComponent implements OnInit {
   }
 
   public ngOnInit() {
-    this.store$.dispatch(new Authenticate());
+    this.store$.dispatch(authenticate());
     this.store$.select(selectors.getEsriFeatureReady).pipe(
       filter(ready => ready),
       take(1)

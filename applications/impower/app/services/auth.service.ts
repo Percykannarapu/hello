@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { isArray, isNil } from '@val/common';
+import { isArray, isNil, isNotNil } from '@val/common';
 import { User } from 'app/common/models/User';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -9,8 +9,9 @@ import { LoggingService } from 'app/val-modules/common/services/logging.service'
 import { CookieService } from 'ngx-cookie-service';
 
 import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
-import { from, Observable, throwError } from 'rxjs';
+import { from, Observable, Subscription, throwError } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs/operators';
+import { networkIsOnline } from '../impower-datastore/state/application-state/application-state.selectors';
 import { UserService } from './user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +19,8 @@ export class AuthService implements CanActivate{
 
   private manager: UserManager = new UserManager(this.getClientSettings());
   private oidcUser: OIDCUser = null;
+
+  private onlineStatusSubscription: Subscription;
 
   constructor(private router: Router,
               private store$: Store<LocalAppState>,
@@ -90,6 +93,7 @@ export class AuthService implements CanActivate{
     this.logger.debug.log('App User retrieved from onelogin', oidcUser);
     const valUserName = isArray(oidcUser.profile.params) ? oidcUser.profile.params[0].sAmAccountName : oidcUser.profile.params.sAmAccountName;
     const fullToken = `${oidcUser.token_type} ${oidcUser.id_token}`;
+    this.trackOnlineStatus();
     return this.userService.fetchUserRecord(valUserName, fullToken).pipe(
       tap(appUser => {
         appUser.username = valUserName;
@@ -99,6 +103,27 @@ export class AuthService implements CanActivate{
         this.userService.setUser(appUser);
       })
     );
+  }
+
+  private trackOnlineStatus() : void {
+    if (isNotNil(this.onlineStatusSubscription)) this.onlineStatusSubscription.unsubscribe();
+    this.onlineStatusSubscription = this.store$.select(networkIsOnline).subscribe(isOnline => {
+      if (isOnline) {
+        // network restored
+        if (this.oidcUser.expired) {
+          // if the user has expired during the downtime, we have no choice but to do a full re-auth
+          this.logger.info.log('Network Online, but OneLogin token has expired. Restarting authorization.');
+          this.startAuthentication();
+        } else {
+          this.logger.info.log('Network Online, restarting OneLogin token refresh process.');
+          this.manager.startSilentRenew(); // restart the silent renewal process
+        }
+      } else {
+        // network is down
+        this.logger.info.log('Network Offline, suspending OneLogin token refresh process.');
+        this.manager.stopSilentRenew(); // prevent the silent renew process from firing
+      }
+    });
   }
 
   getClientSettings() : UserManagerSettings {

@@ -6,16 +6,12 @@ export function isConvertibleToInteger(value: any) : boolean {
   return isConvertibleToNumber(value) && isInteger(Number(value));
 }
 
-export function isFiniteNumber(value: any) : boolean {
-  return isNumber(value) && isFinite(value);
-}
-
 export function isPositive(value: any) : boolean {
   return isValidNumber(value) && value >= 0;
 }
 
 export function isInteger(value: any) : boolean {
-  return isValidNumber(value) && (value % 1) === 0;
+  return isValidNumber(value) && Number.isSafeInteger(Number(value));
 }
 
 export function isUndefined(value: any) : value is undefined {
@@ -26,14 +22,23 @@ export function isNull(value: any) : value is null {
   return value === null;
 }
 
+/**
+ * Checks if value is null or undefined
+ */
 export function isNil(value: any) : value is (null | undefined) {
   return isNull(value) || isUndefined(value);
 }
 
+/**
+ * Checks if value is neither null nor undefined
+ */
 export function isNotNil<T>(value: null | undefined | T) : value is T {
   return !isNull(value) && !isUndefined(value);
 }
 
+/**
+ * Checks if value is null, undefined, an empty string, or an empty array
+ */
 export function isEmpty(value: any) : value is (null | undefined | '' | []) {
   return isNil(value) || (isString(value) && value.trim().length === 0) || (isArray(value) && value.length === 0);
 }
@@ -42,8 +47,11 @@ export function isNumber(value: any) : value is number {
   return typeof value === 'number';
 }
 
+/**
+ * Checks if value is a non-null, non-undefined number that is also non-NaN and non-Infinite
+ */
 export function isValidNumber(value: any) : value is number {
-  return isNumber(value) && !isNaN(value); // isNumber will fail on null, isNaN fails on undefined
+  return isNotNil(value) && isNumber(value) && Number.isFinite(value);
 }
 
 export function isString(value: any) : value is string {

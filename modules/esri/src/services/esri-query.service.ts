@@ -135,7 +135,7 @@ export class EsriQueryService {
 
   public queryAttributeIn(layerUrl: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {
     const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
-    const dataStreams = chunkArray<string, number>(queryData, chunkSize);
+    const dataStreams: (string[] | number[])[] = chunkArray(queryData as any, chunkSize) as any;
     return this.queryAttributeChunksIn(layerUrl, queryField, dataStreams, returnGeometry, outFields, alternateTxId);
   }
 

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
+import { ApplicationStateEffects } from './state/application-state/application-state.effects';
 import { masterDataStoreReducer } from './state/impower-datastore.interfaces';
 import { PersistentEffects } from './state/persistent/persistent.effects';
 import { GeoAttributesEffects } from './state/transient/geo-attributes/geo-attributes.effects';
@@ -16,7 +17,8 @@ const allEffects = [
   GeoVarsEffects,
   MapVarsEffects,
   TransactionsEffects,
-  MetricVarsEffects
+  MetricVarsEffects,
+  ApplicationStateEffects
 ];
 
 @NgModule({

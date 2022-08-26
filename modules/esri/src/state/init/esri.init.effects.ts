@@ -1,69 +1,77 @@
 import { Inject, Injectable } from '@angular/core';
-import { Actions, Effect, ofType, OnInitEffects } from '@ngrx/effects';
-import { Action } from '@ngrx/store';
+import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
+import { Action, Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriConfigOptions, EsriLoaderToken } from '../../configuration';
 import { displayInitializationError, setupEsriConfig } from '../../core/esri-initialize';
 import { EsriAuthService } from '../../services/esri-auth.service';
 import { LoggingService } from '../../services/logging.service';
-import {
-  AuthenticateFailure,
-  AuthenticateSuccess,
-  EsriInitActionTypes,
-  Initialize,
-  InitializeComplete,
-  RefreshFailure,
-  RefreshSuccess,
-} from './esri.init.actions';
+import { AppState } from '../esri.reducers';
+import { internalSelectors } from '../esri.selectors';
+import * as fromInitActions from './esri.init.actions';
 
 @Injectable()
 export class EsriInitEffects implements OnInitEffects {
 
-  @Effect()
-  initialize$ = this.actions$.pipe(
-    ofType(EsriInitActionTypes.Initialize),
-    tap(() => setupEsriConfig(this.loadConfig)),
-    map(() => new InitializeComplete())
-  );
+  initialize$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.initialize),
+      tap(() => setupEsriConfig(this.loadConfig)),
+      map(() => fromInitActions.initializeComplete())
+    );
+  });
 
-  @Effect()
-  authenticate$ = this.actions$.pipe(
-    ofType(EsriInitActionTypes.Authenticate),
-    switchMap(() => this.authService.generateToken().pipe(
-      map(token => new AuthenticateSuccess({ tokenResponse: token })),
-      catchError(err => of(new AuthenticateFailure({ errorResponse: err })))
-    )),
-  );
+  authenticate$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.authenticate),
+      switchMap(() => this.authService.generateToken().pipe(
+        map(token => fromInitActions.authenticateSuccess({ tokenResponse: token })),
+        catchError(err => of(fromInitActions.authenticateFailure({ errorResponse: err })))
+      )),
+    );
+  });
 
-  @Effect()
-  refresh$ = this.actions$.pipe(
-    ofType(EsriInitActionTypes.TokenRefresh),
-    switchMap(() => this.authService.generateToken().pipe(
-      map(token => new RefreshSuccess({ tokenResponse: token })),
-      catchError(err => of(new RefreshFailure({ errorResponse: err })))
-    )),
-  );
+  refresh$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.tokenRefresh),
+      switchMap(() => this.authService.generateToken().pipe(
+        map(token => fromInitActions.refreshSuccess({ tokenResponse: token })),
+        catchError(err => of(fromInitActions.refreshFailure({ errorResponse: err })))
+      )),
+    );
+  });
 
-  @Effect({ dispatch: false })
-  register$ = this.actions$.pipe(
-    ofType<AuthenticateSuccess | RefreshSuccess>(EsriInitActionTypes.AuthenticateSuccess, EsriInitActionTypes.RefreshSuccess),
-    tap(action => this.authService.registerToken(action.payload.tokenResponse)),
-  );
+  register$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.authenticateSuccess, fromInitActions.refreshSuccess),
+      tap(action => this.authService.registerToken(action.tokenResponse)),
+    );
+  }, { dispatch: false });
 
-  @Effect({ dispatch: false })
-  authFailure$ = this.actions$.pipe(
-    ofType<AuthenticateFailure | RefreshFailure>(EsriInitActionTypes.AuthenticateFailure, EsriInitActionTypes.RefreshFailure),
-    tap(action => this.logger.error.log('There was an error authenticating or refreshing the Esri Api token', action.payload.errorResponse)),
-    tap(action => displayInitializationError(JSON.stringify(action.payload.errorResponse)))
-  );
+  authFailure$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.authenticateFailure, fromInitActions.refreshFailure),
+      tap(action => this.logger.error.log('There was an error authenticating or refreshing the Esri Api token', action.errorResponse)),
+      tap(action => displayInitializationError(JSON.stringify(action.errorResponse)))
+    );
+  }, { dispatch: false });
+
+  networkStatusChange$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(fromInitActions.changeNetworkStatus),
+      withLatestFrom(this.store$.select(internalSelectors.getEsriToken)),
+      tap(([{ isOnline }, token]) => this.authService.suspendOrRestoreRefresh(isOnline, token))
+    );
+  }, { dispatch: false });
 
   constructor(private actions$: Actions,
+              private store$: Store<AppState>,
               private logger: LoggingService,
               private authService: EsriAuthService,
               @Inject(EsriLoaderToken) private loadConfig: EsriConfigOptions) {}
 
   ngrxOnInitEffects() : Action {
-    return new Initialize();
+    return fromInitActions.initialize();
   }
 }

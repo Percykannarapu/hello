@@ -1,8 +1,9 @@
 import { Update } from '@ngrx/entity';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
-import { groupByExtended } from './array-utils';
+import { accumulateArrays, groupByExtended } from './array-utils';
 import { KeyedSet } from './keyed-set';
+import { isNil } from './type-checks';
 
 export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
@@ -16,15 +17,15 @@ export const mapArray = <T, U>(selector: (value: T, index: number, array: T[]) =
   );
 };
 
-export const distinctArray = <T>() => (source$: Observable<T[]>) : Observable<T[]> => {
+export const distinctArray = <T, K>(keySelector?: (value: T) => K) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
-    map(items => new Set(items)),
+    map(items => isNil(keySelector) ? new Set(items) : new KeyedSet(keySelector, items)),
     map(itemSet => Array.from(itemSet))
   );
 };
 
 /**
- * Filters an rxjs pipeline to prevent the flow of events until a non-zero value drops back down to 0.
+ * Filters an RXJS pipeline to prevent the flow of events until a non-zero value drops back down to 0.
  * If the value starts at zero it will still filter until the value leaves and then returns.
  * Will only fire once when the value reaches zero. To fire again, the value must leave and return again.
  */
@@ -38,7 +39,7 @@ export function skipUntilNonZeroBecomesZero() : (source$: Observable<number>) =>
 }
 
 /**
- * Filters an rxjs pipeline to prevent the flow of events until a boolean value transitions from false to true.
+ * Filters an RXJS pipeline to prevent the flow of events until a boolean value transitions from false to true.
  * If the value starts true it will still filter until the value leaves and then returns.
  * Will only fire once when the value becomes true. To fire again, the value must leave and return again.
  */
@@ -52,13 +53,13 @@ export function skipUntilFalseBecomesTrue() : (source$: Observable<boolean>) => 
 }
 
 /**
- * Reduces an rxjs pipeline with multiple return values (from a merge operation, for example)
+ * Reduces an RXJS pipeline with multiple return values (from a merge operation, for example)
  * This operation is for use with array responses from each of the individual streams that need to be
  * accumulated into a single array via an array concat operation.
  */
 export function reduceConcat<T>() : (source$: Observable<T[]>) => Observable<T[]> {
   return source$ => source$.pipe(
-    reduce((acc, val) => acc.concat(val), [] as T[])
+    reduce((acc, curr) => accumulateArrays(acc, curr), [] as T[])
   );
 }
 

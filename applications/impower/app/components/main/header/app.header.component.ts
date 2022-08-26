@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { MessageCenterData } from '@val/messaging';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
 import { MessageCenterComponent } from '../../../../../../modules/messaging/components/message-center/message-center.component';
 import { MessageCenterService } from '../../../../../../modules/messaging/core/message-center.service';
+import { AppStateService } from '../../../services/app-state.service';
 import { UserService } from '../../../services/user.service';
 import { ImpowerHelpComponent } from '../../dialogs/impower-help/impower-help.component';
 
@@ -15,7 +17,7 @@ import { ImpowerHelpComponent } from '../../dialogs/impower-help/impower-help.co
   styleUrls: ['./app.header.component.scss'],
   providers: [DialogService]
 })
-export class AppHeaderComponent implements OnInit {
+export class AppHeaderComponent implements OnInit, OnDestroy {
 
   username: string;
   helpLinkAddress = 'https://hcholdings.sharepoint.com/:f:/s/imPower/Em6CTrzdUlBFo5m26Dc-efgB3BWQgTRcDo9M5K2id-1m6Q?e=cGB1S6';
@@ -25,9 +27,15 @@ export class AppHeaderComponent implements OnInit {
   messageCenterMenu: MenuItem[];
   messageTip$: Observable<string>;
   messageCount$: Observable<number>;
+  isOnline$: Observable<boolean>;
 
-  constructor(private dialogService: DialogService,
+  private destroyed$ = new Subject<void>();
+  private titleSub: Subscription;
+
+  constructor(private appStateService: AppStateService,
+              private dialogService: DialogService,
               private messageCenter: MessageCenterService,
+              private titleService: Title,
               private userService: UserService) {}
 
   ngOnInit() {
@@ -47,6 +55,15 @@ export class AppHeaderComponent implements OnInit {
     this.messageTip$ = this.messageCount$.pipe(
       map(value => `${value > 0 ? value : 'No'} ${value === 1 ? 'message' : 'messages'} waiting`)
     );
+    this.isOnline$ = this.appStateService.networkIsOnline$;
+    this.titleSub = this.appStateService.networkIsOnline$.pipe(
+      takeUntil(this.destroyed$),
+      map(isOnline => isOnline ? 'imPower' : 'imPower (Offline)')
+    ).subscribe(newTitle => this.titleService.setTitle(newTitle));
+  }
+
+  public ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
   showMessageCenter(severity?: MessageCenterData['severity']) : void {

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { disjointSets, distinctUntilFieldsChanged, isEmpty, isNotNil } from '@val/common';
+import { distinctUntilFieldsChanged, isEmpty, isNotNil, KeyedSet } from '@val/common';
 import { MessageBoxService, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -27,9 +27,13 @@ import { ExportFormats, ExportGeoGridComponent } from '../../dialogs/export-geo-
 import { GeoListComponent } from './geo-list/geo-list.component';
 
 function AudienceDistinctComparison(a: Audience[], b: Audience[]) : boolean {
-  const aPks = new Set(a.map(x => `${x.audienceIdentifier}-${x.sortOrder}`));
-  const bPks = new Set(b.map(x => `${x.audienceIdentifier}-${x.sortOrder}`));
-  return disjointSets(aPks, bPks).size === 0;
+  let aFoundCount = 0;
+  const setA = new KeyedSet(x => `${x.audienceIdentifier}-${x.sortOrder}`, a);
+  for (const aud of b) {
+    if (setA.has(aud)) aFoundCount++;
+    if (!setA.has(aud)) return false; // new Item in B - audiences have changed
+  }
+  return aFoundCount === a.length; // if I found everything in A, then nothing's changed, returns true
 }
 
 @Component({
@@ -216,7 +220,7 @@ export class GeoListContainerComponent implements OnInit, AfterViewInit, OnDestr
     ).subscribe(project => this.sendMessage({ gridData: { project }}));
 
     combineLatest([this.appStateService.allClientLocations$, this.impTradeAreaService.storeObservable, this.impGeofootprintGeoService.storeObservable]).pipe(
-      filter(([l, t, g]) => (l.length > 0 && t.length > 0 && g.length > 0) || (l.length === 0 && t.length === 0 && g.length === 0)),
+      // filter(([l, t, g]) => (l.length > 0 && t.length > 0 && g.length > 0) || (l.length === 0 && t.length === 0 && g.length === 0)),
       takeUntil(this.destroyed$)
     ).subscribe(([locations, tradeAreas, geos]) => {
       this.impGeofootprintGeoService.calculateGeoRanks();

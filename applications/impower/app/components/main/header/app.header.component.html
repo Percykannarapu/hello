@@ -23,6 +23,14 @@
       <button type="button" pButton class="p-ml-2 p-button-rounded p-button-text val-content-button" (click)="showHelp()" pTooltip="Show Help">
         <i class="pi pi-question-circle val-large-icon"></i>
       </button>
+      <ng-container *ngIf="isOnline$ | async; then online else offline"></ng-container>
+      <ng-template #online>
+        <i class="pi pi-wifi val-large-icon" pTooltip="imPower is Online"></i>
+      </ng-template>
+      <ng-template #offline>
+        <i class="pi pi-wifi val-large-icon" pTooltip="imPower is Offline"></i>
+        <i class="pi pi-times-circle" style="margin-left: -11px; margin-bottom: -15px;"></i>
+      </ng-template>
       <span class="p-pl-2" *ngIf="username">Welcome, {{username}}</span>
     </div>
   </div>

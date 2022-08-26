@@ -6,7 +6,8 @@ import {
   isNil,
   isNotNil,
   isString,
-  mapByExtended, SortCallback,
+  mapByExtended,
+  SortCallback,
   toNullOrNumber,
   toNullOrString
 } from '@val/common';
@@ -205,7 +206,7 @@ export class GeoGridState {
       currentActiveGeoCount: 0,
       activeGeoCount: 0,
       locationCount: (this.currentDataState.locations ?? []).length,
-      activeLocationCount: (this.currentDataState.locations ?? []).filter(l => l.isActive).length,
+      activeLocationCount: activeLocationIds.size,
       columnStats: {}
     };
     this.metaData = {

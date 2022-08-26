@@ -13,6 +13,7 @@ import {
 import { AppConfig } from '../app.config';
 import { AnalysisLevel } from '../common/models/ui-enums';
 import * as ValSort from '../common/valassis-sorters';
+import * as fromAppStateSelectors from '../impower-datastore/state/application-state/application-state.selectors';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMetricVarEntities } from '../impower-datastore/state/transient/metric-vars/metric-vars.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
@@ -42,6 +43,7 @@ export class AppStateService {
 
   private mapIsReady = new Subject<void>();
   public applicationIsReady$ = new BehaviorSubject<boolean>(false);
+  public networkIsOnline$: CachedObservable<boolean> = new BehaviorSubject<boolean>(true);
 
   private closeOverlayPanel = new Subject<string>();
   public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();
@@ -144,6 +146,8 @@ export class AppStateService {
       map(([project, layers]) => project && layers),
       distinctUntilChanged()
     ).subscribe(this.applicationIsReady$);
+
+    this.store$.select(fromAppStateSelectors.networkIsOnline).subscribe(this.networkIsOnline$ as BehaviorSubject<boolean>);
   }
 
   private setupProjectObservables() : void {

@@ -6,7 +6,9 @@ const getEsriInitState = createSelector(getEsriState, state => state.init);
 const getEsriMapState = createSelector(getEsriState, state => state.map);
 
 const getEsriInitialized = createSelector(getEsriInitState, state => state.isInitialized);
-const getEsriFeatureReady = createSelector(getEsriInitState, (auth) => auth.isAuthenticated);
+const getEsriFeatureReady = createSelector(getEsriInitState, state => state.isAuthenticated);
+const getNetworkOnline = createSelector(getEsriInitState, state => state.isOnline);
+const getEsriToken = createSelector(getEsriInitState, state => state.tokenResponse)
 
 const getEsriViewpointState = createSelector(getEsriMapState, state => state.mapViewpoint);
 const getEsriLabelConfiguration = createSelector(getEsriMapState, state => state.labelConfiguration);
@@ -40,5 +42,7 @@ export const internalSelectors = {
   getEsriLayerLabelExpressions,
   getEsriSelectedFeatures,
   getEsriSelectedFeaturesToggle,
-  getEsriSelectedFeaturesSelect
+  getEsriSelectedFeaturesSelect,
+  getNetworkOnline,
+  getEsriToken
 };

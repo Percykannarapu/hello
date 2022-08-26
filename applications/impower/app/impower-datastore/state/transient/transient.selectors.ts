@@ -1,6 +1,5 @@
 import { Dictionary } from '@ngrx/entity';
 import { createSelector } from '@ngrx/store';
-import { isEmpty, transformEntity } from '@val/common';
 import { shadingSelectors } from '@val/esri';
 import * as fromAudienceSel from './audience/audience.selectors';
 import * as fromCustomVars from './custom-vars/custom-vars.selectors';
