@@ -145,11 +145,11 @@
                 }
               ]
             },
-            "local-fuse": {
+            "local": {
               "fileReplacements": [
                 {
                   "replace": "applications/impower/environments/environment.ts",
-                  "with": "applications/impower/environments/environment.local-fuse.ts"
+                  "with": "applications/impower/environments/environment.local.ts"
                 },
                 {
                   "replace": "applications/impower/environments/server-urls.ts",
@@ -183,6 +183,26 @@
                 {
                   "replace": "applications/impower/environments/server-urls.ts",
                   "with": "applications/impower/environments/server-urls.prod.ts"
+                }
+              ]
+            },
+            "local-print-dev": {
+              "fileReplacements": [
+                {
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.local-print-dev.ts"
+                }
+              ]
+            },
+            "local-print-prod": {
+              "fileReplacements": [
+                {
+                  "replace": "applications/impower/environments/environment.ts",
+                  "with": "applications/impower/environments/environment.prod-as-dev.ts"
+                },
+                {
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.local-print-prod.ts"
                 }
               ]
             }

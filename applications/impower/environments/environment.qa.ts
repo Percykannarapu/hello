@@ -17,7 +17,7 @@ export class EnvironmentData {
 
   public static fuseBaseUrl = serverEnv.middlewareBase;
   public static impowerBaseUrl = 'https://impowerqa.valassis.com/';
-  public static printServiceUrl = 'https://impowerpdf-dev.valassisdigital.net';
+  public static printServiceUrl = serverEnv.printBase;
 
   public static esri = {
     portalServer:  'https://impowerqa.valassis.com/',
