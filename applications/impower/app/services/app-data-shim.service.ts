@@ -200,7 +200,6 @@ export class AppDataShimService {
       bc.destinationBoundaryId = undefined;
       bc.destinationCentroidId = undefined;
       bc.destinationPOBId = undefined;
-      bc.useSimplifiedInfo = this.appConfig.isBatchMode;
       if (isNil(bc.layerKey) && isNotNil(bc['portalId'])) {
         bc.layerKey = this.appConfig.fixupPortalIdToLayerKey(bc['portalId']);
       }
