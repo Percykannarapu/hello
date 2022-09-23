@@ -48,3 +48,6 @@ Thumbs.db
 
 # Sensitive secrets
 .env
+
+#local setup
+.nvmrc

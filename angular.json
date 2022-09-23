@@ -220,8 +220,14 @@
             "production": {
               "browserTarget": "impower:build:production"
             },
-            "local-fuse": {
-              "browserTarget": "impower:build:local-fuse"
+            "local": {
+              "browserTarget": "impower:build:local"
+            },
+            "local-print-dev": {
+              "browserTarget": "impower:build:local-print-dev"
+            },
+            "local-print-prod": {
+              "browserTarget": "impower:build:local-print-prod"
             },
             "dev-server": {
               "browserTarget": "impower:build:dev-server"
