@@ -272,10 +272,11 @@ export class BoundaryRenderingService {
           customExpression: BoundaryRenderingService.getHHCLabelExpression('$feature.wrap_name', isSummer) },
         popupDefinition: {
           titleExpression: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-          useCustomPopup: true,
+          useCustomPopup: false,
           includeInvestment: false,
-          customPopupPks: [40690, 40691],
-          customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
+          popupFields: ['wrap_name', 'hhld_s', 'hhld_w'],
+          //customPopupPks: [40690, 40691],
+          // customSecondaryPopupPks: [14031, 14032, 9103, 14001, 33024, 33043, 33041, 1001, 5017, 1057, 1048, 1083, 4062, 5020, 40746]
         },
       },
       {
