@@ -1,13 +1,13 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { arrayToSet, CommonSort, filterArray, groupByExtended, isNil, isNotNil, isString, resolveFieldData } from '@val/common';
+import { arrayToSet, CommonSort, filterArray, groupByExtended, isArray, isNil, isNotNil, isString, resolveFieldData } from '@val/common';
 import { MessageBoxService } from '@val/messaging';
-import { SelectItem, SortEvent, SortMeta } from 'primeng/api';
+import { LazyLoadEvent, SelectItem, SortEvent, SortMeta } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, startWith, take, tap } from 'rxjs/operators';
-import { LocationGridColumn } from '../../../../../worker-shared/data-model/custom/grid';
+import { ActiveTypedGridColumn, LocationGridColumn, LocationGridRow } from '../../../../../worker-shared/data-model/custom/grid';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../../../common/models/val-geocoding-request.model';
 import { LocationBySiteNum } from '../../../../common/valassis-sorters';
@@ -41,11 +41,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
   @ViewChild('locGrid', { static: true }) public grid: Table;
   @ViewChild('globalSearch', { static: true }) public searchWidget: SearchInputComponent;
 
+  @Input() currentLocationsLazyRows: LocationGridRow[]= [];
   @Input() impGeofootprintLocations$: Observable<ImpGeofootprintLocation[]>;
   @Input() impGeofootprintGeos$: Observable<ImpGeofootprintGeo[]>;
 
   @Output() onToggleLocations = new EventEmitter<{sites: ImpGeofootprintLocation[], isActive: boolean}>();
   @Output() onDeleteLocations = new EventEmitter<any>();
+  @Output() onLocationGridLoad = new EventEmitter<LazyLoadEvent>();
+  @Output() onColumnSelection = new EventEmitter<{ columns: ActiveTypedGridColumn<LocationGridRow>[] }>();
   @Output() onDeleteAllLocations = new EventEmitter<string>();
   @Output() onMakeDirty = new EventEmitter<any>();
   @Output() onZoomToLocation = new EventEmitter<ImpGeofootprintLocation>();
@@ -70,49 +73,61 @@ export class LocationListComponent implements OnInit, OnDestroy {
   public flatAllSites$: Observable<FlatSite[]>;
   public flatActiveSites$: Observable<FlatSite[]>;
 
-  public columnOptions: SelectItem[] = [];
+
 
   private selectedLocationsForDelete = new Set();
   private siteCache: ImpGeofootprintLocation[] = [];
 
-  public flatSiteGridColumns: LocationGridColumn<ImpGeofootprintLocation>[] =
+  public flatSiteGridColumns: LocationGridColumn<LocationGridRow>[] = [
     // @formatter:off
-    [{field: 'locationNumber',       header: 'Number',              width: '7em',   filterType: null, sortType: 'locNum', allowAsSymbolAttribute: true },
-     {field: 'locationName',         header: 'Name',                width: '20em',  filterType: null, allowAsSymbolAttribute: true },
-     {field: 'locAddress',           header: 'Address',             width: '20em',  filterType: null },
-     {field: 'locCity',              header: 'City',                width: '10em',  filterType: 'multi' },
-     {field: 'locState',             header: 'State',               width: '5em',   filterType: 'multi' },
-     {field: 'locZip',               header: 'ZIP',                 width: '7em',   filterType: null },
-     {field: 'marketName',           header: 'Market',              width: '8em',   filterType: 'multi', allowAsSymbolAttribute: true },
-     {field: 'marketCode',           header: 'Market Code',         width: '9em',   filterType: 'multi', sortType: 'number', allowAsSymbolAttribute: true },
-     {field: 'totalHHC',             header: 'Total HHC',           width: '8em',   filterType: null, sortType: 'number' },
-     {field: 'totalAllocatedHHC',    header: 'Total Allocated HHC', width: '8em',   filterType: null, sortType: 'number' },
-     {field: 'description',          header: 'Description',         width: '10em',  filterType: null },
-     {field: 'groupName',            header: 'Group',               width: '8em',   filterType: null, allowAsSymbolAttribute: true },
-     {field: 'radius1',              header: 'Radius 1',            width: '7em',   filterType: null, sortType: 'number' },
-     {field: 'radius2',              header: 'Radius 2',            width: '7em',   filterType: null, sortType: 'number' },
-     {field: 'radius3',              header: 'Radius 3',            width: '7em',   filterType: null, sortType: 'number' },
-     {field: 'ycoord',               header: 'Latitude',            width: '8em',   filterType: null, sortType: 'number' },
-     {field: 'xcoord',               header: 'Longitude',           width: '8em',   filterType: null, sortType: 'number' },
-     {field: 'recordStatusCode',     header: 'Geocode Status',      width: '10em',  filterType: 'multi' },
-     {field: 'Home Geocode Issue',   header: 'Home Geocode Issue',  width: '5em',   filterType: null },
-     {field: 'Home Zip Code',        header: 'Home ZIP',            width: '8em',   filterType: 'multi' },
-     {field: 'Home ATZ',             header: 'Home ATZ',            width: '8em',   filterType: 'multi' },
-     {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',    width: '11em',  filterType: 'multi' },
-     {field: 'Home Carrier Route',   header: 'Home PCR',            width: '8em',   filterType: 'multi' },
-     {field: 'Home DMA',             header: 'Home DMA',            width: '8em',   filterType: 'multi' },
-     {field: 'Home DMA Name',        header: 'Home DMA Name',       width: '11em',  filterType: 'multi' },
-     {field: 'Home County',          header: 'Home County',         width: '11em',  filterType: 'multi' },
-     {field: 'geocoderMatchCode',    header: 'Match Code',          width: '5em',   filterType: 'multi' },
-     {field: 'geocoderLocationCode', header: 'Location Code',       width: '5em',   filterType: 'multi' },
-     {field: 'origAddress1',         header: 'Original Address',    width: '20em',  filterType: null },
-     {field: 'origCity',             header: 'Original City',       width: '10em',  filterType: 'multi' },
-     {field: 'origState',            header: 'Original State',      width: '5em',   filterType: 'multi' },
-     {field: 'origPostalCode',       header: 'Original ZIP',        width: '8em',   filterType: null },
+    //  { field: 'isActive',            header: null,                  width: '3rem',   filterType: 'bool',    isActive: true, unsorted: true, isStatic: true },
+     {field: 'locationNumber',       header: 'Number',              width: '7em',   filterType: null, isActive:true, sortType: 'locNum', allowAsSymbolAttribute: true },
+     {field: 'locationName',         header: 'Name',                width: '20em',  filterType: null, isActive:true, allowAsSymbolAttribute: true },
+     {field: 'locAddress',           header: 'Address',             width: '20em',  filterType: null, isActive:true },
+     {field: 'locCity',              header: 'City',                width: '10em',  filterType: 'multi', isActive:true },
+     {field: 'locState',             header: 'State',               width: '5em',   filterType: 'multi', isActive:true },
+     {field: 'locZip',               header: 'ZIP',                 width: '7em',   filterType: null, isActive:true },
+     {field: 'marketName',           header: 'Market',              width: '8em',   filterType: 'multi', isActive:true, allowAsSymbolAttribute: true },
+     {field: 'marketCode',           header: 'Market Code',         width: '9em',   filterType: 'multi', isActive:true, sortType: 'number', allowAsSymbolAttribute: true },
+     {field: 'totalHHC',             header: 'Total HHC',           width: '8em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'totalAllocatedHHC',    header: 'Total Allocated HHC', width: '8em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'description',          header: 'Description',         width: '10em',  filterType: null, isActive:true },
+     {field: 'groupName',            header: 'Group',               width: '8em',   filterType: null, isActive:true, allowAsSymbolAttribute: true },
+     {field: 'radius1',              header: 'Radius 1',            width: '7em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'radius2',              header: 'Radius 2',            width: '7em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'radius3',              header: 'Radius 3',            width: '7em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'ycoord',               header: 'Latitude',            width: '8em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'xcoord',               header: 'Longitude',           width: '8em',   filterType: null, isActive:true, sortType: 'number' },
+     {field: 'recordStatusCode',     header: 'Geocode Status',      width: '10em',  filterType: 'multi', isActive:true },
+     {field: 'Home Geocode Issue',   header: 'Home Geocode Issue',  width: '5em',   filterType: null, isActive:true },
+     {field: 'Home Zip Code',        header: 'Home ZIP',            width: '8em',   filterType: 'multi', isActive:true },
+     {field: 'Home ATZ',             header: 'Home ATZ',            width: '8em',   filterType: 'multi', isActive:true },
+     {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',    width: '11em',  filterType: 'multi', isActive:true },
+     {field: 'Home Carrier Route',   header: 'Home PCR',            width: '8em',   filterType: 'multi', isActive:true },
+     {field: 'Home DMA',             header: 'Home DMA',            width: '8em',   filterType: 'multi', isActive:true },
+     {field: 'Home DMA Name',        header: 'Home DMA Name',       width: '11em',  filterType: 'multi', isActive:true },
+     {field: 'Home County',          header: 'Home County',         width: '11em',  filterType: 'multi', isActive:true },
+     {field: 'geocoderMatchCode',    header: 'Match Code',          width: '5em',   filterType: 'multi', isActive:true },
+     {field: 'geocoderLocationCode', header: 'Location Code',       width: '5em',   filterType: 'multi', isActive:true },
+     {field: 'origAddress1',         header: 'Original Address',    width: '20em',  filterType: null, isActive:true },
+     {field: 'origCity',             header: 'Original City',       width: '10em',  filterType: 'multi', isActive:true },
+     {field: 'origState',            header: 'Original State',      width: '5em',   filterType: 'multi', isActive:true },
+     {field: 'origPostalCode',       header: 'Original ZIP',        width: '8em',   filterType: null, isActive:true },
       // @formatter:on
     ];
+
+    public multiSortMeta: SortMeta[] = [
+      { field: 'locationNumber', order: 1 },
+    ]; 
+
   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
-  public selectedColumns: LocationGridColumn<ImpGeofootprintLocation>[] = [];
+  // public selectedColumns: LocationGridColumn<LocationGridRow>[] = [];
+  public visibleColumns: LocationGridColumn<LocationGridRow>[] = [];
+  public columnOptions: SelectItem[] = [];
+  public globalFields: string[];
+
+  public isLazyLoading$ = new BehaviorSubject(false);
+  public loading$: Observable<boolean>;
 
   // Selection variables
   public  hasSelectedSites: boolean = false;
@@ -132,7 +147,6 @@ export class LocationListComponent implements OnInit, OnDestroy {
   public  isSelectedToolTip: string = this.filterAllTip;
 
   // Control table sorting
-  public  multiSortMeta: Array<SortMeta>;
 
   private destroyed$ = new Subject<void>();
 
@@ -144,15 +158,24 @@ export class LocationListComponent implements OnInit, OnDestroy {
               private impLocationService: ImpGeofootprintLocationService,
               private logger: LoggingService,
               private messageService: MessageBoxService,
-              private store$: Store<FullAppState>) {
-    for (const column of this.flatSiteGridColumns) {
-      this.columnOptions.push({ label: column.header, value: column });
-      this.selectedColumns.push(column);
-    }
+              private store$: Store<FullAppState>,
+              private cd: ChangeDetectorRef,) {
+    this.visibleColumns = Array.from(this.flatSiteGridColumns);
+    this.columnOptions = this.flatSiteGridColumns.filter(gc => !gc.isStatic).map(gc => ({ label: gc.header, value: gc }));
+    this.globalFields = this.flatSiteGridColumns.filter(gc => gc.searchable).map(gc => gc.field);
+    // for (const column of this.flatSiteGridColumns) {
+    //   this.columnOptions.push({ label: column.header, value: column });
+    //   this.selectedColumns.push(column);
+    // }
 
   }
 
   ngOnInit() {
+    this.loading$ = this.isLazyLoading$.pipe(
+      distinctUntilChanged(),
+      tap(() => this.cd.markForCheck())
+    );
+
     // deferred setup of service-related observables
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
@@ -163,7 +186,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
       this.appStateService.clearUI$.subscribe(() => this.selectedListType$.next(ImpClientLocationTypeCodes.Site));
     });
 
-    // setup local observables
+    // // setup local observables
     const locations$ = this.impGeofootprintLocations$.pipe(
       tap(locs => this.createLabelDropdown(locs ?? [])),
       tap(locs => this.siteCache = locs)
@@ -182,17 +205,27 @@ export class LocationListComponent implements OnInit, OnDestroy {
       startWith(0)
     );
 
-    // initialize grid
+    // // initialize grid
     this.grid.reset();
     this.syncHeaderFilter();
-    this.multiSortMeta = [];
-    this.multiSortMeta.push({field: 'locationNumber', order: 1});
+    
+  }
+
+  public reset() : void {
+    this.clearFilters();
+    this.visibleColumns = Array.from(this.flatSiteGridColumns.filter(fc => fc.isActive));
+    this.multiSortMeta = [
+      { field: 'locationNumber', order: 1 },
+    ];
   }
 
   public ngOnDestroy() {
     this.destroyed$.next();
   }
-
+  
+  public load(event: LazyLoadEvent) : void {
+    this.onLocationGridLoad.emit(event);
+  }
   public onSiteTypeChanged(value: string) {
     try {
       const siteTypeSelected = ImpClientLocationTypeCodes.parseAsSuccessful(value);
@@ -201,7 +234,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
     } catch {
       this.selectedListType$.next(ImpClientLocationTypeCodes.Site);
     } finally {
-      this.clearFilters(this.grid, this.searchWidget);
+      this.clearFilters();
     }
   }
 
@@ -307,8 +340,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
     this.messageService.showDeleteConfirmModal(`Do you want to delete all ${this.selectedListType$.getValue()}s?`).subscribe(result => {
       if (result) {
         this.onDeleteAllLocations.emit(this.selectedListType$.getValue());
-        this.flatSiteGridColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
-        this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
+        // this.flatSiteGridColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
+        // this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
       }
     });
   }
@@ -396,9 +429,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
           // If the column isn't already in the list, add it
           if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
           {
-            this.flatSiteGridColumns.push(column);
+            // this.flatSiteGridColumns.push(column);
             this.columnOptions.push({ label: column.header, value: column });
-            this.selectedColumns.push(column);
+            // this.selectedColumns.push(column);
           }
         }
 
@@ -496,11 +529,28 @@ export class LocationListComponent implements OnInit, OnDestroy {
                      : this.hasFilters() ? 'Select all locations in the filtered list' : 'Select all locations';
   }
 
-  clearFilters(table: Table, searchWidget?: SearchInputComponent) : void {
-    const currentSort = Array.from(this.multiSortMeta ?? []);
-    table.reset();
-    searchWidget?.reset();
-    this.multiSortMeta = currentSort;
+  clearFilters() : void {
+      this.searchWidget.reset();
+      Object.keys(this.grid.filters).forEach(fk => {
+        this.setFilterValue(null, fk);
+      });
+      this.grid._filter();
+      // this.grid.reset();
+  }
+
+  private setFilterValue(newValue: any, filterName: string, filterMatchMode?: string) {
+    const currentFilters = this.grid.filters[filterName];
+    if (isArray(currentFilters)) {
+      currentFilters.forEach(f => {
+        if (isNil(filterMatchMode) || (isNotNil(filterMatchMode) && f.matchMode === filterMatchMode)) {
+          f.value = newValue;
+        }
+      });
+    } else {
+      if (isNil(filterMatchMode) || (isNotNil(filterMatchMode) && currentFilters.matchMode === filterMatchMode)) {
+        currentFilters.value = newValue;
+      }
+    }
   }
 
   onFilter(event: any)
@@ -508,6 +558,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
     if (event != null) {
       this.syncHeaderFilter();
     }
+  }
+  onSelectColumnVisibility(column: LocationGridColumn<LocationGridRow>) {
+    column.isActive = !column.isActive;
+    this.onColumnSelection.emit({ columns: this.flatSiteGridColumns });
   }
 
   /**

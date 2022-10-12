@@ -1,9 +1,11 @@
 <val-location-list
-  [impGeofootprintLocations$]="allLocations$"
-  [impGeofootprintGeos$]="allGeos$"
+  [currentLocationsLazyRows]="workerDataResult$ | async"
+  [gridStats]="workerGridStats$ | async"
+  [multiSelectFilterValues]="workerSelectOptions$ | async"
+  (onLocationGridLoad)="onLoad($event)"
   (onToggleLocations)="onToggleLocations($event)"
   (onDeleteLocations)="onDeleteLocations($event)"
   (onDeleteAllLocations)="onDeleteAllLocations($event)"
-  (onMakeDirty)="onMakeDirty()"
   (onZoomToLocation)="onZoomToLocation($event)"
-  (editLocations)="onEditLocations($event)"></val-location-list>
+  (editLocations)="onEditLocations($event)">
+</val-location-list>

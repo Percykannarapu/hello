@@ -1,10 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isEmpty, toUniversalCoordinates } from '@val/common';
+import { isEmpty, toUniversalCoordinates, isNotNil } from '@val/common';
 import { EsriMapService } from '@val/esri';
 import { ErrorNotification, MessageBoxService, StopBusyIndicator } from '@val/messaging';
-import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { WorkerFactory } from 'app/common/worker-factory';
+import { LazyLoadEvent } from 'primeng/api';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { map, tap, shareReplay, startWith, take, takeUntil, filter, debounceTime} from 'rxjs/operators';
+import { DualObservableWorker } from 'worker-shared/common/core-interfaces';
+import { LocationGridResponse, LocationGridRow, LocationGridStats, LocGridMetaData } from 'worker-shared/data-model/custom/grid';
+import { HgcIssuesLogExportRequest, LocationGridPayload } from 'worker-shared/grid-workers/payloads';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../../common/models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
@@ -22,15 +27,33 @@ import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/servic
 import { ImpGeofootprintLocationService } from '../../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { LocationListComponent } from './location-list/location-list.component';
 
 @Component({
   selector: 'val-location-list-container',
   templateUrl: './location-list-container.component.html',
 })
 export class LocationListContainerComponent implements OnInit {
-// Data store observables
+
+  @ViewChild(LocationListComponent) locGrid: LocationListComponent;
+  
+  public workerDataResult$: Observable<LocationGridRow[]>;
+  public workerGridStats$: Observable<LocationGridStats>;
+  public workerSelectOptions$: Observable<Record<string, string[]>>;
+
+  // Data store observables
   public  allLocations$: Observable<ImpGeofootprintLocation[]>;
   public  allGeos$: Observable<ImpGeofootprintGeo[]>;
+  private destroyed$ = new Subject();
+
+  private allLocations = new Set<string>();
+  private locationCount: number = 0;
+  private requestAccumulator: LocationGridPayload;
+  private timeoutHandle: number;
+
+  private loadEvent$ = new BehaviorSubject<LazyLoadEvent>(null);
+  private workerInstance: DualObservableWorker<LocationGridPayload, LocationGridResponse, HgcIssuesLogExportRequest, string>;
+
 
   private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
   public oldData: any;
@@ -54,8 +77,20 @@ export class LocationListContainerComponent implements OnInit {
               private logger: LoggingService) {}
 
   ngOnInit() {
-    this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
-    this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+    this.setupWorker();
+    this.setupObservables();
+    // this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+    // this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+  }
+
+
+
+  ngAfterViewInit() {
+    // this.workerInstance.sendNewMessage({ gridData: { primaryColumnDefs: this.locGrid.defaultColumns }});
+  }
+
+  ngOnDestroy() {
+    this.destroyed$.next();
   }
 
   // -----------------------------------------------------------
@@ -228,6 +263,76 @@ export class LocationListContainerComponent implements OnInit {
       }*/
     }
   }
+
+  private setupObservables() : void {
+    console.log('here:: inside setupObservables()');
+    this.allLocations$  = this.impGeofootprintLocationService.storeObservable;
+    this.allGeos$ = this.impGeofootprintGeoService.storeObservable;
+    this.loadEvent$.asObservable().pipe(
+      filter(event => isNotNil(event)),
+      debounceTime(300),
+      takeUntil(this.destroyed$),
+    ).subscribe(locationGridEvent => this.sendMessage({ locationGridEvent }));
+  }
+
+  private sendMessage(payload: LocationGridPayload) {
+    const timeout = this.locationCount > 100000 ? 250 : 50;
+    if (isNotNil(this.timeoutHandle)) {
+      clearTimeout(this.timeoutHandle);
+      this.timeoutHandle = null;
+    }
+    this.requestAccumulator = {
+      locationGridData: {
+        ...(this.requestAccumulator?.locationGridData ?? {}),
+        ...(payload.locationGridData ?? {})
+      },
+      locationGridEvent: payload.locationGridEvent ?? this.requestAccumulator?.locationGridEvent
+    };
+    this.timeoutHandle = setTimeout(() => {
+      this.locGrid?.isLazyLoading$.next(true);
+      if (Object.keys(this.requestAccumulator.locationGridData).length === 0) delete this.requestAccumulator.locationGridData;
+      this.logger.debug.log('Request sent to web worker:', this.requestAccumulator);
+      this.workerInstance.sendNewMessage(this.requestAccumulator);
+      this.requestAccumulator = null;
+    }, timeout) as unknown as number;
+  }
+
+  private setupWorker() : void {
+    this.workerInstance = WorkerFactory.createLocationGridWorker();
+    const workerShare$ = this.workerInstance.start({ }).pipe(
+      map(response => response.value),
+      tap(value => this.logger.debug.log('Web worker returned result', value)),
+      shareReplay()
+    );
+    this.workerDataResult$ = workerShare$.pipe(
+      map(response => response.rows),
+      filter(isNotNil),
+      startWith([]),
+      tap(() => this.locGrid?.isLazyLoading$.next(false))
+    );
+    this.workerGridStats$ = workerShare$.pipe(
+      map(response => response.stats),
+      filter(isNotNil),
+      startWith({ locationCount: 0, activeLocationCount: 0, columnStats: {} }),
+      tap(() => this.locGrid?.isLazyLoading$.next(false))
+    );
+
+    this.workerSelectOptions$ = workerShare$.pipe(
+      map(response => response.multiSelectOptions),
+      filter(isNotNil),
+      startWith({}),
+      tap(() => this.locGrid?.isLazyLoading$.next(false))
+    );
+    workerShare$.pipe(
+      map(response => response.metadata),
+      filter(isNotNil),
+      startWith({} as LocGridMetaData),
+      takeUntil(this.destroyed$)
+    ).subscribe(metadata => {
+      this.allLocations = new Set(metadata?.allFilteredSites ?? []);
+    });
+  }
+
 
   private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {
     delete siteOrSites['Home Zip Code'];

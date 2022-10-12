@@ -4,9 +4,8 @@
   </p-message>
   <div id="locGrid">
     <p-table #locGrid
-             [columns]="flatSiteGridColumns"
-             [value]="flatAllSites$ | async"
-             [selection]="flatActiveSites$ | async"
+             [columns]="currentLocationsLazyRows"
+             [value]="visibleColumns"
              dataKey="fgId"
              [rowTrackBy]="trackByFgId"
              [resizableColumns]="true" columnResizeMode="expand"
@@ -14,10 +13,10 @@
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
              [customSort]="true" (sortFunction)="customSort($event)"
              [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20]"
-             [alwaysShowPaginator]="false"
-             (onRowUnselect)="onRowSelect($event, false)"
-             (onRowSelect)="onRowSelect($event, true)"
-             (onFilter)="onFilter($event)">
+             [lazy]="true" [lazyLoadOnInit]="true"
+             [loading]="loading$ | async"
+             (onLazyLoad)="load($event)" [filterDelay]="0">
+>
 
       <ng-template pTemplate="caption">
         <div class="p-d-flex p-jc-center">
@@ -40,7 +39,7 @@
             <label>{{allSiteCount$ | async}} {{selectedListType$ | async}}s ({{activeSiteCount$ | async}} active)</label>
           </div>
           <div class="p-d-flex p-jc-end val-flex-1">
-            <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
+            <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="visibleColumns" (itemToggled)="onSelectColumnVisibility($event)"></p-multiSelect>
           </div>
         </div>
       </ng-template>
@@ -51,7 +50,7 @@
           <col class="static-column">
           <col class="static-column">
           <col class="static-column">
-          <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+          <col *ngFor="let col of visibleColumns" [style.width]="col.width">
         </colgroup>
       </ng-template>
 
@@ -63,7 +62,7 @@
           <th>Edit</th>
           <th>Delete</th>
           <th>Zoom</th>
-          <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn pSortableColumn="{{col.field}}" [title]="col.header">
+          <th *ngFor="let col of visibleColumns" pResizableColumn pReorderableColumn pSortableColumn="{{col.field}}" [title]="col.header">
             <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
               <div class="p-text-truncate">
                 {{col.header}}
@@ -85,7 +84,7 @@
           <th>
             &nbsp;
           </th>
-          <th *ngFor="let col of selectedColumns" [ngSwitch]="col.filterType">
+          <th *ngFor="let col of visibleColumns" [ngSwitch]="col.filterType">
             <p-columnFilter *ngSwitchCase="'multi'" matchMode="in" field="{{col.field}}" [showMenu]="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                 <p-multiSelect [options]="createMultiOptionList(col.field) | async" [ngModel]="value" (ngModelChange)="filter($event)" appendTo="body"></p-multiSelect>
@@ -115,7 +114,7 @@
             <button pButton icon="pi pi-search" class="p-button-text p-button-rounded" (click)="onRowZoom(flatLoc.loc)"></button>
           </td>
 
-          <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+          <td *ngFor="let col of visibleColumns" [ngSwitch]="col.field">
             <!-- Format various columns -->
             <div *ngSwitchCase = "'totalHHC'" class="p-text-truncate" [title]="flatLoc[col.field] | number:'1.0-0'">
               {{flatLoc[col.field] | number:'1.0-0'}}

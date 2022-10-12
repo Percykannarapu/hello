@@ -1,4 +1,4 @@
-import { ActiveTypedGridColumn, GeoGridRow, TypedGridColumn } from '../data-model/custom/grid';
+import { ActiveTypedGridColumn, GeoGridRow, TypedGridColumn, LocationGridRow} from '../data-model/custom/grid';
 import { WorkerAudience } from '../data-model/custom/worker-audience';
 import { ImpGeofootprintGeoPayload } from '../data-model/payloads/imp-geofootprint-geo-payload';
 import { ImpGeofootprintLocationPayload } from '../data-model/payloads/imp-geofootprint-location-payload';
@@ -16,6 +16,11 @@ export interface GeoVar {
   [name: string] : string | number;  // may have additional properties
 }
 
+export interface LocationAttribute {
+  geocode: string;
+
+  [name: string] : string | number | boolean;
+}
 export interface FilterInfo {
   value?: any;
   matchMode?: string;
@@ -49,6 +54,22 @@ export interface GeoGridPayload {
 }
 
 export interface GeoGridExportRequest {
+  activeOnly: boolean;
+  respectFilters: boolean;
+}
+
+export interface WorkerLocationGridData {
+  locations?: ReadonlyArray<ImpGeofootprintLocationPayload>;
+  locationAttributes?: Record<string, GeoAttribute>;
+  primaryColumnDefs?: ActiveTypedGridColumn<LocationGridRow>[];
+}
+
+export interface LocationGridPayload {
+  locationGridData?: WorkerLocationGridData;
+  locationGridEvent?: WorkerGridEvent;
+}
+
+export interface HgcIssuesLogExportRequest {
   activeOnly: boolean;
   respectFilters: boolean;
 }

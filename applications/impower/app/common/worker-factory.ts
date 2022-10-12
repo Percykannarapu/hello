@@ -3,12 +3,12 @@ import { DualObservableWorker, ObservableWorker } from '../../worker-shared/comm
 import { DualObservableWebWorker } from '../../worker-shared/common/dual-observable-worker.impl';
 import { ObservableWebWorker } from '../../worker-shared/common/observable-worker.impl';
 import { ObservableWorkerFallback } from '../../worker-shared/common/worker-fallback.impl';
-import { GeoGridResponse } from '../../worker-shared/data-model/custom/grid';
+import { GeoGridResponse, LocationGridResponse } from '../../worker-shared/data-model/custom/grid';
 import { exportGeoFootprint } from '../../worker-shared/export-workers/geofootprint-export.state';
 import { exportLocations } from '../../worker-shared/export-workers/location-export.state';
 import { GeoFootprintExportWorkerPayload, LocationExportWorkerPayload } from '../../worker-shared/export-workers/payloads';
 import { requestGridRows } from '../../worker-shared/grid-workers/geo-grid.state';
-import { GeoGridExportRequest, GeoGridPayload } from '../../worker-shared/grid-workers/payloads';
+import { GeoGridExportRequest, GeoGridPayload, HgcIssuesLogExportRequest, LocationGridPayload } from '../../worker-shared/grid-workers/payloads';
 import { requestTreeNodes } from '../../worker-shared/treeview-workers/offline-treeview.state';
 import {
   requestInMarketTreeNodes,
@@ -99,6 +99,18 @@ export class WorkerFactory {
     if (this.browserCheck()) {
       const workerInstance = new Worker('workers/geo-grid.worker', {type: 'module', name: 'geo-grid'});
       return new DualObservableWebWorker<GeoGridPayload, GeoGridResponse, GeoGridExportRequest, string>(workerInstance, workerId);
+    } else {
+      return null;
+      //return new ObservableWorkerFallback(requestGridRows, false, workerId);
+    }
+  }
+
+
+  public static createLocationGridWorker() : DualObservableWorker<LocationGridPayload, LocationGridResponse, HgcIssuesLogExportRequest, string> {
+    const workerId = getUuid();
+    if (this.browserCheck()) {
+      const workerInstance = new Worker('workers/geo-grid.worker', {type: 'module', name: 'geo-grid'});
+      return new DualObservableWebWorker<LocationGridPayload, LocationGridResponse, HgcIssuesLogExportRequest, string>(workerInstance, workerId);
     } else {
       return null;
       //return new ObservableWorkerFallback(requestGridRows, false, workerId);

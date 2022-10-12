@@ -41,6 +41,7 @@ export interface TypedGridColumn<T> extends BaseGridColumn {
 
 export interface LocationGridColumn<T> extends TypedGridColumn<T> {
   allowAsSymbolAttribute?: boolean;
+  isActive: boolean;
 }
 
 export interface ActiveTypedGridColumn<T> extends TypedGridColumn<T> {
@@ -76,7 +77,6 @@ export interface GeoGridStats {
 export interface GeoGridRow {
   ggId: number;
   siteCount: number;
-
   isActive: boolean;
   locationNumber: string;
   locationName: string;
@@ -105,10 +105,66 @@ export interface GeoGridRow {
   audienceData: Record<number, any>;
 }
 
+export interface LocationGridStats {
+  locationCount: number;
+  activeLocationCount: number;
+  columnStats: Record<string, GeoGridColumnsStats>;
+}
+
+
 export interface GeoGridResponse {
   additionalAudienceColumns: ActiveTypedGridColumn<GeoGridRow>[];
   rows: GeoGridRow[];
   stats: GeoGridStats;
   metadata: GeoGridMetaData;
+  multiSelectOptions: Record<string, string[]>;
+}
+
+export interface LocationGridRow {
+     glId: number;
+     isActive: boolean;
+     locationNumber: string;
+     locationName: string;
+     locAddress: string;
+     locCity: string;
+     locState: string;
+     locZip: string;
+     marketName: string;
+     marketCode: string;
+     totalHHC: number;
+     totalAllocatedHHC: number;
+     description: string;
+     groupName: string;
+     radius1: number;
+     radius2: number;
+     radius3: number;
+     ycoord: number;
+     xcoord: number;
+     recordStatusCode: string;
+     homeGeocodeIssue: string;
+     homeZip: string;
+     homeAtz: string;
+     homeDigitalAtz: string;
+     homePcr: string;
+     homeDmaCode: string;
+     homeDmaName: string;
+     homeCounty: string;
+     geocoderMatchCode: string;
+     geocoderLocationCode: string;
+     origAddress1: string;
+     origCity: string;
+     origState: string;
+     origPostalCode: string;
+}
+
+export interface LocGridMetaData {
+  allFilteredSites: string[];
+  allFilteredGeos: string[];
+}
+
+export interface LocationGridResponse {
+  rows: LocationGridRow[];
+  stats: LocationGridStats;
+  metadata: LocGridMetaData;
   multiSelectOptions: Record<string, string[]>;
 }
