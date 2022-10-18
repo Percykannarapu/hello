@@ -31,6 +31,7 @@ import {
   getColorPalette,
   getFillPalette,
   isComplexShadingDefinition,
+  LayerKeys,
   LayerTypes,
   nationalShadingSelectors,
   RampProperties,
@@ -50,6 +51,7 @@ import { allAudiences } from '../impower-datastore/state/transient/audience/audi
 import { allCustomVarEntities } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { AppStateService } from './app-state.service';
+import { BoundaryRenderingService } from './boundary-rendering.service';
 
 @Injectable({
   providedIn: 'root'
@@ -61,6 +63,7 @@ export class NationalMapService {
 
   constructor(private appStateService: AppStateService,
               private audienceFetch: AudienceFetchService,
+              private boundaryRenderingService: BoundaryRenderingService,
               private esriService: EsriConfigService,
               private layerService: EsriLayerService,
               private queryService: EsriQueryService,
@@ -146,7 +149,14 @@ export class NationalMapService {
       defs.forEach(d => {
         this.layerStats.delete(d.destinationLayerUniqueId);
         layerIds.push(d.destinationLayerUniqueId);
-        updates.push({ id: d.id, changes: { destinationLayerUniqueId: null }});
+        const layerKey = LayerKeys.parse(newAnalysisLevel);
+        const layerData = this.boundaryRenderingService.getLayerSetupInfo(layerKey);
+        updates.push({ id: d.id, changes: {
+            layerKey,
+            minScale: layerData.batchMinScale,
+            destinationLayerUniqueId: null,
+          }
+        });
       });
       if (!isEmpty(layerIds)) this.shaderService.deleteRenderingLayers(layerIds);
       if (newAnalysisLevel === AnalysisLevel.DTZ || newAnalysisLevel === AnalysisLevel.PCR) {
