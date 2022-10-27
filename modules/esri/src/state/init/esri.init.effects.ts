@@ -52,7 +52,7 @@ export class EsriInitEffects implements OnInitEffects {
   authFailure$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(fromInitActions.authenticateFailure, fromInitActions.refreshFailure),
-      tap(action => this.logger.error.log('There was an error authenticating or refreshing the Esri Api token', action.errorResponse)),
+      tap(action => this.logger.error.log('There was an error authenticating or refreshing the Esri Api token', action.errorResponse.details?.raw + " " +action.errorResponse.details?.url)),
       tap(action => displayInitializationError(JSON.stringify(action.errorResponse)))
     );
   }, { dispatch: false });

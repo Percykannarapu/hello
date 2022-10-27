@@ -19,5 +19,5 @@ platformBrowserDynamic()
         message = message + ': ' + err;
       }
     }
-    errorMsgElement.textContent = message;
+    errorMsgElement.textContent = 'Application initialization failed';
   });
