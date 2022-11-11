@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
 import { CommonSort, filterArray, groupBy, isEmpty, isNil, isNotNil, KeyedSet, mapArray, mapByExtended } from '@val/common';
-import { EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
+import { EsriBoundaryService, EsriMapService, EsriService, InitialEsriState, LayerKeys } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import * as FromMetricVarActions from 'app/impower-datastore/state/transient/metric-vars/metric-vars.action';
@@ -202,6 +202,9 @@ export class AppDataShimService {
       bc.destinationPOBId = undefined;
       if (isNil(bc.layerKey) && isNotNil(bc['portalId'])) {
         bc.layerKey = this.appConfig.fixupPortalIdToLayerKey(bc['portalId']);
+      }
+      if (bc.layerKey === LayerKeys.DTZ || bc.layerKey === LayerKeys.PCR) {
+        bc.useSimplifiedInfo = this.appConfig.isBatchMode;
       }
       bc.labelDefinition.forceLabelsVisible = bc.labelDefinition?.forceLabelsVisible ?? false;
       if (isNotNil(bc.hhcLabelDefinition)) {
