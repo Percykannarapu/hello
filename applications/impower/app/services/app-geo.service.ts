@@ -469,12 +469,11 @@ export class AppGeoService {
   }
 
   /**
-   * Will check a list of geos against the must cover geographies.  When geographies from the
-   * must cover list are not in the provided geos parameter, they will be created and assigned
+   * Will check a list of geos against the must-cover geographies.  When geographies from the
+   * must cover list are not in the provided geo's parameter, they will be created and assigned
    * to the closest location.  If that location does not yet have a Must Cover trade area, one will
    * be created.
    * The observable will return an array of ImpGeofootprintGeos.
-   *
    */
   private ensureMustCoversObs() : Observable<ImpGeofootprintGeo[]> {
     if (this.processingMustCovers)
@@ -486,22 +485,23 @@ export class AppGeoService {
     const mustCoverSet = arrayToSet(this.impGeoService.mustCovers);
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site);
     const tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
+    const geosToDelete: ImpGeofootprintGeo[] = [];
     tradeAreasToDelete.forEach(ta => {
       ta.impGeofootprintGeos.forEach(mcg => {
         uniqueGeos.delete(mcg.geocode);
         activeUniqueGeos.delete(mcg.geocode);
       });
-      this.impGeoService.remove(ta.impGeofootprintGeos);
+      geosToDelete.push(...ta.impGeofootprintGeos);
       const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
       ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
       ta.impGeofootprintLocation = null;
     });
     this.tradeAreaService.remove(tradeAreasToDelete, InTransaction.silent);
-
+    this.impGeoService.remove(geosToDelete);
     // Determine which must covers are not in the list of geos
     const diff = this.impGeoService.mustCovers.filter(x => !uniqueGeos.has(x));
 
-    // ensure mustcover are active
+    // ensure must-cover are active
     this.impGeoService.get().forEach(geo => {
       if (mustCoverSet.has(geo.geocode) && !activeUniqueGeos.has(geo.geocode)) {
         geo.isActive = true;
