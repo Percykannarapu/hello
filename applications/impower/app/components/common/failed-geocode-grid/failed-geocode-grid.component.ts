@@ -148,7 +148,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   setCoordinates(event: any, site: ImpGeofootprintLocation) : void {
     const enteredValue = event.target.value as string;
     if (enteredValue == null || enteredValue.length === 0) {
-      site.recordStatusCode = '';
+      site.recordStatusCode = 'ERROR';
       site.geocoderMatchCode = '';
       site.geocoderLocationCode = '';
       site.xcoord = null;

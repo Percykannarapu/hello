@@ -139,6 +139,8 @@ export class LocationListContainerComponent implements OnInit {
     editedLocation.locationName = siteOrSites['name'];
     editedLocation.marketName = siteOrSites['Market'];
     editedLocation.marketCode = siteOrSites['Market Code'];
+    editedLocation.groupName = siteOrSites['groupName'];
+    editedLocation.description = siteOrSites['description'];
     this.impGeofootprintLocationService.update(oldData, editedLocation);
 
     // this radius editing stuff has a bit of work to go before it's ready for use

@@ -254,6 +254,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
       locZip: row.locZip,
       marketName: row.marketName,
       marketCode: row.marketCode,
+      groupName: row.groupName,
+      description: row.description,
       coord: row.ycoord + ',' + row.xcoord,
       homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0]?.attributeValue ?? '',
       homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0]?.attributeValue ?? '',

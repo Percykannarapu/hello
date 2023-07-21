@@ -8,7 +8,7 @@ export function setupEsriConfig(options: EsriConfigOptions) : void {
 
 export function displayInitializationError(err: any) : void {
   const errorMsgElement = document.querySelector('#errorMsgElement');
-  let message = 'Application initialization failed';
+  let message = 'ArcGIS initialization failed';
   if (err) {
     if (err.message) {
       message = message + ': ' + err.message;
@@ -16,5 +16,5 @@ export function displayInitializationError(err: any) : void {
       message = message + ': ' + err;
     }
   }
-  errorMsgElement.textContent = message;
+  errorMsgElement.textContent = 'ArcGIS initialization failed';
 }
